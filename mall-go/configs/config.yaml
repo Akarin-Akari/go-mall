@@ -1,0 +1,37 @@
+server:
+  port: 8080
+  mode: debug
+
+database:
+  driver: mysql
+  host: localhost
+  port: 3306
+  username: root
+  password: 123456
+  dbname: mall_go
+  charset: utf8mb4
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "your-secret-key-change-in-production"
+  expire: "24h"
+
+# 日志配置
+log:
+  level: info
+  format: json
+  output: stdout
+
+# 文件上传配置
+upload:
+  max_size: 10MB
+  allowed_types:
+    - image/jpeg
+    - image/png
+    - image/gif
+  upload_path: "./uploads"
