@@ -3,136 +3,233 @@ package auth
 import (
 	"errors"
 	"regexp"
+	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-// 密码相关常量
+// 密码复杂度要求
 const (
-	// bcrypt 加密成本，推荐值为 12
-	DefaultCost = 12
-	// 密码最小长度
 	MinPasswordLength = 8
-	// 密码最大长度
 	MaxPasswordLength = 128
+	DefaultCost       = 12 // bcrypt cost
 )
 
-// 密码强度验证规则
-var (
-	// 至少包含一个小写字母
-	hasLowerCase = regexp.MustCompile(`[a-z]`)
-	// 至少包含一个大写字母
-	hasUpperCase = regexp.MustCompile(`[A-Z]`)
-	// 至少包含一个数字
-	hasNumber = regexp.MustCompile(`\d`)
-	// 至少包含一个特殊字符
-	hasSpecialChar = regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` + "`" + `]`)
+// PasswordStrength 密码强度枚举
+type PasswordStrength int
+
+const (
+	PasswordWeak PasswordStrength = iota
+	PasswordMedium
+	PasswordStrong
+	PasswordVeryStrong
 )
 
-// PasswordError 密码相关错误
-type PasswordError struct {
-	Message string
-}
-
-func (e *PasswordError) Error() string {
-	return e.Message
-}
-
-// 预定义错误
-var (
-	ErrPasswordTooShort    = &PasswordError{"密码长度不能少于8位"}
-	ErrPasswordTooLong     = &PasswordError{"密码长度不能超过128位"}
-	ErrPasswordTooWeak     = &PasswordError{"密码强度不够，需要包含大小写字母、数字和特殊字符"}
-	ErrPasswordHashFailed  = &PasswordError{"密码加密失败"}
-	ErrPasswordVerifyFailed = &PasswordError{"密码验证失败"}
-)
-
-// ValidatePasswordStrength 验证密码强度
-// 要求：8-128位，包含大小写字母、数字和特殊字符
-func ValidatePasswordStrength(password string) error {
-	// 检查长度
-	if len(password) < MinPasswordLength {
-		return ErrPasswordTooShort
-	}
-	if len(password) > MaxPasswordLength {
-		return ErrPasswordTooLong
-	}
-
-	// 检查复杂度
-	checks := []struct {
-		regex *regexp.Regexp
-		desc  string
-	}{
-		{hasLowerCase, "小写字母"},
-		{hasUpperCase, "大写字母"},
-		{hasNumber, "数字"},
-		{hasSpecialChar, "特殊字符"},
-	}
-
-	for _, check := range checks {
-		if !check.regex.MatchString(password) {
-			return ErrPasswordTooWeak
-		}
-	}
-
-	return nil
-}
-
-// HashPassword 使用 bcrypt 加密密码
+// HashPassword 加密密码
 func HashPassword(password string) (string, error) {
-	// 先验证密码强度
-	if err := ValidatePasswordStrength(password); err != nil {
+	if password == "" {
+		return "", errors.New("密码不能为空")
+	}
+
+	// 使用bcrypt加密密码
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), DefaultCost)
+	if err != nil {
 		return "", err
 	}
 
-	// 生成密码哈希
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), DefaultCost)
-	if err != nil {
-		return "", ErrPasswordHashFailed
-	}
-
-	return string(hash), nil
+	return string(hashedBytes), nil
 }
 
-// VerifyPassword 验证密码是否正确
-func VerifyPassword(hashedPassword, password string) error {
+// IsPasswordValid 验证密码是否正确
+func IsPasswordValid(hashedPassword, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return ErrPasswordVerifyFailed
-		}
-		return err
+	return err == nil
+}
+
+// ValidatePasswordStrength 验证密码强度
+func ValidatePasswordStrength(password string) error {
+	if len(password) < MinPasswordLength {
+		return errors.New("密码长度至少8位")
 	}
+
+	if len(password) > MaxPasswordLength {
+		return errors.New("密码长度不能超过128位")
+	}
+
+	// 检查密码复杂度
+	strength := GetPasswordStrength(password)
+	if strength == PasswordWeak {
+		return errors.New("密码强度太弱，请包含大小写字母、数字和特殊字符")
+	}
+
 	return nil
 }
 
-// IsPasswordValid 检查密码是否有效（不验证强度，仅用于登录）
-func IsPasswordValid(hashedPassword, password string) bool {
-	return VerifyPassword(hashedPassword, password) == nil
+// GetPasswordStrength 获取密码强度
+func GetPasswordStrength(password string) PasswordStrength {
+	var (
+		hasLower   = false
+		hasUpper   = false
+		hasNumber  = false
+		hasSpecial = false
+		length     = len(password)
+	)
+
+	// 检查字符类型
+	for _, char := range password {
+		switch {
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsNumber(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+
+	// 计算强度分数
+	score := 0
+	if hasLower {
+		score++
+	}
+	if hasUpper {
+		score++
+	}
+	if hasNumber {
+		score++
+	}
+	if hasSpecial {
+		score++
+	}
+
+	// 长度加分
+	if length >= 12 {
+		score++
+	}
+
+	// 根据分数返回强度
+	switch {
+	case score <= 2:
+		return PasswordWeak
+	case score == 3:
+		return PasswordMedium
+	case score == 4:
+		return PasswordStrong
+	default:
+		return PasswordVeryStrong
+	}
 }
 
-// TODO: 以下功能在MVP阶段暂不需要，遵循YAGNI原则
-// 如果将来需要密码强度评分或随机密码生成，可以再添加
+// IsCommonPassword 检查是否为常见密码
+func IsCommonPassword(password string) bool {
+	// 常见弱密码列表
+	commonPasswords := []string{
+		"password", "123456", "123456789", "12345678", "12345",
+		"1234567", "admin", "qwerty", "abc123", "password123",
+		"admin123", "root", "user", "test", "guest",
+	}
 
-/*
-// GenerateRandomPassword 生成随机密码（用于重置密码等场景）
-// 当前MVP阶段不需要此功能
-func GenerateRandomPassword(length int) (string, error) {
-	// 实现留待将来需要时添加
-	return "", errors.New("功能暂未实现")
+	for _, common := range commonPasswords {
+		if password == common {
+			return true
+		}
+	}
+
+	return false
 }
 
-// PasswordStrengthScore 计算密码强度分数 (0-100)
-// 当前MVP阶段不需要此功能
-func PasswordStrengthScore(password string) int {
-	// 实现留待将来需要时添加
-	return 0
+// ValidatePasswordPolicy 验证密码策略
+func ValidatePasswordPolicy(password string) error {
+	// 基本长度检查
+	if len(password) < MinPasswordLength {
+		return errors.New("密码长度至少8位")
+	}
+
+	if len(password) > MaxPasswordLength {
+		return errors.New("密码长度不能超过128位")
+	}
+
+	// 检查是否为常见密码
+	if IsCommonPassword(password) {
+		return errors.New("不能使用常见密码")
+	}
+
+	// 检查是否包含空格
+	if regexp.MustCompile(`\s`).MatchString(password) {
+		return errors.New("密码不能包含空格")
+	}
+
+	// 检查字符类型要求
+	var (
+		hasLower   = regexp.MustCompile(`[a-z]`).MatchString(password)
+		hasUpper   = regexp.MustCompile(`[A-Z]`).MatchString(password)
+		hasNumber  = regexp.MustCompile(`[0-9]`).MatchString(password)
+		hasSpecial = regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(password)
+	)
+
+	if !hasLower {
+		return errors.New("密码必须包含小写字母")
+	}
+
+	if !hasUpper {
+		return errors.New("密码必须包含大写字母")
+	}
+
+	if !hasNumber {
+		return errors.New("密码必须包含数字")
+	}
+
+	if !hasSpecial {
+		return errors.New("密码必须包含特殊字符")
+	}
+
+	return nil
 }
 
-// GetPasswordStrengthLevel 获取密码强度等级
-// 当前MVP阶段不需要此功能
-func GetPasswordStrengthLevel(password string) string {
-	// 实现留待将来需要时添加
-	return "未知"
+// GenerateRandomPassword 生成随机密码
+func GenerateRandomPassword(length int) string {
+	if length < MinPasswordLength {
+		length = MinPasswordLength
+	}
+
+	// 字符集
+	const (
+		lowerChars   = "abcdefghijklmnopqrstuvwxyz"
+		upperChars   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		numberChars  = "0123456789"
+		specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+	)
+
+	// 确保包含各种字符类型
+	password := ""
+	password += string(lowerChars[0])   // 至少一个小写字母
+	password += string(upperChars[0])   // 至少一个大写字母
+	password += string(numberChars[0])  // 至少一个数字
+	password += string(specialChars[0]) // 至少一个特殊字符
+
+	// 填充剩余长度
+	allChars := lowerChars + upperChars + numberChars + specialChars
+	for i := 4; i < length; i++ {
+		password += string(allChars[i%len(allChars)])
+	}
+
+	return password
 }
-*/
+
+// PasswordStrengthText 获取密码强度文本描述
+func PasswordStrengthText(strength PasswordStrength) string {
+	switch strength {
+	case PasswordWeak:
+		return "弱"
+	case PasswordMedium:
+		return "中等"
+	case PasswordStrong:
+		return "强"
+	case PasswordVeryStrong:
+		return "很强"
+	default:
+		return "未知"
+	}
+}

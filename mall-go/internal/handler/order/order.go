@@ -2,14 +2,15 @@ package order
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-	"time"
 	"mall-go/internal/model"
 	"mall-go/pkg/logger"
+	"mall-go/pkg/response"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -37,9 +38,7 @@ func NewHandler(db *gorm.DB) *Handler {
 func (h *Handler) List(c *gin.Context) {
 	var req model.OrderListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
@@ -70,22 +69,12 @@ func (h *Handler) List(c *gin.Context) {
 	var orders []model.Order
 	offset := (req.Page - 1) * req.PageSize
 	if err := query.Offset(offset).Limit(req.PageSize).Order("created_at DESC").Find(&orders).Error; err != nil {
-		logger.Error("查询订单列表失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询订单列表失败",
-		})
+		logger.Error("查询订单列表失败", zap.Error(err))
+		response.ServerError(c, "查询订单列表失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": orders,
-		"pagination": gin.H{
-			"page":       req.Page,
-			"page_size":  req.PageSize,
-			"total":      total,
-			"total_page": (total + int64(req.PageSize) - 1) / int64(req.PageSize),
-		},
-	})
+	response.SuccessWithPage(c, "查询成功", orders, total, req.Page, req.PageSize)
 }
 
 // Get 获取订单详情
@@ -102,9 +91,7 @@ func (h *Handler) List(c *gin.Context) {
 func (h *Handler) Get(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的订单ID",
-		})
+		response.BadRequest(c, "无效的订单ID")
 		return
 	}
 
@@ -114,19 +101,15 @@ func (h *Handler) Get(c *gin.Context) {
 	var order model.Order
 	if err := h.db.Preload("User").Preload("OrderItems.Product").Where("id = ? AND user_id = ?", id, userID).First(&order).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "订单不存在",
-			})
+			response.NotFound(c, "订单不存在")
 			return
 		}
-		logger.Error("查询订单详情失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询订单详情失败",
-		})
+		logger.Error("查询订单详情失败", zap.Error(err))
+		response.ServerError(c, "查询订单详情失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, order)
+	response.SuccessWithData(c, order)
 }
 
 // Create 创建订单
@@ -143,9 +126,7 @@ func (h *Handler) Get(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var req model.OrderCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
@@ -156,22 +137,16 @@ func (h *Handler) Create(c *gin.Context) {
 	var product model.Product
 	if err := h.db.First(&product, req.ProductID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "商品不存在",
-			})
+			response.BadRequest(c, "商品不存在")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询商品失败",
-		})
+		response.ServerError(c, "查询商品失败")
 		return
 	}
 
 	// 检查库存
 	if product.Stock < req.Quantity {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "商品库存不足",
-		})
+		response.BadRequest(c, "商品库存不足")
 		return
 	}
 
@@ -195,10 +170,8 @@ func (h *Handler) Create(c *gin.Context) {
 
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
-		logger.Error("创建订单失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建订单失败",
-		})
+		logger.Error("创建订单失败", zap.Error(err))
+		response.ServerError(c, "创建订单失败")
 		return
 	}
 
@@ -212,20 +185,16 @@ func (h *Handler) Create(c *gin.Context) {
 
 	if err := tx.Create(&orderItem).Error; err != nil {
 		tx.Rollback()
-		logger.Error("创建订单项失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建订单项失败",
-		})
+		logger.Error("创建订单项失败", zap.Error(err))
+		response.ServerError(c, "创建订单项失败")
 		return
 	}
 
 	// 更新商品库存
 	if err := tx.Model(&product).Update("stock", product.Stock-req.Quantity).Error; err != nil {
 		tx.Rollback()
-		logger.Error("更新商品库存失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新商品库存失败",
-		})
+		logger.Error("更新商品库存失败", zap.Error(err))
+		response.ServerError(c, "更新商品库存失败")
 		return
 	}
 
@@ -235,10 +204,7 @@ func (h *Handler) Create(c *gin.Context) {
 	// 重新查询订单（包含关联数据）
 	h.db.Preload("User").Preload("OrderItems.Product").First(&order, order.ID)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "订单创建成功",
-		"order":   order,
-	})
+	response.Success(c, "订单创建成功", order)
 }
 
 // UpdateStatus 更新订单状态
@@ -256,43 +222,33 @@ func (h *Handler) Create(c *gin.Context) {
 func (h *Handler) UpdateStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的订单ID",
-		})
+		response.BadRequest(c, "无效的订单ID")
 		return
 	}
 
 	var req model.OrderUpdateStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	// TODO: 从JWT中获取用户ID和角色
-	userID := uint(1) // 临时硬编码
+	userID := uint(1)  // 临时硬编码
 	userRole := "user" // 临时硬编码
 
 	var order model.Order
 	if err := h.db.First(&order, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "订单不存在",
-			})
+			response.NotFound(c, "订单不存在")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询订单失败",
-		})
+		response.ServerError(c, "查询订单失败")
 		return
 	}
 
 	// 检查权限（只有订单所有者或管理员可以更新状态）
 	if order.UserID != userID && userRole != "admin" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "无权限更新此订单",
-		})
+		response.Forbidden(c, "无权限更新此订单")
 		return
 	}
 
@@ -305,18 +261,13 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 	}
 
 	if err := h.db.Save(&order).Error; err != nil {
-		logger.Error("更新订单状态失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新订单状态失败",
-		})
+		logger.Error("更新订单状态失败", zap.Error(err))
+		response.ServerError(c, "更新订单状态失败")
 		return
 	}
 
 	// 重新查询订单（包含关联数据）
 	h.db.Preload("User").Preload("OrderItems.Product").First(&order, order.ID)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "订单状态更新成功",
-		"order":   order,
-	})
+	response.Success(c, "订单状态更新成功", order)
 }

@@ -2,8 +2,8 @@ package model
 
 import (
 	"time"
-	"mall-go/pkg/auth"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -12,15 +12,15 @@ type User struct {
 	ID            uint           `gorm:"primarykey" json:"id"`
 	Username      string         `gorm:"uniqueIndex;not null;size:50" json:"username"`
 	Email         string         `gorm:"uniqueIndex;not null;size:100" json:"email"`
-	Password      string         `gorm:"not null;size:255" json:"-"`           // 密码哈希
+	Password      string         `gorm:"not null;size:255" json:"-"` // 密码哈希
 	Nickname      string         `gorm:"size:50" json:"nickname"`
 	Avatar        string         `gorm:"size:255" json:"avatar"`
 	Phone         string         `gorm:"size:20" json:"phone"`
 	Role          string         `gorm:"default:'user';size:20" json:"role"`
 	Status        string         `gorm:"default:'active';size:20" json:"status"`
-	LastLoginAt   *time.Time     `gorm:"null" json:"last_login_at"`            // 最后登录时间
-	LoginAttempts int            `gorm:"default:0" json:"-"`                   // 登录尝试次数
-	LockedUntil   *time.Time     `gorm:"null" json:"-"`                        // 账户锁定到期时间
+	LastLoginAt   *time.Time     `gorm:"null" json:"last_login_at"` // 最后登录时间
+	LoginAttempts int            `gorm:"default:0" json:"-"`        // 登录尝试次数
+	LockedUntil   *time.Time     `gorm:"null" json:"-"`             // 账户锁定到期时间
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
@@ -35,16 +35,16 @@ func (User) TableName() string {
 type UserRegisterRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8,max=128"`  // 更新密码长度要求
+	Password string `json:"password" binding:"required,min=8,max=128"` // 更新密码长度要求
 	Nickname string `json:"nickname" binding:"required,min=2,max=50"`
-	Role     string `json:"role" binding:"omitempty,oneof=user merchant admin"`  // 可选角色
+	Role     string `json:"role" binding:"omitempty,oneof=user merchant admin"` // 可选角色
 }
 
 // UserLoginRequest 用户登录请求
 type UserLoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	DeviceID string `json:"device_id" binding:"omitempty,max=100"`  // 设备标识
+	DeviceID string `json:"device_id" binding:"omitempty,max=100"` // 设备标识
 }
 
 // UserResponse 用户响应
@@ -61,12 +61,7 @@ type UserResponse struct {
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
-// 用户角色常量
-const (
-	RoleUser     = "user"     // 普通用户
-	RoleMerchant = "merchant" // 商家
-	RoleAdmin    = "admin"    // 管理员
-)
+// 用户角色常量已在permission.go中定义，这里移除重复定义
 
 // 用户状态常量
 const (
@@ -78,17 +73,18 @@ const (
 
 // SetPassword 设置用户密码（加密存储）
 func (u *User) SetPassword(password string) error {
-	hashedPassword, err := auth.HashPassword(password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	u.Password = hashedPassword
+	u.Password = string(hashedPassword)
 	return nil
 }
 
 // CheckPassword 验证用户密码
 func (u *User) CheckPassword(password string) bool {
-	return auth.IsPasswordValid(u.Password, password)
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return err == nil
 }
 
 // IsActive 检查用户是否活跃

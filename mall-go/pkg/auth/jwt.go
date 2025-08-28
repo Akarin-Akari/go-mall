@@ -3,12 +3,13 @@ package auth
 import (
 	"errors"
 	"time"
+
 	"mall-go/internal/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Claims JWT声明
+// Claims JWT声明结构
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
@@ -18,13 +19,16 @@ type Claims struct {
 
 // GenerateToken 生成JWT令牌
 func GenerateToken(userID uint, username, role string) (string, error) {
-	// 获取JWT配置
-	jwtConfig := config.GlobalConfig.JWT
-	
+	// 获取配置
+	cfg := config.GlobalConfig
+	if cfg.JWT.Secret == "" {
+		return "", errors.New("JWT密钥未配置")
+	}
+
 	// 解析过期时间
-	expireDuration, err := time.ParseDuration(jwtConfig.Expire)
+	expireDuration, err := time.ParseDuration(cfg.JWT.Expire)
 	if err != nil {
-		return "", err
+		expireDuration = 24 * time.Hour // 默认24小时
 	}
 
 	// 创建声明
@@ -43,9 +47,9 @@ func GenerateToken(userID uint, username, role string) (string, error) {
 
 	// 创建令牌
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	
+
 	// 签名令牌
-	tokenString, err := token.SignedString([]byte(jwtConfig.Secret))
+	tokenString, err := token.SignedString([]byte(cfg.JWT.Secret))
 	if err != nil {
 		return "", err
 	}
@@ -55,8 +59,11 @@ func GenerateToken(userID uint, username, role string) (string, error) {
 
 // ParseToken 解析JWT令牌
 func ParseToken(tokenString string) (*Claims, error) {
-	// 获取JWT配置
-	jwtConfig := config.GlobalConfig.JWT
+	// 获取配置
+	cfg := config.GlobalConfig
+	if cfg.JWT.Secret == "" {
+		return nil, errors.New("JWT密钥未配置")
+	}
 
 	// 解析令牌
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -64,14 +71,14 @@ func ParseToken(tokenString string) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("无效的签名方法")
 		}
-		return []byte(jwtConfig.Secret), nil
+		return []byte(cfg.JWT.Secret), nil
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	// 验证令牌
+	// 验证令牌有效性
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	}
@@ -79,56 +86,35 @@ func ParseToken(tokenString string) (*Claims, error) {
 	return nil, errors.New("无效的令牌")
 }
 
-// ValidateToken 验证令牌
+// ValidateToken 验证令牌是否有效
 func ValidateToken(tokenString string) bool {
 	_, err := ParseToken(tokenString)
 	return err == nil
 }
 
-// RefreshToken 刷新JWT令牌
-// 如果token在过期前的刷新窗口期内，则生成新token
+// RefreshToken 刷新令牌
 func RefreshToken(tokenString string) (string, error) {
-	// 解析现有token（即使过期也要解析）
-	claims, err := parseTokenIgnoreExpiry(tokenString)
+	// 解析现有令牌
+	claims, err := ParseToken(tokenString)
 	if err != nil {
 		return "", err
 	}
 
-	// 检查token是否在可刷新的时间窗口内
-	// 这里设置为过期前1小时内可以刷新
-	refreshWindow := time.Hour
-	if time.Until(claims.ExpiresAt.Time) > refreshWindow {
-		return "", errors.New("token还未到刷新时间")
+	// 检查令牌是否即将过期（在30分钟内过期才允许刷新）
+	if time.Until(claims.ExpiresAt.Time) > 30*time.Minute {
+		return "", errors.New("令牌尚未到刷新时间")
 	}
 
-	// 生成新的token
+	// 生成新令牌
 	return GenerateToken(claims.UserID, claims.Username, claims.Role)
 }
 
-// parseTokenIgnoreExpiry 解析token但忽略过期时间
-func parseTokenIgnoreExpiry(tokenString string) (*Claims, error) {
-	jwtConfig := config.GlobalConfig.JWT
-
-	// 解析令牌，忽略过期时间
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("无效的签名方法")
-		}
-		return []byte(jwtConfig.Secret), nil
-	}, jwt.WithoutClaimsValidation())
-
+// GetUserInfoFromToken 从令牌中获取用户信息
+func GetUserInfoFromToken(tokenString string) (uint, string, string, error) {
+	claims, err := ParseToken(tokenString)
 	if err != nil {
-		return nil, err
+		return 0, "", "", err
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok {
-		return claims, nil
-	}
-
-	return nil, errors.New("无效的令牌格式")
-}
-
-// GetClaimsFromToken 从token中获取Claims（不验证过期时间）
-func GetClaimsFromToken(tokenString string) (*Claims, error) {
-	return parseTokenIgnoreExpiry(tokenString)
+	return claims.UserID, claims.Username, claims.Role, nil
 }

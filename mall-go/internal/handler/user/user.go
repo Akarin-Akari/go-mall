@@ -1,12 +1,13 @@
 package user
 
 import (
-	"net/http"
 	"mall-go/internal/model"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/logger"
+	"mall-go/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -31,26 +32,20 @@ func NewHandler(db *gorm.DB) *Handler {
 func (h *Handler) Register(c *gin.Context) {
 	var req model.UserRegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	// 检查用户名是否已存在
 	var existingUser model.User
 	if err := h.db.Where("username = ?", req.Username).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "用户名已存在",
-		})
+		response.BadRequest(c, "用户名已存在")
 		return
 	}
 
 	// 检查邮箱是否已存在
 	if err := h.db.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "邮箱已存在",
-		})
+		response.BadRequest(c, "邮箱已存在")
 		return
 	}
 
@@ -70,25 +65,18 @@ func (h *Handler) Register(c *gin.Context) {
 
 	// 加密密码
 	if err := user.SetPassword(req.Password); err != nil {
-		logger.Error("密码加密失败: " + err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "密码格式不正确: " + err.Error(),
-		})
+		logger.Error("密码加密失败", zap.Error(err))
+		response.BadRequest(c, "密码格式不正确: "+err.Error())
 		return
 	}
 
 	if err := h.db.Create(&user).Error; err != nil {
-		logger.Error("创建用户失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建用户失败",
-		})
+		logger.Error("创建用户失败", zap.Error(err))
+		response.ServerError(c, "创建用户失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "用户注册成功",
-		"user":    user.ToResponse(),
-	})
+	response.Success(c, "用户注册成功", user.ToResponse())
 }
 
 // Login 用户登录
@@ -104,32 +92,24 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req model.UserLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	// 查找用户
 	var user model.User
 	if err := h.db.Where("username = ?", req.Username).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "用户名或密码错误",
-		})
+		response.Unauthorized(c, "用户名或密码错误")
 		return
 	}
 
 	// 检查用户状态
 	if !user.CanLogin() {
 		if user.IsLocked() {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "账户已被锁定，请稍后再试",
-			})
+			response.Unauthorized(c, "账户已被锁定，请稍后再试")
 			return
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "账户状态异常，无法登录",
-		})
+		response.Unauthorized(c, "账户状态异常，无法登录")
 		return
 	}
 
@@ -139,9 +119,7 @@ func (h *Handler) Login(c *gin.Context) {
 		user.IncrementLoginAttempts()
 		h.db.Save(&user)
 
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "用户名或密码错误",
-		})
+		response.Unauthorized(c, "用户名或密码错误")
 		return
 	}
 
@@ -153,23 +131,17 @@ func (h *Handler) Login(c *gin.Context) {
 	// 生成JWT令牌
 	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
-		logger.Error("生成JWT令牌失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "登录失败，请稍后重试",
-		})
+		logger.Error("生成JWT令牌失败", zap.Error(err))
+		response.ServerError(c, "登录失败，请稍后重试")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "登录成功",
-		"data": gin.H{
-			"token":      token,
-			"expires_in": 86400, // 24小时，单位：秒
-			"user":       user.ToResponse(),
-		},
-	})
+	loginData := map[string]interface{}{
+		"token":      token,
+		"expires_in": 86400, // 24小时，单位：秒
+		"user":       user.ToResponse(),
+	}
+	response.Success(c, "登录成功", loginData)
 }
 
 // GetProfile 获取用户信息
@@ -186,31 +158,23 @@ func (h *Handler) GetProfile(c *gin.Context) {
 	// 从JWT中获取用户ID
 	userIDVal, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "用户未认证",
-		})
+		response.Unauthorized(c, "用户未认证")
 		return
 	}
 
 	userID, ok := userIDVal.(uint)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "用户信息格式错误",
-		})
+		response.ServerError(c, "用户信息格式错误")
 		return
 	}
 
 	var user model.User
 	if err := h.db.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "用户不存在",
-		})
+		response.NotFound(c, "用户不存在")
 		return
 	}
 
-	c.JSON(http.StatusOK, model.UserResponse{
+	userResponse := model.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
@@ -220,7 +184,8 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		Role:      user.Role,
 		Status:    user.Status,
 		CreatedAt: user.CreatedAt,
-	})
+	}
+	response.SuccessWithData(c, userResponse)
 }
 
 // UpdateProfile 更新用户信息
@@ -238,35 +203,25 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	// 从JWT中获取用户ID
 	userIDVal, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "用户未认证",
-		})
+		response.Unauthorized(c, "用户未认证")
 		return
 	}
 
 	userID, ok := userIDVal.(uint)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "用户信息格式错误",
-		})
+		response.ServerError(c, "用户信息格式错误")
 		return
 	}
 
 	var req model.UserResponse
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	var user model.User
 	if err := h.db.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "用户不存在",
-		})
+		response.NotFound(c, "用户不存在")
 		return
 	}
 
@@ -276,25 +231,21 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	user.Phone = req.Phone
 
 	if err := h.db.Save(&user).Error; err != nil {
-		logger.Error("更新用户信息失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新用户信息失败",
-		})
+		logger.Error("更新用户信息失败", zap.Error(err))
+		response.ServerError(c, "更新用户信息失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "用户信息更新成功",
-		"user": model.UserResponse{
-			ID:        user.ID,
-			Username:  user.Username,
-			Email:     user.Email,
-			Nickname:  user.Nickname,
-			Avatar:    user.Avatar,
-			Phone:     user.Phone,
-			Role:      user.Role,
-			Status:    user.Status,
-			CreatedAt: user.CreatedAt,
-		},
-	})
+	userResponse := model.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Nickname:  user.Nickname,
+		Avatar:    user.Avatar,
+		Phone:     user.Phone,
+		Role:      user.Role,
+		Status:    user.Status,
+		CreatedAt: user.CreatedAt,
+	}
+	response.Success(c, "用户信息更新成功", userResponse)
 }
