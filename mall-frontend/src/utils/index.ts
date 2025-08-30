@@ -384,6 +384,20 @@ export const env = {
   isServer: typeof window === 'undefined',
 };
 
+// 商品相关工具函数
+export const formatPrice = (price: string | number, currency = ''): string => {
+  const num = typeof price === 'string' ? parseFloat(price) : price;
+  if (isNaN(num)) return '0.00';
+  return num.toFixed(2);
+};
+
+export const formatNumber = (num: number): string => {
+  if (num < 1000) return num.toString();
+  if (num < 10000) return (num / 1000).toFixed(1) + 'k';
+  if (num < 100000) return (num / 10000).toFixed(1) + 'w';
+  return (num / 10000).toFixed(0) + 'w';
+};
+
 // 导出所有工具
 export * from './request';
 export * from './auth';

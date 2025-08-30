@@ -56,8 +56,38 @@ export const fetchProductsAsync = createAsyncThunk(
     status?: string;
     min_price?: number;
     max_price?: number;
+    sort_by?: string;
+    min_rating?: number;
   }, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { getPagedProducts } = await import('@/data/mockProducts');
+        const result = getPagedProducts(
+          params.page || 1,
+          params.page_size || 10,
+          {
+            keyword: params.keyword,
+            categoryId: params.category_id,
+            minPrice: params.min_price,
+            maxPrice: params.max_price,
+            minRating: params.min_rating,
+            sortBy: params.sort_by,
+          }
+        );
+
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        return {
+          list: result.products,
+          total: result.total,
+          page: result.page,
+          page_size: result.pageSize,
+        };
+      }
+
+      // 生产环境使用真实API
       const response = await productAPI.getProducts(params);
       return response.data;
     } catch (error: any) {
