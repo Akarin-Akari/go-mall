@@ -28,14 +28,14 @@ func NewSyncService(db *gorm.DB, cartService *CartService, cacheService *CacheSe
 
 // SyncResult 同步结果
 type SyncResult struct {
-	TotalItems      int                    `json:"total_items"`
-	UpdatedItems    int                    `json:"updated_items"`
-	InvalidItems    int                    `json:"invalid_items"`
-	PriceChanges    []PriceChangeItem      `json:"price_changes"`
-	StockIssues     []StockIssueItem       `json:"stock_issues"`
-	InvalidProducts []InvalidProductItem   `json:"invalid_products"`
-	ProcessedCarts  int                    `json:"processed_carts"`
-	Errors          []string               `json:"errors"`
+	TotalItems      int                  `json:"total_items"`
+	UpdatedItems    int                  `json:"updated_items"`
+	InvalidItems    int                  `json:"invalid_items"`
+	PriceChanges    []PriceChangeItem    `json:"price_changes"`
+	StockIssues     []StockIssueItem     `json:"stock_issues"`
+	InvalidProducts []InvalidProductItem `json:"invalid_products"`
+	ProcessedCarts  int                  `json:"processed_carts"`
+	Errors          []string             `json:"errors"`
 }
 
 // PriceChangeItem 价格变动商品
@@ -155,7 +155,7 @@ func (ss *SyncService) SyncAllCartItems() (*SyncResult, error) {
 // syncCartItem 同步单个购物车商品项
 func (ss *SyncService) syncCartItem(tx *gorm.DB, item *model.CartItem, result *SyncResult) error {
 	updated := false
-	originalStatus := item.Status
+	_ = item.Status // 避免未使用变量警告
 
 	// 检查商品状态
 	var product model.Product

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -9,21 +10,21 @@ import (
 
 // Cart 购物车模型
 type Cart struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
-	UserID    uint           `gorm:"index" json:"user_id"`                    // 用户ID，0表示游客
-	SessionID string         `gorm:"size:100;index" json:"session_id"`        // 会话ID，用于游客购物车
-	Status    string         `gorm:"size:20;default:'active';index" json:"status"` // 购物车状态
-	
+	ID        uint   `gorm:"primarykey" json:"id"`
+	UserID    uint   `gorm:"index" json:"user_id"`                         // 用户ID，0表示游客
+	SessionID string `gorm:"size:100;index" json:"session_id"`             // 会话ID，用于游客购物车
+	Status    string `gorm:"size:20;default:'active';index" json:"status"` // 购物车状态
+
 	// 统计信息
-	ItemCount    int             `gorm:"default:0" json:"item_count"`    // 商品种类数量
-	TotalQty     int             `gorm:"default:0" json:"total_qty"`     // 商品总数量
-	TotalAmount  decimal.Decimal `gorm:"type:decimal(10,2);default:0" json:"total_amount"`  // 总金额
-	
+	ItemCount   int             `gorm:"default:0" json:"item_count"`                      // 商品种类数量
+	TotalQty    int             `gorm:"default:0" json:"total_qty"`                       // 商品总数量
+	TotalAmount decimal.Decimal `gorm:"type:decimal(10,2);default:0" json:"total_amount"` // 总金额
+
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	
+
 	// 关联关系
 	User  *User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Items []CartItem `gorm:"foreignKey:CartID" json:"items,omitempty"`
@@ -31,29 +32,29 @@ type Cart struct {
 
 // CartItem 购物车商品项模型
 type CartItem struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
-	CartID    uint           `gorm:"not null;index" json:"cart_id"`
-	ProductID uint           `gorm:"not null;index" json:"product_id"`
-	SKUID     uint           `gorm:"index" json:"sku_id"`                     // SKU ID，0表示使用商品默认规格
-	Quantity  int            `gorm:"not null;default:1" json:"quantity"`      // 数量
+	ID        uint            `gorm:"primarykey" json:"id"`
+	CartID    uint            `gorm:"not null;index" json:"cart_id"`
+	ProductID uint            `gorm:"not null;index" json:"product_id"`
+	SKUID     uint            `gorm:"index" json:"sku_id"`                      // SKU ID，0表示使用商品默认规格
+	Quantity  int             `gorm:"not null;default:1" json:"quantity"`       // 数量
 	Price     decimal.Decimal `gorm:"type:decimal(10,2);not null" json:"price"` // 加入购物车时的价格
-	
+
 	// 商品快照信息（避免商品信息变更影响购物车显示）
 	ProductName  string `gorm:"size:255;not null" json:"product_name"`
 	ProductImage string `gorm:"size:500" json:"product_image"`
 	SKUName      string `gorm:"size:255" json:"sku_name"`
 	SKUImage     string `gorm:"size:500" json:"sku_image"`
 	SKUAttrs     string `gorm:"type:json" json:"sku_attrs"` // SKU属性JSON
-	
+
 	// 状态信息
-	Selected bool   `gorm:"default:true" json:"selected"`           // 是否选中
+	Selected bool   `gorm:"default:true" json:"selected"`                 // 是否选中
 	Status   string `gorm:"size:20;default:'normal';index" json:"status"` // 商品状态：normal/invalid/out_of_stock
-	
+
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	
+
 	// 关联关系
 	Cart    *Cart       `gorm:"foreignKey:CartID" json:"cart,omitempty"`
 	Product *Product    `gorm:"foreignKey:ProductID" json:"product,omitempty"`
@@ -62,16 +63,16 @@ type CartItem struct {
 
 // CartSummary 购物车汇总信息
 type CartSummary struct {
-	ItemCount       int             `json:"item_count"`       // 商品种类数量
-	TotalQty        int             `json:"total_qty"`        // 商品总数量
-	SelectedCount   int             `json:"selected_count"`   // 选中商品种类数量
-	SelectedQty     int             `json:"selected_qty"`     // 选中商品总数量
-	TotalAmount     decimal.Decimal `json:"total_amount"`     // 总金额
-	SelectedAmount  decimal.Decimal `json:"selected_amount"`  // 选中商品总金额
-	DiscountAmount  decimal.Decimal `json:"discount_amount"`  // 优惠金额
-	ShippingFee     decimal.Decimal `json:"shipping_fee"`     // 运费
-	FinalAmount     decimal.Decimal `json:"final_amount"`     // 最终金额
-	InvalidItems    []CartItem      `json:"invalid_items"`    // 失效商品列表
+	ItemCount      int             `json:"item_count"`      // 商品种类数量
+	TotalQty       int             `json:"total_qty"`       // 商品总数量
+	SelectedCount  int             `json:"selected_count"`  // 选中商品种类数量
+	SelectedQty    int             `json:"selected_qty"`    // 选中商品总数量
+	TotalAmount    decimal.Decimal `json:"total_amount"`    // 总金额
+	SelectedAmount decimal.Decimal `json:"selected_amount"` // 选中商品总金额
+	DiscountAmount decimal.Decimal `json:"discount_amount"` // 优惠金额
+	ShippingFee    decimal.Decimal `json:"shipping_fee"`    // 运费
+	FinalAmount    decimal.Decimal `json:"final_amount"`    // 最终金额
+	InvalidItems   []CartItem      `json:"invalid_items"`   // 失效商品列表
 }
 
 // CartMergeLog 购物车合并日志
@@ -85,7 +86,7 @@ type CartMergeLog struct {
 	ConflictItems int       `gorm:"default:0" json:"conflict_items"` // 冲突商品数量
 	Status        string    `gorm:"size:20;default:'success'" json:"status"`
 	CreatedAt     time.Time `json:"created_at"`
-	
+
 	// 关联关系
 	User      *User `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	GuestCart *Cart `gorm:"foreignKey:GuestCartID" json:"guest_cart,omitempty"`
@@ -267,14 +268,14 @@ type CartStatsRequest struct {
 
 // 购物车统计响应
 type CartStatsResponse struct {
-	TotalCarts       int64           `json:"total_carts"`
-	ActiveCarts      int64           `json:"active_carts"`
-	AbandonedCarts   int64           `json:"abandoned_carts"`
-	AverageItems     float64         `json:"average_items"`
-	AverageAmount    decimal.Decimal `json:"average_amount"`
-	ConversionRate   float64         `json:"conversion_rate"`
-	TopProducts      []ProductStats  `json:"top_products"`
-	CartsByHour      []HourlyStats   `json:"carts_by_hour"`
+	TotalCarts     int64           `json:"total_carts"`
+	ActiveCarts    int64           `json:"active_carts"`
+	AbandonedCarts int64           `json:"abandoned_carts"`
+	AverageItems   float64         `json:"average_items"`
+	AverageAmount  decimal.Decimal `json:"average_amount"`
+	ConversionRate float64         `json:"conversion_rate"`
+	TopProducts    []ProductStats  `json:"top_products"`
+	CartsByHour    []HourlyStats   `json:"carts_by_hour"`
 }
 
 type ProductStats struct {

@@ -87,16 +87,16 @@ func (fm *FileManager) UploadFile(req *UploadFileRequest) (*UploadFileResponse, 
 
 	// 保存文件记录到数据库
 	fileRecord := &model.File{
-		UserID:       req.UserID,
+		UploadUserID: req.UserID,
 		OriginalName: req.Filename,
-		FileName:     fileName,
+		StoredName:   fileName,
 		FilePath:     filePath,
 		FileSize:     req.Size,
-		ContentType:  validationResult.ContentType,
-		Category:     req.Category,
-		Description:  req.Description,
-		URL:          fm.storageManager.GetURL(filePath),
-		Status:       "active",
+		MimeType:     validationResult.ContentType,
+		BusinessType: model.BusinessType(req.Category),
+		AccessURL:    fm.storageManager.GetURL(filePath),
+		Status:       model.FileStatusSuccess,
+		FileType:     model.GetFileTypeByMime(validationResult.ContentType),
 	}
 
 	if err := fm.db.Create(fileRecord).Error; err != nil {
@@ -108,12 +108,12 @@ func (fm *FileManager) UploadFile(req *UploadFileRequest) (*UploadFileResponse, 
 	return &UploadFileResponse{
 		FileID:       fileRecord.ID,
 		OriginalName: fileRecord.OriginalName,
-		FileName:     fileRecord.FileName,
+		FileName:     fileRecord.StoredName,
 		FilePath:     fileRecord.FilePath,
 		FileSize:     fileRecord.FileSize,
-		ContentType:  fileRecord.ContentType,
-		Category:     fileRecord.Category,
-		URL:          fileRecord.URL,
+		ContentType:  fileRecord.MimeType,
+		Category:     string(fileRecord.BusinessType),
+		URL:          fileRecord.AccessURL,
 		UploadedAt:   fileRecord.CreatedAt,
 	}, nil
 }
@@ -302,10 +302,10 @@ func (fm *FileManager) GetFileStatistics(userID uint) (map[string]interface{}, e
 // CleanupInvalidFiles 清理无效文件
 func (fm *FileManager) CleanupInvalidFiles() (map[string]interface{}, error) {
 	result := map[string]interface{}{
-		"checked_files":  0,
-		"invalid_files":  0,
-		"cleaned_files":  0,
-		"cleaned_size":   int64(0),
+		"checked_files": 0,
+		"invalid_files": 0,
+		"cleaned_files": 0,
+		"cleaned_size":  int64(0),
 	}
 
 	// 获取所有活跃文件
