@@ -1,12 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, Divider, Checkbox, message, Progress } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Divider,
+  Checkbox,
+  message,
+  Progress,
+  Alert,
+  Space,
+  Tooltip,
+  Steps
+} from 'antd';
+import {
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  SafetyCertificateOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { registerAsync, selectAuth } from '@/store/slices/authSlice';
+import { registerAsync, selectAuth, clearError } from '@/store/slices/authSlice';
 import { RegisterRequest } from '@/types';
 import { ROUTES } from '@/constants';
 
@@ -21,13 +46,30 @@ interface RegisterFormData {
   agreement: boolean;
 }
 
+interface ValidationStatus {
+  username: 'success' | 'error' | 'validating' | '';
+  email: 'success' | 'error' | 'validating' | '';
+  phone: 'success' | 'error' | 'validating' | '';
+  password: 'success' | 'error' | 'validating' | '';
+}
+
 const RegisterPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [validationStatus, setValidationStatus] = useState<ValidationStatus>({
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [usernameChecking, setUsernameChecking] = useState(false);
+
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useAppSelector(selectAuth);
+  const { isAuthenticated, user, error, loading: authLoading } = useAppSelector(selectAuth);
 
   // 如果已登录，重定向到首页
   useEffect(() => {
@@ -36,19 +78,119 @@ const RegisterPage: React.FC = () => {
     }
   }, [isAuthenticated, user, router]);
 
+  // 清除错误状态
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  // 实时验证用户名
+  const validateUsername = useCallback(async (username: string) => {
+    if (!username || username.length < 3) return;
+
+    setUsernameChecking(true);
+    setValidationStatus(prev => ({ ...prev, username: 'validating' }));
+
+    try {
+      // 模拟API调用检查用户名是否存在
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // 这里应该调用真实的API
+      const isAvailable = !['admin', 'test', 'user'].includes(username.toLowerCase());
+
+      setValidationStatus(prev => ({
+        ...prev,
+        username: isAvailable ? 'success' : 'error'
+      }));
+
+      if (!isAvailable) {
+        form.setFields([{
+          name: 'username',
+          errors: ['该用户名已被使用，请选择其他用户名']
+        }]);
+      }
+    } catch (error) {
+      setValidationStatus(prev => ({ ...prev, username: 'error' }));
+    } finally {
+      setUsernameChecking(false);
+    }
+  }, [form]);
+
+  // 实时验证邮箱
+  const validateEmail = useCallback(async (email: string) => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+
+    setEmailChecking(true);
+    setValidationStatus(prev => ({ ...prev, email: 'validating' }));
+
+    try {
+      // 模拟API调用检查邮箱是否存在
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      // 这里应该调用真实的API
+      const isAvailable = !['test@example.com', 'admin@example.com'].includes(email.toLowerCase());
+
+      setValidationStatus(prev => ({
+        ...prev,
+        email: isAvailable ? 'success' : 'error'
+      }));
+
+      if (!isAvailable) {
+        form.setFields([{
+          name: 'email',
+          errors: ['该邮箱已被注册，请使用其他邮箱或直接登录']
+        }]);
+      }
+    } catch (error) {
+      setValidationStatus(prev => ({ ...prev, email: 'error' }));
+    } finally {
+      setEmailChecking(false);
+    }
+  }, [form]);
+
   // 密码强度检测
   const checkPasswordStrength = (password: string) => {
     let strength = 0;
-    if (password.length >= 8) strength += 25;
-    if (/[a-z]/.test(password)) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-    return strength;
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+
+    if (checks.length) strength += 20;
+    if (checks.lowercase) strength += 20;
+    if (checks.uppercase) strength += 20;
+    if (checks.number) strength += 20;
+    if (checks.special) strength += 20;
+
+    return { strength, checks };
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const password = e.target.value;
-    setPasswordStrength(checkPasswordStrength(password));
+    const result = checkPasswordStrength(password);
+    setPasswordStrength(result.strength);
+
+    // 更新步骤
+    if (password) {
+      setCurrentStep(2);
+    }
+
+    // 设置密码验证状态
+    if (password.length > 0) {
+      if (result.strength >= 60) {
+        setValidationStatus(prev => ({ ...prev, password: 'success' }));
+      } else if (result.strength >= 40) {
+        setValidationStatus(prev => ({ ...prev, password: 'validating' }));
+      } else {
+        setValidationStatus(prev => ({ ...prev, password: 'error' }));
+      }
+    } else {
+      setValidationStatus(prev => ({ ...prev, password: '' }));
+    }
   };
 
   const getPasswordStrengthColor = () => {
@@ -124,6 +266,40 @@ const RegisterPage: React.FC = () => {
           </Text>
         </div>
 
+        {/* 注册步骤指示器 */}
+        <Steps
+          current={currentStep}
+          size="small"
+          style={{ marginBottom: 24 }}
+          items={[
+            {
+              title: '基本信息',
+              icon: <UserOutlined />,
+            },
+            {
+              title: '安全设置',
+              icon: <LockOutlined />,
+            },
+            {
+              title: '完成注册',
+              icon: <CheckCircleOutlined />,
+            },
+          ]}
+        />
+
+        {/* 错误提示 */}
+        {error && (
+          <Alert
+            message="注册失败"
+            description={error}
+            type="error"
+            showIcon
+            closable
+            style={{ marginBottom: 16 }}
+            onClose={() => dispatch(clearError())}
+          />
+        )}
+
         <Form
           form={form}
           name="register"
@@ -135,7 +311,16 @@ const RegisterPage: React.FC = () => {
         >
           <Form.Item
             name="username"
-            label="用户名"
+            label={
+              <Space>
+                用户名
+                <Tooltip title="用户名将作为您的唯一标识，3-20位字符，支持中文、英文、数字和下划线">
+                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                </Tooltip>
+              </Space>
+            }
+            validateStatus={validationStatus.username}
+            hasFeedback={validationStatus.username !== ''}
             rules={[
               { required: true, message: '请输入用户名' },
               { min: 3, message: '用户名至少3位字符' },
@@ -145,14 +330,33 @@ const RegisterPage: React.FC = () => {
           >
             <Input
               prefix={<UserOutlined />}
+              suffix={usernameChecking ? <LoadingOutlined /> : null}
               placeholder="请输入用户名"
               autoComplete="username"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length >= 3) {
+                  validateUsername(value);
+                } else {
+                  setValidationStatus(prev => ({ ...prev, username: '' }));
+                }
+                setCurrentStep(value ? 1 : 0);
+              }}
             />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label="邮箱地址"
+            label={
+              <Space>
+                邮箱地址
+                <Tooltip title="邮箱将用于账户验证、密码重置和重要通知">
+                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                </Tooltip>
+              </Space>
+            }
+            validateStatus={validationStatus.email}
+            hasFeedback={validationStatus.email !== ''}
             rules={[
               { required: true, message: '请输入邮箱地址' },
               { type: 'email', message: '请输入有效的邮箱地址' },
@@ -160,8 +364,17 @@ const RegisterPage: React.FC = () => {
           >
             <Input
               prefix={<MailOutlined />}
+              suffix={emailChecking ? <LoadingOutlined /> : null}
               placeholder="请输入邮箱地址"
               autoComplete="email"
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  validateEmail(value);
+                } else {
+                  setValidationStatus(prev => ({ ...prev, email: '' }));
+                }
+              }}
             />
           </Form.Item>
 
@@ -182,10 +395,29 @@ const RegisterPage: React.FC = () => {
 
           <Form.Item
             name="password"
-            label="密码"
+            label={
+              <Space>
+                密码
+                <Tooltip title="密码至少8位，建议包含大小写字母、数字和特殊字符">
+                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                </Tooltip>
+              </Space>
+            }
+            validateStatus={validationStatus.password}
+            hasFeedback={validationStatus.password !== ''}
             rules={[
               { required: true, message: '请输入密码' },
-              { min: 6, message: '密码至少6位字符' },
+              { min: 8, message: '密码至少8位字符' },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  const result = checkPasswordStrength(value);
+                  if (result.strength < 40) {
+                    return Promise.reject(new Error('密码强度太弱，请增强密码复杂度'));
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
           >
             <Input.Password
@@ -211,6 +443,35 @@ const RegisterPage: React.FC = () => {
                 showInfo={false}
                 size="small"
               />
+
+              {/* 密码要求检查 */}
+              <div style={{ marginTop: 8 }}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                  {(() => {
+                    const password = form.getFieldValue('password') || '';
+                    const result = checkPasswordStrength(password);
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '12px' }}>
+                        <Text type={result.checks.length ? 'success' : 'secondary'}>
+                          {result.checks.length ? '✓' : '○'} 至少8位字符
+                        </Text>
+                        <Text type={result.checks.lowercase ? 'success' : 'secondary'}>
+                          {result.checks.lowercase ? '✓' : '○'} 包含小写字母
+                        </Text>
+                        <Text type={result.checks.uppercase ? 'success' : 'secondary'}>
+                          {result.checks.uppercase ? '✓' : '○'} 包含大写字母
+                        </Text>
+                        <Text type={result.checks.number ? 'success' : 'secondary'}>
+                          {result.checks.number ? '✓' : '○'} 包含数字
+                        </Text>
+                        <Text type={result.checks.special ? 'success' : 'secondary'} style={{ gridColumn: '1 / -1' }}>
+                          {result.checks.special ? '✓' : '○'} 包含特殊字符 (!@#$%^&*等)
+                        </Text>
+                      </div>
+                    );
+                  })()}
+                </Space>
+              </div>
             </div>
           )}
 
