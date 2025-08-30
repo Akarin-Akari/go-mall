@@ -26,6 +26,13 @@ export const fetchCartAsync = createAsyncThunk(
   'cart/fetchCart',
   async (_, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockCartAPI } = await import('@/data/mockCart');
+        return await mockCartAPI.getCart();
+      }
+
+      // 生产环境使用真实API
       const response = await cartAPI.getCart();
       return response.data;
     } catch (error: any) {
@@ -42,6 +49,13 @@ export const addToCartAsync = createAsyncThunk(
     quantity: number;
   }, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockCartAPI } = await import('@/data/mockCart');
+        return await mockCartAPI.addToCart(params.product_id, params.sku_id || 0, params.quantity);
+      }
+
+      // 生产环境使用真实API
       const response = await cartAPI.addToCart(data);
       return response.data;
     } catch (error: any) {
@@ -58,6 +72,18 @@ export const updateCartItemAsync = createAsyncThunk(
     selected?: boolean;
   }, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockCartAPI } = await import('@/data/mockCart');
+        if (data.quantity !== undefined) {
+          return await mockCartAPI.updateQuantity(data.id, data.quantity);
+        }
+        if (data.selected !== undefined) {
+          return await mockCartAPI.updateSelection(data.id, data.selected);
+        }
+      }
+
+      // 生产环境使用真实API
       const response = await cartAPI.updateCartItem(data);
       return response.data;
     } catch (error: any) {
@@ -70,6 +96,14 @@ export const removeCartItemAsync = createAsyncThunk(
   'cart/removeCartItem',
   async (id: number, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockCartAPI } = await import('@/data/mockCart');
+        await mockCartAPI.removeItem(id);
+        return id;
+      }
+
+      // 生产环境使用真实API
       await cartAPI.removeCartItem(id);
       return id;
     } catch (error: any) {
@@ -82,6 +116,14 @@ export const clearCartAsync = createAsyncThunk(
   'cart/clearCart',
   async (_, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockCartAPI } = await import('@/data/mockCart');
+        await mockCartAPI.clearCart();
+        return null;
+      }
+
+      // 生产环境使用真实API
       await cartAPI.clearCart();
       return null;
     } catch (error: any) {
