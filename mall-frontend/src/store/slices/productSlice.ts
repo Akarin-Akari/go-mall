@@ -100,6 +100,22 @@ export const fetchProductDetailAsync = createAsyncThunk(
   'product/fetchProductDetail',
   async (id: number, { rejectWithValue }) => {
     try {
+      // 在开发环境使用模拟数据
+      if (process.env.NODE_ENV === 'development') {
+        const { mockProducts } = await import('@/data/mockProducts');
+        const product = mockProducts.find((p: Product) => p.id === id);
+
+        if (!product) {
+          return rejectWithValue('商品不存在');
+        }
+
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        return product;
+      }
+
+      // 生产环境使用真实API
       const response = await productAPI.getProductDetail(id);
       return response.data;
     } catch (error: any) {
