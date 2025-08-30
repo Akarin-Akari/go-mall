@@ -2,43 +2,72 @@ package order
 
 import (
 	"fmt"
-	"mall-go/internal/model"
-	"mall-go/pkg/logger"
-	"mall-go/pkg/response"
+	"net/http"
 	"strconv"
 	"time"
 
+	"mall-go/internal/model"
+	"mall-go/pkg/cart"
+	"mall-go/pkg/logger"
+	"mall-go/pkg/order"
+	"mall-go/pkg/response"
+
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-type Handler struct {
-	db *gorm.DB
+// OrderHandler 订单处理器
+type OrderHandler struct {
+	db               *gorm.DB
+	orderService     *order.OrderService
+	statusService    *order.StatusService
+	paymentService   *order.PaymentService
+	shippingService  *order.ShippingService
+	afterSaleService *order.AfterSaleService
+	cacheService     *order.CacheService
 }
 
+// NewOrderHandler 创建订单处理器
+func NewOrderHandler(db *gorm.DB, rdb *redis.Client) *OrderHandler {
+	// 创建购物车服务（订单服务依赖）
+	cartService := cart.NewCartService(db)
+	calculationService := cart.NewCalculationService(db)
+
+	// 创建订单相关服务
+	orderService := order.NewOrderService(db, cartService, calculationService)
+	statusService := order.NewStatusService(db)
+	paymentService := order.NewPaymentService(db, statusService)
+	shippingService := order.NewShippingService(db, statusService)
+	afterSaleService := order.NewAfterSaleService(db, statusService, paymentService)
+	cacheService := order.NewCacheService(rdb, orderService)
+
+	return &OrderHandler{
+		db:               db,
+		orderService:     orderService,
+		statusService:    statusService,
+		paymentService:   paymentService,
+		shippingService:  shippingService,
+		afterSaleService: afterSaleService,
+		cacheService:     cacheService,
+	}
+}
+
+// Handler 保持向后兼容
+type Handler = OrderHandler
+
+// NewHandler 保持向后兼容
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{db: db}
+	return NewOrderHandler(db, nil)
 }
 
-// List 获取订单列表
-// @Summary 获取订单列表
-// @Description 分页获取当前用户的订单列表
-// @Tags 订单管理
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param page query int false "页码" default(1)
-// @Param page_size query int false "每页数量" default(10)
-// @Param status query string false "订单状态"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Router /orders [get]
-func (h *Handler) List(c *gin.Context) {
+// GetOrderList 获取订单列表
+func (h *OrderHandler) GetOrderList(c *gin.Context) {
 	var req model.OrderListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
 		return
 	}
 
@@ -50,31 +79,45 @@ func (h *Handler) List(c *gin.Context) {
 		req.PageSize = 10
 	}
 
-	// TODO: 从JWT中获取用户ID
-	userID := uint(1) // 临时硬编码
+	userID := h.getUserID(c)
 
-	// 构建查询
-	query := h.db.Model(&model.Order{}).Where("user_id = ?", userID).Preload("User").Preload("OrderItems.Product")
-
-	// 状态筛选
-	if req.Status != "" {
-		query = query.Where("status = ?", req.Status)
-	}
-
-	// 统计总数
-	var total int64
-	query.Count(&total)
-
-	// 分页查询
-	var orders []model.Order
-	offset := (req.Page - 1) * req.PageSize
-	if err := query.Offset(offset).Limit(req.PageSize).Order("created_at DESC").Find(&orders).Error; err != nil {
-		logger.Error("查询订单列表失败", zap.Error(err))
-		response.ServerError(c, "查询订单列表失败")
+	// 使用缓存获取订单列表
+	orders, total, err := h.cacheService.GetUserOrdersWithCache(userID, req.Status, req.Page, req.PageSize)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.SuccessWithPage(c, "查询成功", orders, total, req.Page, req.PageSize)
+	// 构建响应数据
+	var orderResponses []*model.OrderResponse
+	for _, order := range orders {
+		orderResponses = append(orderResponses, &model.OrderResponse{
+			Order:      order,
+			StatusText: order.GetStatusText(),
+			CanCancel:  order.CanCancel(),
+			CanPay:     order.CanPay(),
+			CanShip:    order.CanShip(),
+			CanReceive: order.CanReceive(),
+			CanRefund:  order.CanRefund(),
+		})
+	}
+
+	totalPages := int((total + int64(req.PageSize) - 1) / int64(req.PageSize))
+
+	listResponse := &model.OrderListResponse{
+		Orders:     orderResponses,
+		Total:      total,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+		TotalPages: totalPages,
+	}
+
+	response.Success(c, "获取订单列表成功", listResponse)
+}
+
+// List 保持向后兼容
+func (h *Handler) List(c *gin.Context) {
+	h.GetOrderList(c)
 }
 
 // Get 获取订单详情
@@ -270,4 +313,174 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 	h.db.Preload("User").Preload("OrderItems.Product").First(&order, order.ID)
 
 	response.Success(c, "订单状态更新成功", order)
+}
+
+// getUserID 获取用户ID
+func (h *OrderHandler) getUserID(c *gin.Context) uint {
+	if uid, exists := c.Get("user_id"); exists {
+		return uid.(uint)
+	}
+	return 1 // 临时硬编码，实际应该从JWT获取
+}
+
+// isAdmin 检查是否为管理员
+func (h *OrderHandler) isAdmin(c *gin.Context) bool {
+	role, exists := c.Get("user_role")
+	if !exists {
+		return false
+	}
+	return role == model.RoleAdmin
+}
+
+// CreateOrder 创建订单
+func (h *OrderHandler) CreateOrder(c *gin.Context) {
+	var req model.OrderCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+
+	// 获取订单锁
+	lockValue, err := h.cacheService.AcquireOrderLock(userID)
+	if err != nil {
+		response.Error(c, http.StatusTooManyRequests, err.Error())
+		return
+	}
+	defer h.cacheService.ReleaseOrderLock(userID, lockValue)
+
+	// 创建订单
+	order, err := h.orderService.CreateOrder(userID, &req)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 清除相关缓存
+	h.cacheService.InvalidateUserOrdersCache(userID)
+	h.cacheService.InvalidateOrderStatsCache()
+
+	response.Success(c, "创建订单成功", order)
+}
+
+// GetOrder 获取订单详情
+func (h *OrderHandler) GetOrder(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	userID := h.getUserID(c)
+
+	// 使用缓存获取订单
+	order, err := h.cacheService.GetOrderWithCache(uint(orderID))
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "订单不存在")
+		return
+	}
+
+	// 检查权限（用户只能查看自己的订单）
+	if !h.isAdmin(c) && order.UserID != userID {
+		response.Error(c, http.StatusForbidden, "无权访问此订单")
+		return
+	}
+
+	// 构建响应数据
+	orderResponse := &model.OrderResponse{
+		Order:      order,
+		StatusText: order.GetStatusText(),
+		CanCancel:  order.CanCancel(),
+		CanPay:     order.CanPay(),
+		CanShip:    order.CanShip(),
+		CanReceive: order.CanReceive(),
+		CanRefund:  order.CanRefund(),
+	}
+
+	response.Success(c, "获取订单成功", orderResponse)
+}
+
+// UpdateOrderStatus 更新订单状态
+func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	var req model.OrderUpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 检查管理员权限
+	if !h.isAdmin(c) {
+		response.Error(c, http.StatusForbidden, "权限不足")
+		return
+	}
+
+	operatorID := h.getUserID(c)
+
+	// 更新订单状态
+	err = h.statusService.UpdateOrderStatus(uint(orderID), req.Status, operatorID,
+		model.OperatorTypeAdmin, req.Reason, req.Remark)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 清除缓存
+	h.cacheService.InvalidateOrderCache(uint(orderID))
+	h.cacheService.InvalidateOrderStatsCache()
+
+	response.Success(c, "更新订单状态成功", nil)
+}
+
+// CancelOrder 取消订单
+func (h *OrderHandler) CancelOrder(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	c.ShouldBindJSON(&req)
+
+	// 获取订单锁
+	lockValue, err := h.cacheService.AcquireOrderLock(uint(orderID))
+	if err != nil {
+		response.Error(c, http.StatusTooManyRequests, err.Error())
+		return
+	}
+	defer h.cacheService.ReleaseOrderLock(uint(orderID), lockValue)
+
+	// 更新订单状态为已取消
+	err = h.statusService.UpdateOrderStatus(uint(orderID), model.OrderStatusCancelled,
+		userID, model.OperatorTypeUser, req.Reason, "用户取消订单")
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 清除缓存
+	h.cacheService.InvalidateOrderCache(uint(orderID))
+	h.cacheService.InvalidateUserOrdersCache(userID)
+	h.cacheService.InvalidateOrderStatsCache()
+
+	response.Success(c, "取消订单成功", nil)
 }

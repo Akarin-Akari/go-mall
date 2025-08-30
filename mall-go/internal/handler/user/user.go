@@ -1,10 +1,14 @@
 package user
 
 import (
+	"net/http"
+	"strconv"
+
 	"mall-go/internal/model"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/logger"
 	"mall-go/pkg/response"
+	"mall-go/pkg/user"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -12,11 +16,21 @@ import (
 )
 
 type Handler struct {
-	db *gorm.DB
+	db                *gorm.DB
+	loginService      *user.LoginService
+	profileService    *user.ProfileService
+	permissionService *user.PermissionService
+	securityService   *user.SecurityService
 }
 
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{db: db}
+	return &Handler{
+		db:                db,
+		loginService:      user.NewLoginService(db),
+		profileService:    user.NewProfileService(db),
+		permissionService: user.NewPermissionService(db),
+		securityService:   user.NewSecurityService(db),
+	}
 }
 
 // Register 用户注册

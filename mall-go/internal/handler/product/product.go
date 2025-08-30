@@ -1,10 +1,13 @@
 package product
 
 import (
+	"net/http"
+	"strconv"
+
 	"mall-go/internal/model"
 	"mall-go/pkg/logger"
+	"mall-go/pkg/product"
 	"mall-go/pkg/response"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
@@ -13,11 +16,25 @@ import (
 )
 
 type Handler struct {
-	db *gorm.DB
+	db               *gorm.DB
+	productService   *product.ProductService
+	categoryService  *product.CategoryService
+	skuService       *product.SKUService
+	inventoryService *product.InventoryService
+	imageService     *product.ImageService
+	searchService    *product.SearchService
 }
 
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{db: db}
+	return &Handler{
+		db:               db,
+		productService:   product.NewProductService(db),
+		categoryService:  product.NewCategoryService(db),
+		skuService:       product.NewSKUService(db),
+		inventoryService: product.NewInventoryService(db),
+		imageService:     product.NewImageService(db, nil), // TODO: 注入文件管理器
+		searchService:    product.NewSearchService(db),
+	}
 }
 
 // List 获取商品列表
@@ -282,4 +299,177 @@ func (h *Handler) Delete(c *gin.Context) {
 	}
 
 	response.SuccessWithMessage(c, "商品删除成功")
+}
+
+// CreateProductEnhanced 创建商品（增强版）
+func (h *Handler) CreateProductEnhanced(c *gin.Context) {
+	var req product.CreateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 从JWT中获取用户ID作为商家ID
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+	req.MerchantID = userID.(uint)
+
+	productInfo, err := h.productService.CreateProduct(&req)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "创建商品成功", productInfo)
+}
+
+// UpdateProductEnhanced 更新商品（增强版）
+func (h *Handler) UpdateProductEnhanced(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "商品ID格式错误")
+		return
+	}
+
+	var req product.UpdateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	productInfo, err := h.productService.UpdateProduct(uint(id), &req)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "更新商品成功", productInfo)
+}
+
+// UpdateProductStatus 更新商品状态
+func (h *Handler) UpdateProductStatus(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "商品ID格式错误")
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	err = h.productService.UpdateProductStatus(uint(id), req.Status)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "更新商品状态成功", nil)
+}
+
+// GetHotProducts 获取热销商品
+func (h *Handler) GetHotProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetHotProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取热销商品成功", products)
+}
+
+// GetNewProducts 获取新品商品
+func (h *Handler) GetNewProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetNewProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取新品商品成功", products)
+}
+
+// GetRecommendProducts 获取推荐商品
+func (h *Handler) GetRecommendProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetRecommendProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取推荐商品成功", products)
+}
+
+// SearchProducts 搜索商品
+func (h *Handler) SearchProducts(c *gin.Context) {
+	var req product.SearchRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 设置默认值
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 20
+	}
+
+	searchResult, err := h.searchService.SearchProducts(&req)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// 保存搜索历史
+	if userID, exists := c.Get("user_id"); exists && req.Keyword != "" {
+		h.searchService.SaveSearchHistory(userID.(uint), req.Keyword, searchResult.Total)
+	}
+
+	response.Success(c, "搜索商品成功", searchResult)
+}
+
+// GetProductStatistics 获取商品统计信息
+func (h *Handler) GetProductStatistics(c *gin.Context) {
+	merchantIDStr := c.Query("merchant_id")
+	var merchantID uint
+	if merchantIDStr != "" {
+		if id, err := strconv.ParseUint(merchantIDStr, 10, 32); err == nil {
+			merchantID = uint(id)
+		}
+	}
+
+	stats, err := h.productService.GetProductStatistics(merchantID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取商品统计信息成功", stats)
 }
