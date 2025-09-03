@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"mall-go/internal/handler/file"
 	"mall-go/internal/handler/middleware"
-	"mall-go/internal/handler/user"
-	"mall-go/internal/handler/product"
 	"mall-go/internal/handler/order"
+	"mall-go/internal/handler/product"
+	"mall-go/internal/handler/user"
+	"mall-go/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,14 +14,36 @@ import (
 
 // RegisterRoutes 注册所有路由
 func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
+	// 根路径健康检查
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "ok",
+			"message": "Mall Go API is running",
+		})
+	})
+
+	// 根路径API信息
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to Mall-Go API",
+			"version": "1.0.0",
+			"endpoints": []string{
+				"GET /health - 健康检查",
+				"GET /api/v1/products - 获取商品列表",
+				"POST /api/v1/users/register - 用户注册",
+				"POST /api/v1/users/login - 用户登录",
+			},
+		})
+	})
+
 	// API版本组
 	v1 := r.Group("/api/v1")
 
-	// 健康检查
+	// API版本健康检查
 	v1.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
-			"message": "Mall Go API is running",
+			"status":  "ok",
+			"message": "Mall Go API v1 is running",
 		})
 	})
 
@@ -54,16 +78,41 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		orderGroup.POST("", orderHandler.Create)
 		orderGroup.PUT("/:id/status", orderHandler.UpdateStatus)
 	}
+
+	// 文件管理路由
+	fileHandler := file.NewFileHandler(db, "uploads", "http://localhost:8080")
+	fileGroup := v1.Group("/files")
+	{
+		// 公开文件访问（无需认证）
+		fileGroup.GET("/public/:uuid", fileHandler.DownloadPublicFile)
+
+		// 需要认证的文件操作
+		fileAuth := fileGroup.Group("")
+		fileAuth.Use(middleware.AuthMiddleware())
+		{
+			// 文件上传（需要文件创建权限）
+			fileAuth.POST("/upload", middleware.RequirePermission(model.ResourceFile, model.ActionCreate), fileHandler.UploadSingle)
+			fileAuth.POST("/upload/multiple", middleware.RequirePermission(model.ResourceFile, model.ActionCreate), fileHandler.UploadMultiple)
+
+			// 文件查看和下载（需要文件读取权限）
+			fileAuth.GET("/:uuid", middleware.RequirePermission(model.ResourceFile, model.ActionRead), fileHandler.GetFile)
+			fileAuth.GET("/private/:uuid", middleware.RequirePermission(model.ResourceFile, model.ActionRead), fileHandler.DownloadPrivateFile)
+			fileAuth.GET("", middleware.RequirePermission(model.ResourceFile, model.ActionRead), fileHandler.ListFiles)
+
+			// 文件删除（需要文件删除权限）
+			fileAuth.DELETE("/:uuid", middleware.RequirePermission(model.ResourceFile, model.ActionDelete), fileHandler.DeleteFile)
+		}
+	}
 }
 
 // RegisterMiddleware 注册中间件
 func RegisterMiddleware(r *gin.Engine) {
 	// 跨域中间件
 	r.Use(middleware.CorsMiddleware())
-	
+
 	// 日志中间件
 	r.Use(middleware.LoggerMiddleware())
-	
+
 	// 恢复中间件
 	r.Use(middleware.RecoveryMiddleware())
 }

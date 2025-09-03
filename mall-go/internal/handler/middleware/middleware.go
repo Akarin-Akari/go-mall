@@ -6,20 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"mall-go/pkg/auth"
 	"mall-go/internal/model"
+	"mall-go/pkg/auth"
+	"mall-go/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 // 统一的错误响应函数，遵循DRY原则
 func respondWithError(c *gin.Context, code int, message string) {
-	c.JSON(code, gin.H{
-		"code":    code,
-		"message": message,
-	})
-	c.Abort()
+	response.Abort(c, code, code, message)
 }
 
 // CorsMiddleware 跨域中间件
@@ -174,6 +170,63 @@ func AdminOrMerchantMiddleware() gin.HandlerFunc {
 
 		if role != model.RoleAdmin && role != model.RoleMerchant {
 			respondWithError(c, http.StatusForbidden, "权限不足，需要管理员或商家权限")
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// RequirePermission 要求特定权限的中间件（基于Casbin）
+func RequirePermission(resource, action string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, _, _, exists := GetUserFromContext(c)
+		if !exists {
+			respondWithError(c, http.StatusUnauthorized, "用户未认证")
+			return
+		}
+
+		// 使用Casbin检查权限
+		hasPermission, err := auth.CheckUserPermission(userID, resource, action)
+		if err != nil {
+			respondWithError(c, http.StatusInternalServerError, "权限检查失败")
+			return
+		}
+
+		if !hasPermission {
+			respondWithError(c, http.StatusForbidden, fmt.Sprintf("权限不足，需要%s资源的%s权限", resource, action))
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// RequireResourcePermission 要求资源权限的中间件（动态资源）
+func RequireResourcePermission(getResource func(*gin.Context) string, action string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, _, _, exists := GetUserFromContext(c)
+		if !exists {
+			respondWithError(c, http.StatusUnauthorized, "用户未认证")
+			return
+		}
+
+		// 动态获取资源
+		resource := getResource(c)
+		if resource == "" {
+			respondWithError(c, http.StatusBadRequest, "无效的资源")
+			return
+		}
+
+		// 使用Casbin检查权限
+		hasPermission, err := auth.CheckUserPermission(userID, resource, action)
+		if err != nil {
+			respondWithError(c, http.StatusInternalServerError, "权限检查失败")
+			return
+		}
+
+		if !hasPermission {
+			respondWithError(c, http.StatusForbidden, fmt.Sprintf("权限不足，需要%s资源的%s权限", resource, action))
 			return
 		}
 

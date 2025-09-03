@@ -3,20 +3,38 @@ package product
 import (
 	"net/http"
 	"strconv"
+
 	"mall-go/internal/model"
 	"mall-go/pkg/logger"
+	"mall-go/pkg/product"
+	"mall-go/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type Handler struct {
-	db *gorm.DB
+	db               *gorm.DB
+	productService   *product.ProductService
+	categoryService  *product.CategoryService
+	skuService       *product.SKUService
+	inventoryService *product.InventoryService
+	imageService     *product.ImageService
+	searchService    *product.SearchService
 }
 
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{db: db}
+	return &Handler{
+		db:               db,
+		productService:   product.NewProductService(db),
+		categoryService:  product.NewCategoryService(db),
+		skuService:       product.NewSKUService(db),
+		inventoryService: product.NewInventoryService(db),
+		imageService:     product.NewImageService(db, nil), // TODO: 注入文件管理器
+		searchService:    product.NewSearchService(db),
+	}
 }
 
 // List 获取商品列表
@@ -36,9 +54,7 @@ func NewHandler(db *gorm.DB) *Handler {
 func (h *Handler) List(c *gin.Context) {
 	var req model.ProductListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
@@ -76,22 +92,12 @@ func (h *Handler) List(c *gin.Context) {
 	var products []model.Product
 	offset := (req.Page - 1) * req.PageSize
 	if err := query.Offset(offset).Limit(req.PageSize).Find(&products).Error; err != nil {
-		logger.Error("查询商品列表失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询商品列表失败",
-		})
+		logger.Error("查询商品列表失败", zap.Error(err))
+		response.ServerError(c, "查询商品列表失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": products,
-		"pagination": gin.H{
-			"page":       req.Page,
-			"page_size":  req.PageSize,
-			"total":      total,
-			"total_page": (total + int64(req.PageSize) - 1) / int64(req.PageSize),
-		},
-	})
+	response.SuccessWithPage(c, "查询成功", products, total, req.Page, req.PageSize)
 }
 
 // Get 获取商品详情
@@ -107,28 +113,22 @@ func (h *Handler) List(c *gin.Context) {
 func (h *Handler) Get(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的商品ID",
-		})
+		response.BadRequest(c, "无效的商品ID")
 		return
 	}
 
 	var product model.Product
 	if err := h.db.Preload("Category").Preload("Images").First(&product, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "商品不存在",
-			})
+			response.NotFound(c, "商品不存在")
 			return
 		}
-		logger.Error("查询商品详情失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询商品详情失败",
-		})
+		logger.Error("查询商品详情失败", zap.Error(err))
+		response.ServerError(c, "查询商品详情失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, product)
+	response.SuccessWithData(c, product)
 }
 
 // Create 创建商品
@@ -145,18 +145,14 @@ func (h *Handler) Get(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var req model.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	// 检查分类是否存在
 	var category model.Category
 	if err := h.db.First(&category, req.CategoryID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "商品分类不存在",
-		})
+		response.BadRequest(c, "商品分类不存在")
 		return
 	}
 
@@ -171,10 +167,8 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 
 	if err := h.db.Create(&product).Error; err != nil {
-		logger.Error("创建商品失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建商品失败",
-		})
+		logger.Error("创建商品失败", zap.Error(err))
+		response.ServerError(c, "创建商品失败")
 		return
 	}
 
@@ -193,10 +187,7 @@ func (h *Handler) Create(c *gin.Context) {
 	// 重新查询商品（包含关联数据）
 	h.db.Preload("Category").Preload("Images").First(&product, product.ID)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "商品创建成功",
-		"product": product,
-	})
+	response.Success(c, "商品创建成功", product)
 }
 
 // Update 更新商品
@@ -214,31 +205,23 @@ func (h *Handler) Create(c *gin.Context) {
 func (h *Handler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的商品ID",
-		})
+		response.BadRequest(c, "无效的商品ID")
 		return
 	}
 
 	var req model.ProductUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, "请求参数错误: "+err.Error())
 		return
 	}
 
 	var product model.Product
 	if err := h.db.First(&product, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "商品不存在",
-			})
+			response.NotFound(c, "商品不存在")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询商品失败",
-		})
+		response.ServerError(c, "查询商品失败")
 		return
 	}
 
@@ -250,10 +233,8 @@ func (h *Handler) Update(c *gin.Context) {
 	product.CategoryID = req.CategoryID
 
 	if err := h.db.Save(&product).Error; err != nil {
-		logger.Error("更新商品失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新商品失败",
-		})
+		logger.Error("更新商品失败", zap.Error(err))
+		response.ServerError(c, "更新商品失败")
 		return
 	}
 
@@ -261,7 +242,7 @@ func (h *Handler) Update(c *gin.Context) {
 	if len(req.Images) > 0 {
 		// 删除旧图片
 		h.db.Where("product_id = ?", product.ID).Delete(&model.ProductImage{})
-		
+
 		// 创建新图片
 		for i, imageURL := range req.Images {
 			productImage := model.ProductImage{
@@ -276,10 +257,7 @@ func (h *Handler) Update(c *gin.Context) {
 	// 重新查询商品（包含关联数据）
 	h.db.Preload("Category").Preload("Images").First(&product, product.ID)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "商品更新成功",
-		"product": product,
-	})
+	response.Success(c, "商品更新成功", product)
 }
 
 // Delete 删除商品
@@ -296,23 +274,17 @@ func (h *Handler) Update(c *gin.Context) {
 func (h *Handler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的商品ID",
-		})
+		response.BadRequest(c, "无效的商品ID")
 		return
 	}
 
 	var product model.Product
 	if err := h.db.First(&product, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "商品不存在",
-			})
+			response.NotFound(c, "商品不存在")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查询商品失败",
-		})
+		response.ServerError(c, "查询商品失败")
 		return
 	}
 
@@ -321,14 +293,183 @@ func (h *Handler) Delete(c *gin.Context) {
 
 	// 删除商品
 	if err := h.db.Delete(&product).Error; err != nil {
-		logger.Error("删除商品失败: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "删除商品失败",
-		})
+		logger.Error("删除商品失败", zap.Error(err))
+		response.ServerError(c, "删除商品失败")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "商品删除成功",
-	})
+	response.SuccessWithMessage(c, "商品删除成功")
+}
+
+// CreateProductEnhanced 创建商品（增强版）
+func (h *Handler) CreateProductEnhanced(c *gin.Context) {
+	var req product.CreateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 从JWT中获取用户ID作为商家ID
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+	req.MerchantID = userID.(uint)
+
+	productInfo, err := h.productService.CreateProduct(&req)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "创建商品成功", productInfo)
+}
+
+// UpdateProductEnhanced 更新商品（增强版）
+func (h *Handler) UpdateProductEnhanced(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "商品ID格式错误")
+		return
+	}
+
+	var req product.UpdateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	productInfo, err := h.productService.UpdateProduct(uint(id), &req)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "更新商品成功", productInfo)
+}
+
+// UpdateProductStatus 更新商品状态
+func (h *Handler) UpdateProductStatus(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "商品ID格式错误")
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	err = h.productService.UpdateProductStatus(uint(id), req.Status)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, "更新商品状态成功", nil)
+}
+
+// GetHotProducts 获取热销商品
+func (h *Handler) GetHotProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetHotProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取热销商品成功", products)
+}
+
+// GetNewProducts 获取新品商品
+func (h *Handler) GetNewProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetNewProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取新品商品成功", products)
+}
+
+// GetRecommendProducts 获取推荐商品
+func (h *Handler) GetRecommendProducts(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	products, err := h.productService.GetRecommendProducts(limit)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取推荐商品成功", products)
+}
+
+// SearchProducts 搜索商品
+func (h *Handler) SearchProducts(c *gin.Context) {
+	var req product.SearchRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 设置默认值
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 20
+	}
+
+	searchResult, err := h.searchService.SearchProducts(&req)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// 保存搜索历史
+	if userID, exists := c.Get("user_id"); exists && req.Keyword != "" {
+		h.searchService.SaveSearchHistory(userID.(uint), req.Keyword, searchResult.Total)
+	}
+
+	response.Success(c, "搜索商品成功", searchResult)
+}
+
+// GetProductStatistics 获取商品统计信息
+func (h *Handler) GetProductStatistics(c *gin.Context) {
+	merchantIDStr := c.Query("merchant_id")
+	var merchantID uint
+	if merchantIDStr != "" {
+		if id, err := strconv.ParseUint(merchantIDStr, 10, 32); err == nil {
+			merchantID = uint(id)
+		}
+	}
+
+	stats, err := h.productService.GetProductStatistics(merchantID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, "获取商品统计信息成功", stats)
 }
