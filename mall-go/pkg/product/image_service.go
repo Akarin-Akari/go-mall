@@ -70,7 +70,7 @@ func (is *ImageService) UploadProductImage(req *UploadImageRequest) (*model.Prod
 	}
 
 	// 验证文件类型
-	if !is.isImageFile(fileInfo.FileName) {
+	if !is.isImageFile(fileInfo.OriginalName) {
 		return nil, fmt.Errorf("只能上传图片文件")
 	}
 
@@ -86,7 +86,7 @@ func (is *ImageService) UploadProductImage(req *UploadImageRequest) (*model.Prod
 	// 创建商品图片记录
 	image := &model.ProductImage{
 		ProductID: req.ProductID,
-		URL:       fileInfo.URL,
+		URL:       fileInfo.URL(),
 		Alt:       req.Alt,
 		Sort:      req.Sort,
 		IsMain:    req.IsMain,
@@ -126,7 +126,7 @@ func (is *ImageService) BatchUploadProductImages(req *BatchUploadImageRequest) (
 		}
 
 		// 验证文件类型
-		if !is.isImageFile(fileInfo.FileName) {
+		if !is.isImageFile(fileInfo.OriginalName) {
 			tx.Rollback()
 			return nil, fmt.Errorf("文件ID %d 不是图片文件", fileID)
 		}
@@ -140,7 +140,7 @@ func (is *ImageService) BatchUploadProductImages(req *BatchUploadImageRequest) (
 		// 创建商品图片记录
 		image := &model.ProductImage{
 			ProductID: req.ProductID,
-			URL:       fileInfo.URL,
+			URL:       fileInfo.URL(),
 			Alt:       alt,
 			Sort:      i,
 			IsMain:    i == 0, // 第一张图片设为主图
@@ -419,13 +419,13 @@ func (is *ImageService) GetImageStatistics(productID uint) (map[string]interface
 func (is *ImageService) isImageFile(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	imageExts := []string{".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
-	
+
 	for _, imageExt := range imageExts {
 		if ext == imageExt {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

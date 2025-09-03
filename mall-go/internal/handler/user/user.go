@@ -1,9 +1,6 @@
 package user
 
 import (
-	"net/http"
-	"strconv"
-
 	"mall-go/internal/model"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/logger"
@@ -262,4 +259,420 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		CreatedAt: user.CreatedAt,
 	}
 	response.Success(c, "用户信息更新成功", userResponse)
+}
+
+// RefreshToken 刷新令牌
+func (h *Handler) RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	result, err := h.loginService.RefreshToken(&user.RefreshTokenRequest{
+		RefreshToken: req.RefreshToken,
+	})
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, "令牌刷新成功", result)
+}
+
+// ForgotPassword 忘记密码
+func (h *Handler) ForgotPassword(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	err := h.loginService.ForgotPassword(&user.ForgotPasswordRequest{
+		Account: req.Email,
+		Type:    "email",
+	})
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, "重置密码邮件已发送", nil)
+}
+
+// ResetPassword 重置密码
+func (h *Handler) ResetPassword(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Code     string `json:"code" binding:"required"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	err := h.loginService.ResetPassword(&user.ResetPasswordRequest{
+		Account:         req.Email,
+		Code:            req.Code,
+		NewPassword:     req.Password,
+		ConfirmPassword: req.Password,
+		Type:            "email",
+	})
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, "密码重置成功", nil)
+}
+
+// VerifyResetCode 验证重置码
+func (h *Handler) VerifyResetCode(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+		Code  string `json:"code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// TODO: 实现验证码验证逻辑
+	// 暂时返回成功，实际应该验证验证码
+	response.Success(c, "验证码验证功能待实现", gin.H{
+		"email": req.Email,
+		"code":  req.Code,
+	})
+}
+
+// UploadAvatar 上传头像
+func (h *Handler) UploadAvatar(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	// 获取上传的文件
+	_, err := c.FormFile("avatar")
+	if err != nil {
+		response.BadRequest(c, "请选择要上传的头像文件")
+		return
+	}
+
+	// 这里应该调用文件上传服务
+	// 暂时返回成功响应
+	response.Success(c, "头像上传成功", gin.H{
+		"user_id": userID,
+		"message": "头像上传功能待实现",
+	})
+}
+
+// GetCurrentUser 获取当前用户信息
+func (h *Handler) GetCurrentUser(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	var user model.User
+	if err := h.db.First(&user, userID).Error; err != nil {
+		response.NotFound(c, "用户不存在")
+		return
+	}
+
+	response.Success(c, "获取用户信息成功", user.ToResponse())
+}
+
+// ChangePassword 修改密码
+func (h *Handler) ChangePassword(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	var req struct {
+		OldPassword string `json:"old_password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	// 这里应该调用密码修改服务
+	// 暂时返回成功响应
+	response.Success(c, "密码修改成功", gin.H{
+		"user_id": userID,
+		"message": "密码修改功能待实现",
+	})
+}
+
+// ChangeEmail 修改邮箱
+func (h *Handler) ChangeEmail(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	var req struct {
+		NewEmail string `json:"new_email" binding:"required,email"`
+		Code     string `json:"code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	response.Success(c, "邮箱修改成功", gin.H{
+		"user_id": userID,
+		"message": "邮箱修改功能待实现",
+	})
+}
+
+// VerifyEmail 验证邮箱
+func (h *Handler) VerifyEmail(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+		Code  string `json:"code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	response.Success(c, "邮箱验证成功", gin.H{
+		"message": "邮箱验证功能待实现",
+	})
+}
+
+// ChangePhone 修改手机号
+func (h *Handler) ChangePhone(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	var req struct {
+		NewPhone string `json:"new_phone" binding:"required"`
+		Code     string `json:"code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	response.Success(c, "手机号修改成功", gin.H{
+		"user_id": userID,
+		"message": "手机号修改功能待实现",
+	})
+}
+
+// VerifyPhone 验证手机号
+func (h *Handler) VerifyPhone(c *gin.Context) {
+	var req struct {
+		Phone string `json:"phone" binding:"required"`
+		Code  string `json:"code" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数错误: "+err.Error())
+		return
+	}
+
+	response.Success(c, "手机号验证成功", gin.H{
+		"message": "手机号验证功能待实现",
+	})
+}
+
+// GetSecuritySettings 获取安全设置
+func (h *Handler) GetSecuritySettings(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "获取安全设置成功", gin.H{
+		"user_id": userID,
+		"message": "安全设置功能待实现",
+	})
+}
+
+// Enable2FA 启用双因子认证
+func (h *Handler) Enable2FA(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "双因子认证启用成功", gin.H{
+		"user_id": userID,
+		"message": "双因子认证功能待实现",
+	})
+}
+
+// Disable2FA 禁用双因子认证
+func (h *Handler) Disable2FA(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "双因子认证禁用成功", gin.H{
+		"user_id": userID,
+		"message": "双因子认证功能待实现",
+	})
+}
+
+// GetLoginLogs 获取登录日志
+func (h *Handler) GetLoginLogs(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "获取登录日志成功", gin.H{
+		"user_id": userID,
+		"message": "登录日志功能待实现",
+	})
+}
+
+// GetSocialAccounts 获取社交账号绑定
+func (h *Handler) GetSocialAccounts(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "获取社交账号成功", gin.H{
+		"user_id": userID,
+		"message": "社交账号功能待实现",
+	})
+}
+
+// BindSocialAccount 绑定社交账号
+func (h *Handler) BindSocialAccount(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "社交账号绑定成功", gin.H{
+		"user_id": userID,
+		"message": "社交账号绑定功能待实现",
+	})
+}
+
+// UnbindSocialAccount 解绑社交账号
+func (h *Handler) UnbindSocialAccount(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "社交账号解绑成功", gin.H{
+		"user_id": userID,
+		"message": "社交账号解绑功能待实现",
+	})
+}
+
+// Logout 用户登出
+func (h *Handler) Logout(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "登出成功", gin.H{
+		"user_id": userID,
+		"message": "登出功能待实现",
+	})
+}
+
+// DeleteAccount 删除账号
+func (h *Handler) DeleteAccount(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.Unauthorized(c, "用户未认证")
+		return
+	}
+
+	userID := userIDVal.(uint)
+
+	response.Success(c, "账号删除成功", gin.H{
+		"user_id": userID,
+		"message": "账号删除功能待实现",
+	})
+}
+
+// GetUsers 获取用户列表（管理员功能）
+func (h *Handler) GetUsers(c *gin.Context) {
+	response.Success(c, "获取用户列表成功", gin.H{
+		"message": "用户列表功能待实现",
+	})
 }

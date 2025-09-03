@@ -118,3 +118,52 @@ func GetUserInfoFromToken(tokenString string) (uint, string, string, error) {
 
 	return claims.UserID, claims.Username, claims.Role, nil
 }
+
+// GenerateTokenWithExpiry 生成带有自定义过期时间的JWT令牌
+func GenerateTokenWithExpiry(userID uint, username, role string, expiry time.Duration) (string, time.Time, error) {
+	// 获取配置
+	cfg := config.GlobalConfig
+	if cfg.JWT.Secret == "" {
+		return "", time.Time{}, errors.New("JWT密钥未配置")
+	}
+
+	// 计算过期时间
+	expiresAt := time.Now().Add(expiry)
+
+	// 创建声明
+	claims := Claims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "mall-go",
+			Subject:   username,
+		},
+	}
+
+	// 创建令牌
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// 签名令牌
+	tokenString, err := token.SignedString([]byte(cfg.JWT.Secret))
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	return tokenString, expiresAt, nil
+}
+
+// GenerateRefreshToken 生成刷新令牌
+func GenerateRefreshToken(userID uint, username, role string) (string, time.Time, error) {
+	// 刷新令牌有效期为7天
+	return GenerateTokenWithExpiry(userID, username, role, 7*24*time.Hour)
+}
+
+// ValidateRefreshToken 验证刷新令牌
+func ValidateRefreshToken(tokenString string) (*Claims, error) {
+	// 刷新令牌的验证逻辑与普通令牌相同
+	return ParseToken(tokenString)
+}

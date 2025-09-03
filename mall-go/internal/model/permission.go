@@ -4,34 +4,30 @@ package model
 // 用于Casbin权限管理系统
 
 // ========== 角色定义 ==========
-const (
-	RoleUser     = "user"     // 普通用户
-	RoleMerchant = "merchant" // 商家
-	RoleAdmin    = "admin"    // 管理员
-)
+// 角色常量已在user.go中定义，此处不重复定义
 
 // ========== 资源定义 ==========
 const (
 	// 用户管理资源
 	ResourceUser = "user"
-	
+
 	// 商品管理资源
 	ResourceProduct  = "product"
 	ResourceCategory = "category"
-	
+
 	// 订单管理资源
 	ResourceOrder = "order"
-	
+
 	// 店铺管理资源
 	ResourceStore = "store"
-	
+
 	// 系统管理资源
 	ResourceSystem = "system"
 	ResourceConfig = "config"
-	
+
 	// 文件管理资源
 	ResourceFile = "file"
-	
+
 	// 统计报表资源
 	ResourceReport = "report"
 )
@@ -52,15 +48,15 @@ var UserPermissions = [][]string{
 	// 用户可以查看和编辑自己的信息
 	{RoleUser, ResourceUser, ActionRead},
 	{RoleUser, ResourceUser, ActionWrite},
-	
+
 	// 用户可以查看商品
 	{RoleUser, ResourceProduct, ActionRead},
 	{RoleUser, ResourceCategory, ActionRead},
-	
+
 	// 用户可以管理自己的订单
 	{RoleUser, ResourceOrder, ActionRead},
 	{RoleUser, ResourceOrder, ActionCreate},
-	
+
 	// 用户可以上传文件（头像等）
 	{RoleUser, ResourceFile, ActionCreate},
 }
@@ -68,30 +64,30 @@ var UserPermissions = [][]string{
 // MerchantPermissions 商家权限定义
 var MerchantPermissions = [][]string{
 	// 继承用户权限，另外添加商家特有权限
-	
+
 	// 商家可以管理商品
 	{RoleMerchant, ResourceProduct, ActionRead},
 	{RoleMerchant, ResourceProduct, ActionWrite},
 	{RoleMerchant, ResourceProduct, ActionCreate},
 	{RoleMerchant, ResourceProduct, ActionDelete},
-	
+
 	// 商家可以管理分类
 	{RoleMerchant, ResourceCategory, ActionRead},
 	{RoleMerchant, ResourceCategory, ActionWrite},
 	{RoleMerchant, ResourceCategory, ActionCreate},
-	
+
 	// 商家可以查看和处理订单
 	{RoleMerchant, ResourceOrder, ActionRead},
 	{RoleMerchant, ResourceOrder, ActionWrite},
-	
+
 	// 商家可以管理店铺
 	{RoleMerchant, ResourceStore, ActionRead},
 	{RoleMerchant, ResourceStore, ActionWrite},
-	
+
 	// 商家可以上传商品图片
 	{RoleMerchant, ResourceFile, ActionCreate},
 	{RoleMerchant, ResourceFile, ActionRead},
-	
+
 	// 商家可以查看报表
 	{RoleMerchant, ResourceReport, ActionRead},
 }
@@ -99,27 +95,27 @@ var MerchantPermissions = [][]string{
 // AdminPermissions 管理员权限定义
 var AdminPermissions = [][]string{
 	// 管理员拥有所有权限
-	
+
 	// 用户管理
 	{RoleAdmin, ResourceUser, ActionManage},
-	
+
 	// 商品管理
 	{RoleAdmin, ResourceProduct, ActionManage},
 	{RoleAdmin, ResourceCategory, ActionManage},
-	
+
 	// 订单管理
 	{RoleAdmin, ResourceOrder, ActionManage},
-	
+
 	// 店铺管理
 	{RoleAdmin, ResourceStore, ActionManage},
-	
+
 	// 系统管理
 	{RoleAdmin, ResourceSystem, ActionManage},
 	{RoleAdmin, ResourceConfig, ActionManage},
-	
+
 	// 文件管理
 	{RoleAdmin, ResourceFile, ActionManage},
-	
+
 	// 报表管理
 	{RoleAdmin, ResourceReport, ActionManage},
 }
@@ -161,7 +157,7 @@ func IsValidResource(resource string) bool {
 		ResourceOrder, ResourceStore, ResourceSystem,
 		ResourceConfig, ResourceFile, ResourceReport,
 	}
-	
+
 	for _, validResource := range validResources {
 		if resource == validResource {
 			return true
@@ -176,7 +172,7 @@ func IsValidAction(action string) bool {
 		ActionRead, ActionWrite, ActionCreate,
 		ActionDelete, ActionManage,
 	}
-	
+
 	for _, validAction := range validActions {
 		if action == validAction {
 			return true
@@ -221,10 +217,10 @@ func GetPermissionDescription(role, resource, action string) string {
 	roleDesc := RoleDescriptions[role]
 	resourceDesc := ResourceDescriptions[resource]
 	actionDesc := ActionDescriptions[action]
-	
+
 	if roleDesc == "" || resourceDesc == "" || actionDesc == "" {
 		return "未知权限"
 	}
-	
+
 	return roleDesc + "可以" + actionDesc + resourceDesc
 }

@@ -183,7 +183,7 @@ func (fm *FileManager) DeleteFile(fileID uint, userID uint, isAdmin bool) error 
 	}
 
 	// 检查权限（只能删除自己的文件，除非是管理员）
-	if file.UserID != userID && !isAdmin {
+	if file.UploadUserID != userID && !isAdmin {
 		return fmt.Errorf("无权限删除此文件")
 	}
 
@@ -238,7 +238,7 @@ func (fm *FileManager) UpdateFileInfo(fileID uint, userID uint, updates map[stri
 	}
 
 	// 检查权限
-	if file.UserID != userID {
+	if file.UploadUserID != userID {
 		return fmt.Errorf("无权限修改此文件")
 	}
 

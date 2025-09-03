@@ -76,6 +76,27 @@ func (File) TableName() string {
 	return "files"
 }
 
+// IsImage 检查文件是否为图片
+func (f *File) IsImage() bool {
+	imageTypes := []string{"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/bmp"}
+	for _, imageType := range imageTypes {
+		if f.MimeType == imageType {
+			return true
+		}
+	}
+	return false
+}
+
+// GetURL 获取文件访问URL (兼容性方法)
+func (f *File) GetURL() string {
+	return f.AccessURL
+}
+
+// URL 获取文件访问URL (属性访问器)
+func (f *File) URL() string {
+	return f.AccessURL
+}
+
 // FileUploadRequest 文件上传请求结构
 type FileUploadRequest struct {
 	BusinessType BusinessType `json:"business_type" binding:"required" example:"product"`

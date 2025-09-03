@@ -8,6 +8,7 @@ import (
 	"mall-go/internal/config"
 	"mall-go/internal/model"
 
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -18,26 +19,62 @@ var DB *gorm.DB
 // Init 初始化数据库连接
 func Init() *gorm.DB {
 	var err error
-	
+
 	// 获取配置
 	cfg := config.GlobalConfig
-	
-	// 构建DSN
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.Database.Username,
-		cfg.Database.Password,
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.DBName,
-	)
 
 	// 配置GORM
 	gormConfig := &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	}
 
-	// 连接数据库
-	DB, err = gorm.Open(mysql.Open(dsn), gormConfig)
+	// 根据驱动类型连接数据库
+	if cfg.Database.Driver == "sqlite" {
+		// SQLite连接
+		DB, err = gorm.Open(sqlite.Open(cfg.Database.DBName), gormConfig)
+	} else if cfg.Database.Driver == "memory" {
+		// 内存SQLite连接（用于测试）
+		DB, err = gorm.Open(sqlite.Open(":memory:"), gormConfig)
+		log.Println("使用内存数据库模式（仅用于测试）")
+	} else {
+		// MySQL连接 - 先尝试连接指定数据库
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=30s&readTimeout=30s&writeTimeout=30s",
+			cfg.Database.Username,
+			cfg.Database.Password,
+			cfg.Database.Host,
+			cfg.Database.Port,
+			cfg.Database.DBName,
+		)
+		DB, err = gorm.Open(mysql.Open(dsn), gormConfig)
+
+		// 如果数据库不存在，尝试创建数据库
+		if err != nil && (err.Error() == "Error 1049: Unknown database '"+cfg.Database.DBName+"'" ||
+			fmt.Sprintf("Error 1049 (42000): Unknown database '%s'", cfg.Database.DBName) == err.Error()) {
+			log.Printf("数据库 %s 不存在，尝试创建...", cfg.Database.DBName)
+
+			// 连接MySQL服务器（不指定数据库）
+			rootDSN := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8mb4&parseTime=True&loc=Local&timeout=30s&readTimeout=30s&writeTimeout=30s",
+				cfg.Database.Username,
+				cfg.Database.Password,
+				cfg.Database.Host,
+				cfg.Database.Port,
+			)
+			rootDB, rootErr := gorm.Open(mysql.Open(rootDSN), gormConfig)
+			if rootErr != nil {
+				log.Printf("连接MySQL服务器失败: %v", rootErr)
+			} else {
+				// 创建数据库
+				createSQL := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET UTF8MB4 COLLATE UTF8MB4_UNICODE_CI", cfg.Database.DBName)
+				if createErr := rootDB.Exec(createSQL).Error; createErr != nil {
+					log.Printf("创建数据库失败: %v", createErr)
+				} else {
+					log.Printf("数据库 %s 创建成功", cfg.Database.DBName)
+					// 重新尝试连接
+					DB, err = gorm.Open(mysql.Open(dsn), gormConfig)
+				}
+			}
+		}
+	}
 	if err != nil {
 		log.Fatalf("数据库连接失败: %v", err)
 	}
@@ -76,6 +113,12 @@ func InitDB() (*gorm.DB, error) {
 // autoMigrate 自动迁移数据库表结构
 func autoMigrate(db *gorm.DB) error {
 	log.Println("开始数据库迁移...")
+
+	// 检查表是否存在，如果存在则跳过迁移
+	if db.Migrator().HasTable(&model.User{}) {
+		log.Println("数据库表已存在，跳过迁移")
+		return nil
+	}
 
 	// 迁移所有模型
 	err := db.AutoMigrate(
@@ -150,11 +193,11 @@ func GetStats() map[string]interface{} {
 	return map[string]interface{}{
 		"max_open_connections": stats.MaxOpenConnections,
 		"open_connections":     stats.OpenConnections,
-		"in_use":              stats.InUse,
-		"idle":                stats.Idle,
-		"wait_count":          stats.WaitCount,
-		"wait_duration":       stats.WaitDuration.String(),
-		"max_idle_closed":     stats.MaxIdleClosed,
+		"in_use":               stats.InUse,
+		"idle":                 stats.Idle,
+		"wait_count":           stats.WaitCount,
+		"wait_duration":        stats.WaitDuration.String(),
+		"max_idle_closed":      stats.MaxIdleClosed,
 		"max_idle_time_closed": stats.MaxIdleTimeClosed,
 		"max_lifetime_closed":  stats.MaxLifetimeClosed,
 	}

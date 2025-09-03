@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -42,6 +43,9 @@ type User struct {
 	TwoFactorEnabled  bool       `gorm:"default:false" json:"two_factor_enabled"` // 双因子认证
 	TwoFactorSecret   string     `gorm:"size:32" json:"-"`                        // 双因子认证密钥
 
+	// 财务信息
+	Balance decimal.Decimal `gorm:"type:decimal(10,2);default:0.00" json:"balance"` // 账户余额
+
 	// 统计信息
 	LoginCount     int `gorm:"default:0" json:"login_count"`     // 登录次数
 	PostCount      int `gorm:"default:0" json:"post_count"`      // 发帖数量
@@ -54,9 +58,9 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// 关联关系
-	Files     []File         `gorm:"foreignKey:UserID" json:"files,omitempty"`      // 用户文件
-	LoginLogs []UserLoginLog `gorm:"foreignKey:UserID" json:"login_logs,omitempty"` // 登录日志
-	Profile   *UserProfile   `gorm:"foreignKey:UserID" json:"profile,omitempty"`    // 用户资料
+	Files     []File         `gorm:"foreignKey:UploadUserID" json:"files,omitempty"` // 用户文件
+	LoginLogs []UserLoginLog `gorm:"foreignKey:UserID" json:"login_logs,omitempty"`  // 登录日志
+	Profile   *UserProfile   `gorm:"foreignKey:UserID" json:"profile,omitempty"`     // 用户资料
 }
 
 // TableName 指定表名
@@ -315,6 +319,23 @@ type UserSocialAccount struct {
 func (UserSocialAccount) TableName() string {
 	return "user_social_accounts"
 }
+
+// 用户角色常量
+const (
+	RoleSuperAdmin = "super_admin" // 超级管理员
+	RoleAdmin      = "admin"       // 管理员
+	RoleUser       = "user"        // 普通用户
+	RoleMerchant   = "merchant"    // 商家
+	RoleCustomer   = "customer"    // 客户（别名，用于兼容）
+)
+
+// 用户状态常量
+const (
+	UserStatusActive   = "active"   // 激活
+	UserStatusInactive = "inactive" // 未激活
+	UserStatusLocked   = "locked"   // 锁定
+	UserStatusBanned   = "banned"   // 禁用
+)
 
 // 验证码类型常量
 const (

@@ -46,6 +46,11 @@ func IsPasswordValid(hashedPassword, password string) bool {
 	return err == nil
 }
 
+// CheckPassword 检查密码是否正确（别名函数，用于兼容）
+func CheckPassword(hashedPassword, password string) bool {
+	return IsPasswordValid(hashedPassword, password)
+}
+
 // ValidatePasswordStrength 验证密码强度
 func ValidatePasswordStrength(password string) error {
 	if len(password) < MinPasswordLength {

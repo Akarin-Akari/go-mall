@@ -79,8 +79,8 @@ func (ps *PaymentService) CreatePayment(userID uint, req *PaymentRequest) (*Paym
 
 	// 检查是否已有待支付的支付记录
 	var existingPayment model.OrderPayment
-	if err := tx.Where("order_id = ? AND status IN ?", req.OrderID, 
-		[]string{model.PaymentStatusPending}).First(&existingPayment).Error; err == nil {
+	if err := tx.Where("order_id = ? AND status IN ?", req.OrderID,
+		[]string{string(model.PaymentStatusPending)}).First(&existingPayment).Error; err == nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("订单已有待支付记录")
 	}
@@ -92,7 +92,7 @@ func (ps *PaymentService) CreatePayment(userID uint, req *PaymentRequest) (*Paym
 		PaymentMethod:  req.PaymentMethod,
 		PaymentChannel: ps.getPaymentChannel(req.PaymentMethod),
 		Amount:         order.PayableAmount,
-		Status:         model.PaymentStatusPending,
+		Status:         string(model.PaymentStatusPending),
 		ExpireTime:     order.PayExpireTime,
 	}
 
@@ -108,7 +108,7 @@ func (ps *PaymentService) CreatePayment(userID uint, req *PaymentRequest) (*Paym
 	if err != nil {
 		// 更新支付状态为失败
 		ps.db.Model(payment).Updates(map[string]interface{}{
-			"status": model.PaymentStatusFailed,
+			"status":           model.PaymentStatusFailed,
 			"third_party_data": fmt.Sprintf(`{"error": "%s"}`, err.Error()),
 		})
 		return nil, fmt.Errorf("调用支付接口失败: %v", err)
@@ -146,16 +146,16 @@ func (ps *PaymentService) callThirdPartyPayment(payment *model.OrderPayment, req
 func (ps *PaymentService) callAlipayAPI(payment *model.OrderPayment, req *PaymentRequest) (map[string]interface{}, error) {
 	// 这里应该调用真实的支付宝SDK
 	// 为了演示，返回模拟数据
-	
+
 	paymentData := map[string]interface{}{
-		"app_id":      "2021000000000000", // 应用ID
-		"method":      "alipay.trade.app.pay",
-		"charset":     "utf-8",
-		"sign_type":   "RSA2",
-		"timestamp":   time.Now().Format("2006-01-02 15:04:05"),
-		"version":     "1.0",
-		"notify_url":  req.NotifyURL,
-		"return_url":  req.ReturnURL,
+		"app_id":     "2021000000000000", // 应用ID
+		"method":     "alipay.trade.app.pay",
+		"charset":    "utf-8",
+		"sign_type":  "RSA2",
+		"timestamp":  time.Now().Format("2006-01-02 15:04:05"),
+		"version":    "1.0",
+		"notify_url": req.NotifyURL,
+		"return_url": req.ReturnURL,
 		"biz_content": map[string]interface{}{
 			"out_trade_no": payment.PaymentNo,
 			"total_amount": payment.Amount.String(),
@@ -174,7 +174,7 @@ func (ps *PaymentService) callAlipayAPI(payment *model.OrderPayment, req *Paymen
 func (ps *PaymentService) callWechatPayAPI(payment *model.OrderPayment, req *PaymentRequest) (map[string]interface{}, error) {
 	// 这里应该调用真实的微信支付SDK
 	// 为了演示，返回模拟数据
-	
+
 	paymentData := map[string]interface{}{
 		"appid":            "wx1234567890123456", // 应用ID
 		"mch_id":           "1234567890",         // 商户号
@@ -207,7 +207,7 @@ func (ps *PaymentService) processBalancePayment(payment *model.OrderPayment, req
 	}
 
 	// 扣减余额
-	if err := ps.db.Model(&user).UpdateColumn("balance", 
+	if err := ps.db.Model(&user).UpdateColumn("balance",
 		gorm.Expr("balance - ?", payment.Amount)).Error; err != nil {
 		return nil, fmt.Errorf("扣减余额失败: %v", err)
 	}
@@ -220,7 +220,7 @@ func (ps *PaymentService) processBalancePayment(payment *model.OrderPayment, req
 	})
 
 	// 更新订单状态
-	ps.statusService.UpdateOrderStatus(payment.OrderID, model.OrderStatusPaid, 
+	ps.statusService.UpdateOrderStatus(payment.OrderID, model.OrderStatusPaid,
 		payment.Order.UserID, model.OperatorTypeUser, "余额支付", "余额支付成功")
 
 	return map[string]interface{}{
@@ -248,7 +248,7 @@ func (ps *PaymentService) HandlePaymentNotify(req *PaymentNotifyRequest) error {
 	}
 
 	// 检查支付状态
-	if payment.Status == model.PaymentStatusPaid {
+	if payment.Status == string(model.PaymentStatusPaid) {
 		tx.Rollback()
 		return nil // 已经处理过，直接返回成功
 	}
@@ -277,7 +277,7 @@ func (ps *PaymentService) HandlePaymentNotify(req *PaymentNotifyRequest) error {
 	}
 
 	// 如果支付成功，更新订单状态和金额
-	if req.Status == model.PaymentStatusPaid {
+	if req.Status == string(model.PaymentStatusPaid) {
 		orderUpdates := map[string]interface{}{
 			"paid_amount": gorm.Expr("paid_amount + ?", req.Amount),
 		}
@@ -300,7 +300,7 @@ func (ps *PaymentService) HandlePaymentNotify(req *PaymentNotifyRequest) error {
 
 		if updatedOrder.PaidAmount.GreaterThanOrEqual(updatedOrder.PayableAmount) {
 			// 更新订单状态为已支付
-			if err := ps.statusService.UpdateOrderStatus(payment.OrderID, model.OrderStatusPaid, 
+			if err := ps.statusService.UpdateOrderStatus(payment.OrderID, model.OrderStatusPaid,
 				updatedOrder.UserID, model.OperatorTypeSystem, "支付成功", "第三方支付回调"); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("更新订单状态失败: %v", err)
@@ -342,13 +342,13 @@ func (ps *PaymentService) CancelPayment(paymentNo string, reason string) error {
 		return fmt.Errorf("支付记录不存在")
 	}
 
-	if payment.Status != model.PaymentStatusPending {
+	if payment.Status != string(model.PaymentStatusPending) {
 		return fmt.Errorf("支付状态不允许取消")
 	}
 
 	// 更新支付状态
 	if err := ps.db.Model(&payment).Updates(map[string]interface{}{
-		"status": model.PaymentStatusCancelled,
+		"status":           model.PaymentStatusCancelled,
 		"third_party_data": fmt.Sprintf(`{"cancel_reason": "%s"}`, reason),
 	}).Error; err != nil {
 		return fmt.Errorf("取消支付失败: %v", err)
@@ -407,7 +407,7 @@ func (ps *PaymentService) RefundPayment(paymentNo string, refundAmount decimal.D
 
 	// 获取支付记录
 	var payment model.OrderPayment
-	if err := tx.Preload("Order").Where("payment_no = ? AND status = ?", 
+	if err := tx.Preload("Order").Where("payment_no = ? AND status = ?",
 		paymentNo, model.PaymentStatusPaid).First(&payment).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("支付记录不存在或状态不正确")

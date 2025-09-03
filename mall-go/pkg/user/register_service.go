@@ -29,28 +29,28 @@ func NewRegisterService(db *gorm.DB) *RegisterService {
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {
-	Username         string `json:"username" binding:"required,min=3,max=50"`
-	Email            string `json:"email" binding:"required,email"`
-	Password         string `json:"password" binding:"required,min=6,max=50"`
-	ConfirmPassword  string `json:"confirm_password" binding:"required"`
-	Phone            string `json:"phone"`
-	Nickname         string `json:"nickname"`
-	EmailCode        string `json:"email_code"`        // 邮箱验证码
-	PhoneCode        string `json:"phone_code"`        // 手机验证码
-	AgreeTerms       bool   `json:"agree_terms" binding:"required"` // 同意服务条款
-	InviteCode       string `json:"invite_code"`       // 邀请码（可选）
+	Username        string `json:"username" binding:"required,min=3,max=50"`
+	Email           string `json:"email" binding:"required,email"`
+	Password        string `json:"password" binding:"required,min=6,max=50"`
+	ConfirmPassword string `json:"confirm_password" binding:"required"`
+	Phone           string `json:"phone"`
+	Nickname        string `json:"nickname"`
+	EmailCode       string `json:"email_code"`                     // 邮箱验证码
+	PhoneCode       string `json:"phone_code"`                     // 手机验证码
+	AgreeTerms      bool   `json:"agree_terms" binding:"required"` // 同意服务条款
+	InviteCode      string `json:"invite_code"`                    // 邀请码（可选）
 }
 
 // RegisterResponse 注册响应
 type RegisterResponse struct {
-	UserID      uint   `json:"user_id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Nickname    string `json:"nickname"`
-	Token       string `json:"token"`        // 自动登录token
-	ExpiresAt   int64  `json:"expires_at"`   // token过期时间
-	NeedVerify  bool   `json:"need_verify"`  // 是否需要验证
-	Message     string `json:"message"`
+	UserID     uint   `json:"user_id"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Nickname   string `json:"nickname"`
+	Token      string `json:"token"`       // 自动登录token
+	ExpiresAt  int64  `json:"expires_at"`  // token过期时间
+	NeedVerify bool   `json:"need_verify"` // 是否需要验证
+	Message    string `json:"message"`
 }
 
 // SendEmailCodeRequest 发送邮箱验证码请求
@@ -166,7 +166,7 @@ func (rs *RegisterService) Register(req *RegisterRequest) (*RegisterResponse, er
 	rs.db.Create(profile)
 
 	// 11. 生成登录token（自动登录）
-	token, expiresAt, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
 		// 注册成功但token生成失败，不影响注册结果
 		return &RegisterResponse{
@@ -179,13 +179,16 @@ func (rs *RegisterService) Register(req *RegisterRequest) (*RegisterResponse, er
 		}, nil
 	}
 
+	// 计算过期时间（默认24小时）
+	expiresAt := time.Now().Add(24 * time.Hour)
+
 	return &RegisterResponse{
 		UserID:     user.ID,
 		Username:   user.Username,
 		Email:      user.Email,
 		Nickname:   user.Nickname,
 		Token:      token,
-		ExpiresAt:  expiresAt,
+		ExpiresAt:  expiresAt.Unix(),
 		NeedVerify: !user.EmailVerified,
 		Message:    "注册成功",
 	}, nil

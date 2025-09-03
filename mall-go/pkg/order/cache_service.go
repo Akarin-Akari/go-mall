@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"mall-go/internal/model"
@@ -40,10 +39,10 @@ const (
 
 // 缓存过期时间
 const (
-	OrderCacheExpire     = 1 * time.Hour    // 订单缓存1小时
-	OrderListCacheExpire = 10 * time.Minute // 订单列表缓存10分钟
-	OrderStatsCacheExpire = 5 * time.Minute // 订单统计缓存5分钟
-	OrderLockExpire      = 30 * time.Second // 订单锁30秒
+	OrderCacheExpire      = 1 * time.Hour    // 订单缓存1小时
+	OrderListCacheExpire  = 10 * time.Minute // 订单列表缓存10分钟
+	OrderStatsCacheExpire = 5 * time.Minute  // 订单统计缓存5分钟
+	OrderLockExpire       = 30 * time.Second // 订单锁30秒
 )
 
 // OrderCacheData 订单缓存数据
@@ -56,7 +55,7 @@ type OrderCacheData struct {
 // GetOrderWithCache 获取订单（带缓存）
 func (cs *CacheService) GetOrderWithCache(orderID uint) (*model.Order, error) {
 	cacheKey := cs.getOrderCacheKey(orderID)
-	
+
 	// 尝试从缓存获取
 	cachedData, err := cs.getOrderFromCache(cacheKey)
 	if err == nil && cachedData != nil {
@@ -78,7 +77,7 @@ func (cs *CacheService) GetOrderWithCache(orderID uint) (*model.Order, error) {
 // GetOrderByNoWithCache 根据订单号获取订单（带缓存）
 func (cs *CacheService) GetOrderByNoWithCache(orderNo string) (*model.Order, error) {
 	cacheKey := fmt.Sprintf("%sno_%s", OrderCachePrefix, orderNo)
-	
+
 	// 尝试从缓存获取
 	cachedData, err := cs.getOrderFromCache(cacheKey)
 	if err == nil && cachedData != nil {
@@ -100,7 +99,7 @@ func (cs *CacheService) GetOrderByNoWithCache(orderNo string) (*model.Order, err
 // GetUserOrdersWithCache 获取用户订单列表（带缓存）
 func (cs *CacheService) GetUserOrdersWithCache(userID uint, status string, page, pageSize int) ([]*model.Order, int64, error) {
 	cacheKey := cs.getUserOrdersCacheKey(userID, status, page, pageSize)
-	
+
 	// 尝试从缓存获取
 	cachedData, err := cs.getUserOrdersFromCache(cacheKey)
 	if err == nil && cachedData != nil {
@@ -122,7 +121,7 @@ func (cs *CacheService) GetUserOrdersWithCache(userID uint, status string, page,
 // GetOrderStatisticsWithCache 获取订单统计（带缓存）
 func (cs *CacheService) GetOrderStatisticsWithCache() (*model.OrderStatisticsResponse, error) {
 	cacheKey := fmt.Sprintf("%sall", OrderStatsCachePrefix)
-	
+
 	// 尝试从缓存获取
 	cachedStats, err := cs.getOrderStatsFromCache(cacheKey)
 	if err == nil && cachedStats != nil {
@@ -145,7 +144,7 @@ func (cs *CacheService) GetOrderStatisticsWithCache() (*model.OrderStatisticsRes
 func (cs *CacheService) InvalidateOrderCache(orderID uint) {
 	cacheKey := cs.getOrderCacheKey(orderID)
 	cs.rdb.Del(cs.ctx, cacheKey)
-	
+
 	// 同时清除相关的列表缓存
 	cs.clearRelatedListCache(orderID)
 }
@@ -178,16 +177,16 @@ func (cs *CacheService) InvalidateOrderStatsCache() {
 func (cs *CacheService) AcquireOrderLock(orderID uint) (string, error) {
 	lockKey := cs.getOrderLockKey(orderID)
 	lockValue := fmt.Sprintf("%d", time.Now().UnixNano())
-	
+
 	success, err := cs.rdb.SetNX(cs.ctx, lockKey, lockValue, OrderLockExpire).Result()
 	if err != nil {
 		return "", err
 	}
-	
+
 	if !success {
 		return "", fmt.Errorf("获取订单锁失败，订单正在处理中")
 	}
-	
+
 	return lockValue, nil
 }
 
@@ -211,11 +210,11 @@ func (cs *CacheService) WarmupOrderCache(orderIDs []uint) error {
 		if err != nil {
 			continue
 		}
-		
+
 		cacheKey := cs.getOrderCacheKey(orderID)
 		cs.updateOrderCache(cacheKey, order)
 	}
-	
+
 	return nil
 }
 
@@ -373,7 +372,7 @@ func (cs *CacheService) getOrderStatsFromDB() (*model.OrderStatisticsResponse, e
 func (cs *CacheService) clearRelatedListCache(orderID uint) {
 	// 清除用户订单列表缓存
 	// 这里需要知道订单属于哪个用户，实际实现中需要查询数据库
-	
+
 	// 清除订单统计缓存
 	cs.InvalidateOrderStatsCache()
 }
@@ -388,64 +387,64 @@ type UserOrdersCacheData struct {
 // GetCacheStats 获取缓存统计信息
 func (cs *CacheService) GetCacheStats() (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
-	
+
 	// 获取订单缓存数量
 	orderKeys, err := cs.rdb.Keys(cs.ctx, OrderCachePrefix+"*").Result()
 	if err == nil {
 		stats["order_cache_count"] = len(orderKeys)
 	}
-	
+
 	// 获取订单列表缓存数量
 	listKeys, err := cs.rdb.Keys(cs.ctx, OrderListCachePrefix+"*").Result()
 	if err == nil {
 		stats["order_list_cache_count"] = len(listKeys)
 	}
-	
+
 	// 获取用户订单缓存数量
 	userOrderKeys, err := cs.rdb.Keys(cs.ctx, UserOrderCachePrefix+"*").Result()
 	if err == nil {
 		stats["user_order_cache_count"] = len(userOrderKeys)
 	}
-	
+
 	// 获取活跃锁数量
 	lockKeys, err := cs.rdb.Keys(cs.ctx, OrderLockPrefix+"*").Result()
 	if err == nil {
 		stats["active_locks"] = len(lockKeys)
 	}
-	
+
 	return stats, nil
 }
 
 // CleanExpiredCache 清理过期缓存
 func (cs *CacheService) CleanExpiredCache() error {
 	// Redis会自动清理过期键，这里可以添加额外的清理逻辑
-	
+
 	// 清理长时间未访问的缓存
 	patterns := []string{
 		OrderCachePrefix + "*",
 		OrderListCachePrefix + "*",
 		UserOrderCachePrefix + "*",
 	}
-	
+
 	for _, pattern := range patterns {
 		keys, err := cs.rdb.Keys(cs.ctx, pattern).Result()
 		if err != nil {
 			continue
 		}
-		
+
 		for _, key := range keys {
 			ttl, err := cs.rdb.TTL(cs.ctx, key).Result()
 			if err != nil {
 				continue
 			}
-			
+
 			// 如果TTL小于1分钟，提前清理
 			if ttl < time.Minute {
 				cs.rdb.Del(cs.ctx, key)
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -453,7 +452,7 @@ func (cs *CacheService) CleanExpiredCache() error {
 func (cs *CacheService) RefreshOrderCache(orderID uint) error {
 	// 清除现有缓存
 	cs.InvalidateOrderCache(orderID)
-	
+
 	// 重新加载缓存
 	_, err := cs.GetOrderWithCache(orderID)
 	return err
@@ -464,12 +463,12 @@ func (cs *CacheService) BatchInvalidateOrderCache(orderIDs []uint) error {
 	if len(orderIDs) == 0 {
 		return nil
 	}
-	
+
 	var keys []string
 	for _, orderID := range orderIDs {
 		keys = append(keys, cs.getOrderCacheKey(orderID))
 	}
-	
+
 	return cs.rdb.Del(cs.ctx, keys...).Err()
 }
 

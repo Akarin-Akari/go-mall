@@ -1,15 +1,110 @@
 import { User } from '@/types';
-import { tokenManager, storage } from './index';
 import { STORAGE_KEYS, USER_ROLES } from '@/constants';
+import Cookies from 'js-cookie';
+
+// 本地存储工具 (避免循环依赖)
+const storage = {
+  get: (key: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+
+  set: (key: string, value: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // 忽略存储错误
+    }
+  },
+
+  remove: (key: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // 忽略存储错误
+    }
+  },
+
+  getJSON: <T>(key: string): T | null => {
+    const value = storage.get(key);
+    if (!value) return null;
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return null;
+    }
+  },
+
+  setJSON: <T>(key: string, value: T): void => {
+    try {
+      storage.set(key, JSON.stringify(value));
+    } catch {
+      // 忽略存储错误
+    }
+  },
+};
+
+// Token管理工具 (避免循环依赖)
+const tokenManager = {
+  getToken: (): string | null => {
+    return storage.get(STORAGE_KEYS.TOKEN) || Cookies.get(STORAGE_KEYS.TOKEN) || null;
+  },
+
+  setToken: (token: string, remember = false): void => {
+    storage.set(STORAGE_KEYS.TOKEN, token);
+    if (remember) {
+      Cookies.set(STORAGE_KEYS.TOKEN, token, { expires: 7 });
+    }
+  },
+
+  removeToken: (): void => {
+    storage.remove(STORAGE_KEYS.TOKEN);
+    Cookies.remove(STORAGE_KEYS.TOKEN);
+  },
+
+  getRefreshToken: (): string | null => {
+    return storage.get(STORAGE_KEYS.REFRESH_TOKEN);
+  },
+
+  setRefreshToken: (token: string): void => {
+    storage.set(STORAGE_KEYS.REFRESH_TOKEN, token);
+  },
+
+  removeRefreshToken: (): void => {
+    storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
+  },
+
+  clearAll: (): void => {
+    tokenManager.removeToken();
+    tokenManager.removeRefreshToken();
+  },
+};
 
 // 认证状态管理
 export class AuthManager {
   private static instance: AuthManager;
   private user: User | null = null;
   private listeners: ((user: User | null) => void)[] = [];
+  private initialized: boolean = false;
 
   private constructor() {
-    this.loadUserFromStorage();
+    // 延迟初始化，避免循环依赖问题
+    this.initializeAsync();
+  }
+
+  // 异步初始化方法
+  private initializeAsync(): void {
+    // 使用 setTimeout 确保所有模块都已加载完成
+    setTimeout(() => {
+      this.loadUserFromStorage();
+      this.initialized = true;
+    }, 0);
   }
 
   // 单例模式
@@ -20,26 +115,73 @@ export class AuthManager {
     return AuthManager.instance;
   }
 
+  // 检查是否已初始化
+  public isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  // 等待初始化完成
+  public async waitForInitialization(): Promise<void> {
+    if (this.initialized) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      const checkInitialized = () => {
+        if (this.initialized) {
+          resolve();
+        } else {
+          setTimeout(checkInitialized, 10);
+        }
+      };
+      checkInitialized();
+    });
+  }
+
   // 从本地存储加载用户信息
   private loadUserFromStorage(): void {
-    const userInfo = storage.getJSON<User>(STORAGE_KEYS.USER_INFO);
-    const token = tokenManager.getToken();
-    
-    if (userInfo && token) {
-      this.user = userInfo;
+    try {
+      // 检查是否在浏览器环境中
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // 安全检查：确保 storage 和 tokenManager 已初始化
+      if (!storage || !tokenManager) {
+        console.warn('Storage or tokenManager not initialized yet');
+        return;
+      }
+
+      const userInfo = storage.getJSON<User>(STORAGE_KEYS.USER_INFO);
+      const token = tokenManager.getToken();
+
+      if (userInfo && token) {
+        this.user = userInfo;
+      }
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+      // 清理可能损坏的数据
+      this.clearUserData();
     }
   }
 
   // 设置用户信息
   setUser(user: User | null): void {
     this.user = user;
-    
-    if (user) {
-      storage.setJSON(STORAGE_KEYS.USER_INFO, user);
-    } else {
-      storage.remove(STORAGE_KEYS.USER_INFO);
+
+    try {
+      // 安全检查：确保在浏览器环境中且storage已初始化
+      if (typeof window !== 'undefined' && storage) {
+        if (user) {
+          storage.setJSON(STORAGE_KEYS.USER_INFO, user);
+        } else {
+          storage.remove(STORAGE_KEYS.USER_INFO);
+        }
+      }
+    } catch (error) {
+      console.error('Error setting user in storage:', error);
     }
-    
+
     // 通知监听器
     this.notifyListeners();
   }
@@ -51,7 +193,16 @@ export class AuthManager {
 
   // 检查是否已登录
   isAuthenticated(): boolean {
-    return !!(this.user && tokenManager.getToken());
+    try {
+      // 安全检查：确保tokenManager已初始化
+      if (!tokenManager) {
+        return false;
+      }
+      return !!(this.user && tokenManager.getToken());
+    } catch (error) {
+      console.error('Error checking authentication status:', error);
+      return false;
+    }
   }
 
   // 检查用户角色
@@ -81,22 +232,54 @@ export class AuthManager {
 
   // 登录
   login(user: User, token: string, refreshToken?: string, remember = false): void {
-    this.setUser(user);
-    tokenManager.setToken(token, remember);
-    
-    if (refreshToken) {
-      tokenManager.setRefreshToken(refreshToken);
+    try {
+      this.setUser(user);
+
+      if (tokenManager) {
+        tokenManager.setToken(token, remember);
+
+        if (refreshToken) {
+          tokenManager.setRefreshToken(refreshToken);
+        }
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw error;
+    }
+  }
+
+  // 清理用户数据
+  private clearUserData(): void {
+    try {
+      this.user = null;
+      if (typeof window !== 'undefined' && storage && tokenManager) {
+        storage.remove(STORAGE_KEYS.USER_INFO);
+        tokenManager.clearAll();
+        storage.remove(STORAGE_KEYS.CART_ITEMS);
+        storage.remove(STORAGE_KEYS.REMEMBER_LOGIN);
+      }
+    } catch (error) {
+      console.error('Error clearing user data:', error);
     }
   }
 
   // 登出
   logout(): void {
     this.setUser(null);
-    tokenManager.clearAll();
-    
-    // 清除其他相关存储
-    storage.remove(STORAGE_KEYS.CART_ITEMS);
-    storage.remove(STORAGE_KEYS.REMEMBER_LOGIN);
+
+    try {
+      if (tokenManager) {
+        tokenManager.clearAll();
+      }
+
+      // 清除其他相关存储
+      if (storage) {
+        storage.remove(STORAGE_KEYS.CART_ITEMS);
+        storage.remove(STORAGE_KEYS.REMEMBER_LOGIN);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
 
   // 更新用户信息

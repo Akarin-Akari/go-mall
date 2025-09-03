@@ -53,16 +53,16 @@ type ChangePasswordRequest struct {
 
 // ChangeEmailRequest 修改邮箱请求
 type ChangeEmailRequest struct {
-	NewEmail    string `json:"new_email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
-	Code        string `json:"code" binding:"required"`
+	NewEmail string `json:"new_email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+	Code     string `json:"code" binding:"required"`
 }
 
 // ChangePhoneRequest 修改手机号请求
 type ChangePhoneRequest struct {
-	NewPhone    string `json:"new_phone" binding:"required"`
-	Password    string `json:"password" binding:"required"`
-	Code        string `json:"code" binding:"required"`
+	NewPhone string `json:"new_phone" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Code     string `json:"code" binding:"required"`
 }
 
 // UploadAvatarRequest 上传头像请求
@@ -74,7 +74,7 @@ type UploadAvatarRequest struct {
 func (ps *ProfileService) GetProfile(userID uint) (*model.UserProfile, error) {
 	var profile model.UserProfile
 	err := ps.db.Where("user_id = ?", userID).First(&profile).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// 如果资料不存在，创建默认资料
@@ -306,7 +306,7 @@ func (ps *ProfileService) UploadAvatar(userID uint, req *UploadAvatarRequest) er
 	}
 
 	// 更新用户头像
-	user.Avatar = file.URL
+	user.Avatar = file.URL()
 
 	if err := ps.db.Save(&user).Error; err != nil {
 		return fmt.Errorf("更新头像失败: %v", err)

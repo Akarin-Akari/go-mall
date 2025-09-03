@@ -1,20 +1,18 @@
 package order
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"mall-go/internal/model"
 	"mall-go/pkg/cart"
+	"mall-go/pkg/inventory"
 	"mall-go/pkg/logger"
 	"mall-go/pkg/order"
 	"mall-go/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -36,8 +34,11 @@ func NewOrderHandler(db *gorm.DB, rdb *redis.Client) *OrderHandler {
 	cartService := cart.NewCartService(db)
 	calculationService := cart.NewCalculationService(db)
 
+	// 创建库存服务（订单服务依赖）
+	inventoryService := inventory.NewInventoryService(db, rdb)
+
 	// 创建订单相关服务
-	orderService := order.NewOrderService(db, cartService, calculationService)
+	orderService := order.NewOrderService(db, cartService, calculationService, inventoryService)
 	statusService := order.NewStatusService(db)
 	paymentService := order.NewPaymentService(db, statusService)
 	shippingService := order.NewShippingService(db, statusService)
@@ -176,78 +177,18 @@ func (h *Handler) Create(c *gin.Context) {
 	// TODO: 从JWT中获取用户ID
 	userID := uint(1) // 临时硬编码
 
-	// 查询商品
-	var product model.Product
-	if err := h.db.First(&product, req.ProductID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.BadRequest(c, "商品不存在")
-			return
-		}
-		response.ServerError(c, "查询商品失败")
-		return
-	}
-
-	// 检查库存
-	if product.Stock < req.Quantity {
-		response.BadRequest(c, "商品库存不足")
-		return
-	}
-
-	// 生成订单号
-	orderNo := fmt.Sprintf("ORD%d", time.Now().UnixNano())
-
-	// 计算总金额
-	totalAmount := product.Price.Mul(decimal.NewFromInt(int64(req.Quantity)))
-
-	// 开启事务
-	tx := h.db.Begin()
-
-	// 创建订单
-	order := model.Order{
-		OrderNo:       orderNo,
-		UserID:        userID,
-		TotalAmount:   totalAmount,
-		Status:        model.OrderStatusPending,
-		PaymentStatus: model.PaymentStatusUnpaid,
-	}
-
-	if err := tx.Create(&order).Error; err != nil {
-		tx.Rollback()
+	// 使用订单服务创建订单
+	order, err := h.orderService.CreateOrder(userID, &req)
+	if err != nil {
 		logger.Error("创建订单失败", zap.Error(err))
-		response.ServerError(c, "创建订单失败")
+		response.ServerError(c, "创建订单失败: "+err.Error())
 		return
 	}
 
-	// 创建订单项
-	orderItem := model.OrderItem{
-		OrderID:   order.ID,
-		ProductID: req.ProductID,
-		Quantity:  req.Quantity,
-		Price:     product.Price,
-	}
-
-	if err := tx.Create(&orderItem).Error; err != nil {
-		tx.Rollback()
-		logger.Error("创建订单项失败", zap.Error(err))
-		response.ServerError(c, "创建订单项失败")
-		return
-	}
-
-	// 更新商品库存
-	if err := tx.Model(&product).Update("stock", product.Stock-req.Quantity).Error; err != nil {
-		tx.Rollback()
-		logger.Error("更新商品库存失败", zap.Error(err))
-		response.ServerError(c, "更新商品库存失败")
-		return
-	}
-
-	// 提交事务
-	tx.Commit()
-
-	// 重新查询订单（包含关联数据）
-	h.db.Preload("User").Preload("OrderItems.Product").First(&order, order.ID)
-
-	response.Success(c, "订单创建成功", order)
+	response.Success(c, "订单创建成功", gin.H{
+		"order_id": order.ID,
+		"order_no": order.OrderNo,
+	})
 }
 
 // UpdateStatus 更新订单状态
@@ -300,7 +241,7 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 
 	// 如果订单状态变为已支付，更新支付状态
 	if req.Status == model.OrderStatusPaid {
-		order.PaymentStatus = model.PaymentStatusPaid
+		order.PaymentStatus = string(model.PaymentStatusPaid)
 	}
 
 	if err := h.db.Save(&order).Error; err != nil {

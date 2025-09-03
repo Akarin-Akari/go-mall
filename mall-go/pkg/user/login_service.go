@@ -158,7 +158,7 @@ func (ls *LoginService) Login(req *LoginRequest) (*LoginResponse, error) {
 		Role:         user.Role,
 		Token:        token,
 		RefreshToken: refreshToken,
-		ExpiresAt:    expiresAt,
+		ExpiresAt:    expiresAt.Unix(),
 		User:         user.ToResponse(),
 		FirstLogin:   firstLogin,
 		NeedVerify:   !user.EmailVerified,
@@ -188,10 +188,13 @@ func (ls *LoginService) RefreshToken(req *RefreshTokenRequest) (*LoginResponse, 
 	}
 
 	// 生成新的token
-	token, expiresAt, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("生成token失败: %v", err)
 	}
+
+	// 计算过期时间（默认24小时）
+	expiresAt := time.Now().Add(24 * time.Hour)
 
 	// 生成新的刷新token
 	refreshToken, _, err := auth.GenerateRefreshToken(user.ID, user.Username, user.Role)
@@ -208,7 +211,7 @@ func (ls *LoginService) RefreshToken(req *RefreshTokenRequest) (*LoginResponse, 
 		Role:         user.Role,
 		Token:        token,
 		RefreshToken: refreshToken,
-		ExpiresAt:    expiresAt,
+		ExpiresAt:    expiresAt.Unix(),
 		User:         user.ToResponse(),
 		Message:      "token刷新成功",
 	}, nil

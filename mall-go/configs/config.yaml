@@ -3,13 +3,16 @@ server:
   mode: debug
 
 database:
-  driver: mysql
+  driver: sqlite
   host: localhost
   port: 3306
   username: root
-  password: 123456
-  dbname: mall_go
+  password: "123456"
+  dbname: ./mall_go.db
   charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600
 
 redis:
   host: localhost

@@ -41,17 +41,17 @@ type AfterSaleRequest struct {
 
 // AfterSaleResponse 售后申请响应
 type AfterSaleResponse struct {
-	AfterSaleNo string                 `json:"after_sale_no"`
-	Type        string                 `json:"type"`
-	Status      string                 `json:"status"`
-	Amount      decimal.Decimal        `json:"amount"`
-	Quantity    int                    `json:"quantity"`
-	Reason      string                 `json:"reason"`
-	Description string                 `json:"description"`
-	Images      []string               `json:"images"`
-	CreatedAt   time.Time              `json:"created_at"`
-	HandleTime  *time.Time             `json:"handle_time"`
-	HandleRemark string                `json:"handle_remark"`
+	AfterSaleNo  string          `json:"after_sale_no"`
+	Type         string          `json:"type"`
+	Status       string          `json:"status"`
+	Amount       decimal.Decimal `json:"amount"`
+	Quantity     int             `json:"quantity"`
+	Reason       string          `json:"reason"`
+	Description  string          `json:"description"`
+	Images       []string        `json:"images"`
+	CreatedAt    time.Time       `json:"created_at"`
+	HandleTime   *time.Time      `json:"handle_time"`
+	HandleRemark string          `json:"handle_remark"`
 }
 
 // CreateAfterSale 创建售后申请
@@ -78,24 +78,22 @@ func (as *AfterSaleService) CreateAfterSale(userID uint, req *AfterSaleRequest) 
 	}
 
 	// 如果指定了订单商品项，验证商品项
-	var orderItem *model.OrderItem
 	if req.OrderItemID > 0 {
-		var item model.OrderItem
-		if err := tx.Where("id = ? AND order_id = ?", req.OrderItemID, req.OrderID).First(&item).Error; err != nil {
+		var orderItem model.OrderItem
+		if err := tx.Where("id = ? AND order_id = ?", req.OrderItemID, req.OrderID).First(&orderItem).Error; err != nil {
 			tx.Rollback()
 			return nil, fmt.Errorf("订单商品不存在")
 		}
-		orderItem = &item
 
 		// 检查申请数量
-		if req.Quantity > item.Quantity-item.RefundQuantity {
+		if req.Quantity > orderItem.Quantity-orderItem.RefundQuantity {
 			tx.Rollback()
 			return nil, fmt.Errorf("申请数量超过可退货数量")
 		}
 
 		// 如果没有指定金额，计算退款金额
 		if req.Amount.IsZero() {
-			req.Amount = item.Price.Mul(decimal.NewFromInt(int64(req.Quantity)))
+			req.Amount = orderItem.Price.Mul(decimal.NewFromInt(int64(req.Quantity)))
 		}
 	} else {
 		// 整单退款
@@ -114,13 +112,13 @@ func (as *AfterSaleService) CreateAfterSale(userID uint, req *AfterSaleRequest) 
 
 	// 检查是否已有相同的售后申请
 	var existingAfterSale model.OrderAfterSale
-	query := tx.Where("order_id = ? AND status IN ?", req.OrderID, 
+	query := tx.Where("order_id = ? AND status IN ?", req.OrderID,
 		[]string{model.AfterSaleStatusPending, model.AfterSaleStatusApproved})
-	
+
 	if req.OrderItemID > 0 {
 		query = query.Where("order_item_id = ?", req.OrderItemID)
 	}
-	
+
 	if err := query.First(&existingAfterSale).Error; err == nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("已存在待处理的售后申请")
@@ -150,7 +148,7 @@ func (as *AfterSaleService) CreateAfterSale(userID uint, req *AfterSaleRequest) 
 	// 如果是仅退款且订单已收货，可以直接处理
 	if req.Type == model.AfterSaleTypeRefund && order.Status == model.OrderStatusReceived {
 		// 自动同意退款申请
-		if err := as.handleAfterSaleApproval(tx, afterSale, 0, model.OperatorTypeSystem, 
+		if err := as.handleAfterSaleApproval(tx, afterSale, 0, model.OperatorTypeSystem,
 			"自动同意", "仅退款申请自动处理"); err != nil {
 			tx.Rollback()
 			return nil, fmt.Errorf("处理退款申请失败: %v", err)
@@ -218,10 +216,10 @@ func (as *AfterSaleService) HandleAfterSale(afterSaleID uint, action string, han
 // handleAfterSaleApproval 处理售后申请同意
 func (as *AfterSaleService) handleAfterSaleApproval(tx *gorm.DB, afterSale *model.OrderAfterSale, handleUserID uint, operatorType, reason, remark string) error {
 	now := time.Now()
-	
+
 	// 更新售后申请状态
 	updates := map[string]interface{}{
-		"status":        model.AfterSaleStatusApproved,
+		"status":         model.AfterSaleStatusApproved,
 		"handle_user_id": handleUserID,
 		"handle_remark":  remark,
 		"handle_time":    &now,
@@ -247,7 +245,7 @@ func (as *AfterSaleService) handleAfterSaleApproval(tx *gorm.DB, afterSale *mode
 // handleAfterSaleRejection 处理售后申请拒绝
 func (as *AfterSaleService) handleAfterSaleRejection(tx *gorm.DB, afterSale *model.OrderAfterSale, handleUserID uint, remark string) error {
 	now := time.Now()
-	
+
 	// 更新售后申请状态
 	updates := map[string]interface{}{
 		"status":         model.AfterSaleStatusRejected,
@@ -318,7 +316,7 @@ func (as *AfterSaleService) processRefund(tx *gorm.DB, afterSale *model.OrderAft
 
 	// 如果全额退款，更新订单状态为已退款
 	if order.RefundAmount.GreaterThanOrEqual(order.PayableAmount) {
-		as.statusService.UpdateOrderStatus(afterSale.OrderID, model.OrderStatusRefunded, 
+		as.statusService.UpdateOrderStatus(afterSale.OrderID, model.OrderStatusRefunded,
 			0, model.OperatorTypeSystem, "全额退款", "售后退款完成")
 	}
 
@@ -401,11 +399,11 @@ func (as *AfterSaleService) ConfirmReturn(afterSaleID uint, handleUserID uint, r
 // GetAfterSaleList 获取售后申请列表
 func (as *AfterSaleService) GetAfterSaleList(userID uint, page, pageSize int, status string) ([]*AfterSaleResponse, int64, error) {
 	query := as.db.Model(&model.OrderAfterSale{})
-	
+
 	if userID > 0 {
 		query = query.Where("apply_user_id = ?", userID)
 	}
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}

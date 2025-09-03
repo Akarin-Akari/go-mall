@@ -217,8 +217,8 @@ const productSlice = createSlice({
       })
       .addCase(fetchProductsAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload.list;
-        state.total = action.payload.total;
+        state.products = action.payload?.list || [];
+        state.total = action.payload?.total || 0;
       })
       .addCase(fetchProductsAsync.rejected, (state, action) => {
         state.loading = false;
@@ -247,7 +247,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchCategoriesAsync.fulfilled, (state, action) => {
         state.categoriesLoading = false;
-        state.categories = action.payload;
+        state.categories = action.payload || [];
       })
       .addCase(fetchCategoriesAsync.rejected, (state, action) => {
         state.categoriesLoading = false;

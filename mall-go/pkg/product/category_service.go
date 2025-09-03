@@ -2,7 +2,6 @@ package product
 
 import (
 	"fmt"
-	"strings"
 
 	"mall-go/internal/model"
 
@@ -23,28 +22,28 @@ func NewCategoryService(db *gorm.DB) *CategoryService {
 
 // CreateCategoryRequest 创建分类请求
 type CreateCategoryRequest struct {
-	Name        string `json:"name" binding:"required,min=1,max=100"`
-	Description string `json:"description"`
-	ParentID    uint   `json:"parent_id"`
-	Icon        string `json:"icon"`
-	Image       string `json:"image"`
-	Sort        int    `json:"sort"`
-	SEOTitle    string `json:"seo_title"`
-	SEOKeywords string `json:"seo_keywords"`
+	Name           string `json:"name" binding:"required,min=1,max=100"`
+	Description    string `json:"description"`
+	ParentID       uint   `json:"parent_id"`
+	Icon           string `json:"icon"`
+	Image          string `json:"image"`
+	Sort           int    `json:"sort"`
+	SEOTitle       string `json:"seo_title"`
+	SEOKeywords    string `json:"seo_keywords"`
 	SEODescription string `json:"seo_description"`
 }
 
 // UpdateCategoryRequest 更新分类请求
 type UpdateCategoryRequest struct {
-	Name        string `json:"name" binding:"required,min=1,max=100"`
-	Description string `json:"description"`
-	ParentID    uint   `json:"parent_id"`
-	Icon        string `json:"icon"`
-	Image       string `json:"image"`
-	Sort        int    `json:"sort"`
-	Status      string `json:"status"`
-	SEOTitle    string `json:"seo_title"`
-	SEOKeywords string `json:"seo_keywords"`
+	Name           string `json:"name" binding:"required,min=1,max=100"`
+	Description    string `json:"description"`
+	ParentID       uint   `json:"parent_id"`
+	Icon           string `json:"icon"`
+	Image          string `json:"image"`
+	Sort           int    `json:"sort"`
+	Status         string `json:"status"`
+	SEOTitle       string `json:"seo_title"`
+	SEOKeywords    string `json:"seo_keywords"`
 	SEODescription string `json:"seo_description"`
 }
 
@@ -75,7 +74,7 @@ func (cs *CategoryService) CreateCategory(req *CreateCategoryRequest) (*model.Ca
 	// 计算分类层级和路径
 	level := 1
 	path := req.Name
-	
+
 	if req.ParentID > 0 {
 		var parent model.Category
 		if err := cs.db.First(&parent, req.ParentID).Error; err != nil {
@@ -130,7 +129,7 @@ func (cs *CategoryService) UpdateCategory(id uint, req *UpdateCategoryRequest) (
 		// 重新计算层级和路径
 		level := 1
 		path := req.Name
-		
+
 		if req.ParentID > 0 {
 			var parent model.Category
 			if err := cs.db.First(&parent, req.ParentID).Error; err != nil {
@@ -255,7 +254,7 @@ func (cs *CategoryService) GetCategoryList(req *CategoryListRequest) ([]*model.C
 func (cs *CategoryService) GetCategoryTree(parentID uint) ([]*CategoryTreeNode, error) {
 	var categories []model.Category
 	query := cs.db.Where("status = ?", model.CategoryStatusActive)
-	
+
 	if parentID > 0 {
 		query = query.Where("parent_id = ?", parentID)
 	} else {
@@ -333,7 +332,7 @@ func (cs *CategoryService) GetCategoryPath(id uint) ([]*model.Category, error) {
 
 	for current != nil {
 		path = append([]*model.Category{current}, path...)
-		
+
 		if current.ParentID == 0 {
 			break
 		}

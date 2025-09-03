@@ -400,5 +400,5 @@ export const formatNumber = (num: number): string => {
 
 // 导出所有工具
 export * from './request';
-export * from './auth';
 export * from './upload';
+// 注意: auth.ts 单独导入以避免循环依赖

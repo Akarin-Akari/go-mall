@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginRequest, RegisterRequest, AuthState } from '@/types';
 import { authAPI } from '@/services/api';
-import { tokenManager } from '@/utils';
+import { AuthManager } from '@/utils/auth';
 import { message } from 'antd';
 
 // 初始状态
@@ -20,11 +20,9 @@ export const loginAsync = createAsyncThunk(
       const response = await authAPI.login(loginData);
       const { user, token, refresh_token } = response.data;
       
-      // 保存token
-      tokenManager.setToken(token, loginData.remember);
-      if (refresh_token) {
-        tokenManager.setRefreshToken(refresh_token);
-      }
+      // 保存用户信息和token
+      const authManager = AuthManager.getInstance();
+      authManager.login(user, token, refresh_token, loginData.remember);
       
       return { user, token };
     } catch (error: any) {
@@ -40,11 +38,9 @@ export const registerAsync = createAsyncThunk(
       const response = await authAPI.register(registerData);
       const { user, token, refresh_token } = response.data;
       
-      // 保存token
-      tokenManager.setToken(token);
-      if (refresh_token) {
-        tokenManager.setRefreshToken(refresh_token);
-      }
+      // 保存用户信息和token
+      const authManager = AuthManager.getInstance();
+      authManager.login(user, token, refresh_token, false);
       
       return { user, token };
     } catch (error: any) {
@@ -58,11 +54,13 @@ export const logoutAsync = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authAPI.logout();
-      tokenManager.clearAll();
+      const authManager = AuthManager.getInstance();
+      authManager.logout();
       return null;
     } catch (error: any) {
       // 即使API调用失败，也要清除本地token
-      tokenManager.clearAll();
+      const authManager = AuthManager.getInstance();
+      authManager.logout();
       return null;
     }
   }

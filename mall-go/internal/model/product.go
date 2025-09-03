@@ -338,3 +338,12 @@ func (c *Category) GetFullPath() string {
 	}
 	return c.Name
 }
+
+// GetImageURLs 获取所有图片URL
+func (p *Product) GetImageURLs() []string {
+	var urls []string
+	for _, img := range p.Images {
+		urls = append(urls, img.URL)
+	}
+	return urls
+}

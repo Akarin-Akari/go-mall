@@ -1,8 +1,19 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { message } from 'antd';
-import { tokenManager, errorHandler } from './index';
+import { errorHandler } from './index';
 import { ApiResponse } from '@/types';
-import { HTTP_STATUS, BUSINESS_CODE } from '@/constants';
+import { HTTP_STATUS, BUSINESS_CODE, STORAGE_KEYS } from '@/constants';
+import Cookies from 'js-cookie';
+
+// 本地Token管理 (避免循环依赖)
+const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(STORAGE_KEYS.TOKEN) || Cookies.get(STORAGE_KEYS.TOKEN) || null;
+  } catch {
+    return null;
+  }
+};
 
 // 请求配置接口
 interface RequestConfig extends AxiosRequestConfig {
@@ -28,7 +39,7 @@ const createAxiosInstance = (): AxiosInstance => {
     (config: any) => {
       // 添加认证token
       if (!config.skipAuth) {
-        const token = tokenManager.getToken();
+        const token = getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -120,7 +131,16 @@ const createAxiosInstance = (): AxiosInstance => {
 
 // 处理未授权错误
 const handleUnauthorized = () => {
-  tokenManager.clearAll();
+  // 清理token
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      Cookies.remove(STORAGE_KEYS.TOKEN);
+    } catch {
+      // 忽略清理错误
+    }
+  }
   
   // 跳转到登录页面
   if (typeof window !== 'undefined') {

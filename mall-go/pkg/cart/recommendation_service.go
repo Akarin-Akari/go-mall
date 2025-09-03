@@ -2,7 +2,6 @@ package cart
 
 import (
 	"fmt"
-	"sort"
 
 	"mall-go/internal/model"
 
@@ -24,10 +23,10 @@ func NewRecommendationService(db *gorm.DB) *RecommendationService {
 
 // RecommendationResult 推荐结果
 type RecommendationResult struct {
-	Products      []*model.Product      `json:"products"`
-	Reason        string                `json:"reason"`
-	RecommendType string                `json:"recommend_type"`
-	Score         float64               `json:"score"`
+	Products      []*model.Product `json:"products"`
+	Reason        string           `json:"reason"`
+	RecommendType string           `json:"recommend_type"`
+	Score         float64          `json:"score"`
 }
 
 // RecommendationResponse 推荐响应
@@ -303,12 +302,12 @@ func (rs *RecommendationService) getPriceBasedRecommendations(cart *model.Cart, 
 func (rs *RecommendationService) getComplementaryRecommendations(cart *model.Cart, limit int) ([]*RecommendationResult, error) {
 	// 这里简化处理，实际应该有商品关联表
 	// 根据购物车中的商品推荐互补商品
-	
+
 	// 示例：如果购物车中有手机，推荐手机壳、充电器等
 	complementaryMap := map[string][]string{
-		"手机":   {"手机壳", "充电器", "耳机", "钢化膜"},
-		"电脑":   {"鼠标", "键盘", "音响", "摄像头"},
-		"相机":   {"镜头", "三脚架", "存储卡", "相机包"},
+		"手机":  {"手机壳", "充电器", "耳机", "钢化膜"},
+		"电脑":  {"鼠标", "键盘", "音响", "摄像头"},
+		"相机":  {"镜头", "三脚架", "存储卡", "相机包"},
 		"运动鞋": {"运动袜", "鞋垫", "运动服", "运动包"},
 	}
 
@@ -364,7 +363,7 @@ func (rs *RecommendationService) getComplementaryRecommendations(cart *model.Car
 func (rs *RecommendationService) getPromotionalRecommendations(cart *model.Cart, limit int) ([]*RecommendationResult, error) {
 	// 获取正在促销的商品
 	var promotionalProducts []*model.Product
-	if err := rs.db.Where("status = ? AND (is_hot = ? OR is_recommend = ?)", 
+	if err := rs.db.Where("status = ? AND (is_hot = ? OR is_recommend = ?)",
 		model.ProductStatusActive, true, true).
 		Where("id NOT IN (SELECT product_id FROM cart_items WHERE cart_id = ?)", cart.ID).
 		Preload("Images", func(db *gorm.DB) *gorm.DB {
@@ -390,7 +389,7 @@ func (rs *RecommendationService) getPromotionalRecommendations(cart *model.Cart,
 func (rs *RecommendationService) getPersonalHistoryRecommendations(userID uint, cart *model.Cart, limit int) ([]*RecommendationResult, error) {
 	// 获取用户历史购买的商品分类和品牌
 	var historyProducts []*model.Product
-	
+
 	// 这里简化处理，实际应该查询订单表
 	// 暂时基于用户之前的购物车记录
 	if err := rs.db.Raw(`
@@ -464,11 +463,11 @@ func (rs *RecommendationService) getCart(userID uint, sessionID string) (*model.
 
 // contains 检查字符串是否包含子字符串
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || 
-		(len(s) > len(substr) && 
-			(s[:len(substr)] == substr || 
-			 s[len(s)-len(substr):] == substr || 
-			 containsSubstring(s, substr))))
+	return len(s) >= len(substr) && (s == substr ||
+		(len(s) > len(substr) &&
+			(s[:len(substr)] == substr ||
+				s[len(s)-len(substr):] == substr ||
+				containsSubstring(s, substr))))
 }
 
 func containsSubstring(s, substr string) bool {

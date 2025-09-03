@@ -10,12 +10,13 @@ import (
 
 // Order 订单模型
 type Order struct {
-	ID          uint   `gorm:"primarykey" json:"id"`
-	OrderNo     string `gorm:"uniqueIndex;not null;size:32" json:"order_no"`     // 订单号
-	UserID      uint   `gorm:"not null;index" json:"user_id"`                    // 用户ID
-	Status      string `gorm:"size:20;not null;index" json:"status"`             // 订单状态
-	OrderType   string `gorm:"size:20;default:'normal';index" json:"order_type"` // 订单类型
-	PaymentType string `gorm:"size:20" json:"payment_type"`                      // 支付方式
+	ID            uint   `gorm:"primarykey" json:"id"`
+	OrderNo       string `gorm:"uniqueIndex;not null;size:32" json:"order_no"`     // 订单号
+	UserID        uint   `gorm:"not null;index" json:"user_id"`                    // 用户ID
+	Status        string `gorm:"size:20;not null;index" json:"status"`             // 订单状态
+	PaymentStatus string `gorm:"size:20;not null;index" json:"payment_status"`     // 支付状态
+	OrderType     string `gorm:"size:20;default:'normal';index" json:"order_type"` // 订单类型
+	PaymentType   string `gorm:"size:20" json:"payment_type"`                      // 支付方式
 
 	// 金额信息
 	TotalAmount    decimal.Decimal `gorm:"type:decimal(10,2);not null" json:"total_amount"`     // 订单总金额
@@ -472,3 +473,12 @@ type OrderStatisticsResponse struct {
 	TodayOrders     int64           `json:"today_orders"`
 	TodayAmount     decimal.Decimal `json:"today_amount"`
 }
+
+// 订单相关错误定义
+var (
+	ErrOrderNotFound      = fmt.Errorf("订单不存在")
+	ErrOrderAlreadyPaid   = fmt.Errorf("订单已支付")
+	ErrOrderCannotCancel  = fmt.Errorf("订单无法取消")
+	ErrOrderCannotRefund  = fmt.Errorf("订单无法退款")
+	ErrInvalidOrderStatus = fmt.Errorf("无效的订单状态")
+)

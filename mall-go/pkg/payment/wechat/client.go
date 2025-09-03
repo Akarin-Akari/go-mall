@@ -11,36 +11,27 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"mall-go/internal/model"
 	"mall-go/pkg/logger"
+	"mall-go/pkg/payment/config"
 
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
-// WechatConfig 微信支付配置
-type WechatConfig struct {
-	AppID      string        `json:"app_id"`
-	MchID      string        `json:"mch_id"`
-	APIKey     string        `json:"api_key"`
-	GatewayURL string        `json:"gateway_url"`
-	Timeout    time.Duration `json:"timeout"`
-}
-
 // Client 微信支付客户端
 type Client struct {
-	config     *WechatConfig
+	config     *config.WechatConfig
 	httpClient *http.Client
 }
 
 // NewClient 创建微信支付客户端
-func NewClient(config *WechatConfig) *Client {
+func NewClient(cfg *config.WechatConfig) *Client {
 	return &Client{
-		config: config,
+		config: cfg,
 		httpClient: &http.Client{
-			Timeout: config.Timeout,
+			Timeout: cfg.Timeout,
 		},
 	}
 }

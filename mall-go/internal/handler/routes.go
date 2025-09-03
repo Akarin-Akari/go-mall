@@ -14,14 +14,36 @@ import (
 
 // RegisterRoutes 注册所有路由
 func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
-	// API版本组
-	v1 := r.Group("/api/v1")
-
-	// 健康检查
-	v1.GET("/health", func(c *gin.Context) {
+	// 根路径健康检查
+	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
 			"message": "Mall Go API is running",
+		})
+	})
+
+	// 根路径API信息
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to Mall-Go API",
+			"version": "1.0.0",
+			"endpoints": []string{
+				"GET /health - 健康检查",
+				"GET /api/v1/products - 获取商品列表",
+				"POST /api/v1/users/register - 用户注册",
+				"POST /api/v1/users/login - 用户登录",
+			},
+		})
+	})
+
+	// API版本组
+	v1 := r.Group("/api/v1")
+
+	// API版本健康检查
+	v1.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "ok",
+			"message": "Mall Go API v1 is running",
 		})
 	})
 
