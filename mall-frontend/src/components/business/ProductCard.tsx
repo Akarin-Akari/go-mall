@@ -34,11 +34,13 @@ interface ProductCardProps {
   product: Product;
   loading?: boolean;
   showActions?: boolean;
-  showBadge?: boolean;
+  showBadge?: boolean | string;
+  badgeColor?: string;
   size?: 'small' | 'default' | 'large';
   onAddToCart?: (product: Product) => void;
   onToggleFavorite?: (product: Product) => void;
   onShare?: (product: Product) => void;
+  onViewDetail?: (productId: number) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -48,10 +50,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   loading = false,
   showActions = true,
   showBadge = true,
+  badgeColor,
   size = 'default',
   onAddToCart,
   onToggleFavorite,
   onShare,
+  onViewDetail,
   className,
   style,
 }) => {
@@ -74,8 +78,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // 处理点击商品卡片
   const handleCardClick = useCallback(() => {
-    router.push(ROUTES.PRODUCT_DETAIL(product.id));
-  }, [router, product.id]);
+    if (onViewDetail) {
+      onViewDetail(product.id);
+    } else {
+      router.push(ROUTES.PRODUCT_DETAIL(product.id));
+    }
+  }, [router, product.id, onViewDetail]);
 
   // 处理添加到购物车
   const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
@@ -138,8 +146,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const getStatusBadge = () => {
     if (!showBadge) return null;
 
+    // 如果showBadge是字符串，直接使用自定义标签
+    if (typeof showBadge === 'string') {
+      return (
+        <Badge.Ribbon key="custom" text={showBadge} color={badgeColor || 'blue'}>
+          <div />
+        </Badge.Ribbon>
+      );
+    }
+
     const badges = [];
-    
+
     // 热销标签
     if (product.sales_count && product.sales_count > 1000) {
       badges.push(
@@ -148,9 +165,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </Badge.Ribbon>
       );
     }
-    
+
     // 新品标签
-    const isNew = new Date(product.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const isNew = product.created_at && new Date(product.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000;
     if (isNew) {
       badges.push(
         <Badge.Ribbon key="new" text="新品" color="green">
@@ -158,7 +175,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </Badge.Ribbon>
       );
     }
-    
+
     // 限时优惠标签
     if (product.discount_price && parseFloat(product.discount_price) < parseFloat(product.price)) {
       badges.push(
@@ -230,7 +247,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <div className={className} style={style}>
+    <div className={`product-card ${className || ''}`} style={style}>
       {getStatusBadge()}
       <Card
         loading={loading}

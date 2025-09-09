@@ -1,0 +1,118 @@
+# Mall-Go 测试环境配置文件
+
+# 数据库配置
+database:
+  driver: sqlite
+  database: ":memory:"  # 使用内存数据库进行测试
+  charset: utf8mb4
+  parseTime: true
+  loc: Local
+
+# JWT配置
+jwt:
+  secret: "test-secret-key-for-mall-go-testing-environment"
+  expire_time: 3600  # 1小时
+
+# Redis配置 (测试环境)
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 1  # 使用数据库1进行测试，避免与开发环境冲突
+
+# 服务器配置
+server:
+  host: localhost
+  port: 8081  # 测试环境使用不同端口
+  mode: test
+
+# 日志配置
+log:
+  level: error  # 测试时只显示错误日志
+  format: json
+  output: stdout
+
+# 文件上传配置 (测试环境)
+upload:
+  path: "./test_uploads"
+  max_size: 10  # 10MB
+  allowed_types:
+    - jpg
+    - jpeg
+    - png
+    - gif
+    - pdf
+
+# 支付配置 (测试环境 - 使用Mock)
+payment:
+  alipay:
+    app_id: "test_app_id"
+    private_key: "test_private_key"
+    public_key: "test_public_key"
+    sandbox: true
+  wechat:
+    app_id: "test_wx_app_id"
+    mch_id: "test_mch_id"
+    api_key: "test_api_key"
+    sandbox: true
+
+# 邮件配置 (测试环境 - 使用Mock)
+email:
+  smtp_host: "localhost"
+  smtp_port: 1025  # 使用MailHog等测试SMTP服务器
+  username: "test@example.com"
+  password: "test_password"
+  from: "Mall-Go Test <test@example.com>"
+
+# 缓存配置
+cache:
+  driver: memory  # 测试环境使用内存缓存
+  ttl: 300  # 5分钟
+
+# 限流配置 (测试环境放宽限制)
+rate_limit:
+  enabled: false  # 测试环境禁用限流
+  requests_per_minute: 1000
+  burst: 100
+
+# 跨域配置
+cors:
+  allowed_origins:
+    - "http://localhost:3001"  # 前端测试服务器
+    - "http://127.0.0.1:3001"
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - "*"
+  allow_credentials: true
+
+# 测试专用配置
+test:
+  # 测试数据库自动清理
+  auto_cleanup: true
+  
+  # 测试数据种子
+  seed_data: true
+  
+  # 并发测试配置
+  max_concurrent_tests: 10
+  
+  # 测试超时配置
+  timeout: 30  # 30秒
+  
+  # Mock服务配置
+  mock_external_services: true
+  
+  # 测试覆盖率配置
+  coverage:
+    enabled: true
+    threshold: 85  # 最低覆盖率要求85%
+    
+  # 性能测试配置
+  performance:
+    max_response_time: 200  # 最大响应时间200ms
+    max_memory_usage: 100   # 最大内存使用100MB

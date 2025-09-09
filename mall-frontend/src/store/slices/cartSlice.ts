@@ -197,6 +197,15 @@ const cartSlice = createSlice({
       state.total_quantity = 0;
     },
     
+    // 切换单个商品选择状态
+    toggleSelectItem: (state, action: PayloadAction<{ item_id: number; selected: boolean }>) => {
+      const item = state.items.find(item => item.id === action.payload.item_id);
+      if (item) {
+        item.selected = action.payload.selected;
+      }
+      cartSlice.caseReducers.calculateTotals(state);
+    },
+
     // 全选/取消全选
     toggleSelectAll: (state, action: PayloadAction<boolean>) => {
       state.items.forEach(item => {
@@ -326,6 +335,7 @@ export const {
   updateItemLocal,
   removeItemLocal,
   clearCartLocal,
+  toggleSelectItem,
   toggleSelectAll,
   calculateTotals,
   setCartData,

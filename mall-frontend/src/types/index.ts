@@ -59,9 +59,12 @@ export interface Product {
   name: string;
   description: string;
   price: string;
-  original_price?: string;
+  discount_price?: string; // 折扣价格
+  original_price?: string; // 原价（兼容）
   stock: number;
-  sold_count: number;
+  sold_count?: number; // 已售数量（兼容）
+  sales_count?: number; // 销售数量
+  rating?: number; // 评分
   category_id: number;
   category_name?: string;
   images: string[];

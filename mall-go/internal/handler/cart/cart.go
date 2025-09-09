@@ -26,10 +26,17 @@ type CartHandler struct {
 // NewCartHandler 创建购物车处理器
 func NewCartHandler(db *gorm.DB, rdb *redis.Client) *CartHandler {
 	cartService := cart.NewCartService(db)
-	cacheService := cart.NewCacheService(rdb, cartService)
-	syncService := cart.NewSyncService(db, cartService, cacheService)
 	calculationService := cart.NewCalculationService(db)
 	recommendationService := cart.NewRecommendationService(db)
+
+	// 如果Redis客户端为nil，则不初始化缓存和同步服务
+	var cacheService *cart.CacheService
+	var syncService *cart.SyncService
+
+	if rdb != nil {
+		cacheService = cart.NewCacheService(rdb, cartService)
+		syncService = cart.NewSyncService(db, cartService, cacheService)
+	}
 
 	return &CartHandler{
 		db:                    db,
@@ -51,8 +58,18 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 
 	userID, sessionID := h.getUserInfo(c)
 
-	// 使用缓存服务添加商品
-	cartItem, err := h.cacheService.AddToCartWithCache(userID, sessionID, &req)
+	// 根据缓存服务是否可用选择不同的处理方式
+	var cartItem *model.CartItem
+	var err error
+
+	if h.cacheService != nil {
+		// 使用缓存服务添加商品
+		cartItem, err = h.cacheService.AddToCartWithCache(userID, sessionID, &req)
+	} else {
+		// 直接使用数据库服务添加商品
+		cartItem, err = h.cartService.AddToCart(userID, sessionID, &req)
+	}
+
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
@@ -66,8 +83,18 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 	userID, sessionID := h.getUserInfo(c)
 	includeInvalid := c.DefaultQuery("include_invalid", "false") == "true"
 
-	// 使用缓存服务获取购物车
-	cartResponse, err := h.cacheService.GetCartWithCache(userID, sessionID, includeInvalid)
+	// 根据缓存服务是否可用选择不同的处理方式
+	var cartResponse *model.CartResponse
+	var err error
+
+	if h.cacheService != nil {
+		// 使用缓存服务获取购物车
+		cartResponse, err = h.cacheService.GetCartWithCache(userID, sessionID, includeInvalid)
+	} else {
+		// 直接使用数据库服务获取购物车
+		cartResponse, err = h.cartService.GetCart(userID, sessionID, includeInvalid)
+	}
+
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
