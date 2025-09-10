@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -39,6 +40,7 @@ func TestSimpleProductCreate(t *testing.T) {
 	err := db.AutoMigrate(
 		&model.User{},
 		&model.Product{},
+		&model.ProductImage{},
 		&model.Category{},
 		&model.Order{},
 		&model.OrderItem{},
@@ -63,7 +65,7 @@ func TestSimpleProductCreate(t *testing.T) {
 
 	// 设置路由
 	router := gin.New()
-	
+
 	// 添加认证中间件
 	router.Use(func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -93,7 +95,7 @@ func TestSimpleProductCreate(t *testing.T) {
 		productGroup := v1.Group("/products")
 		{
 			productGroup.POST("", handler.Create)
-			productGroup.GET("/:id", handler.GetByID)
+			productGroup.GET("/:id", handler.Get)
 		}
 	}
 
@@ -104,7 +106,6 @@ func TestSimpleProductCreate(t *testing.T) {
 		Price:       99.99,
 		Stock:       100,
 		CategoryID:  testCategory.ID,
-		Status:      "on_sale",
 	}
 
 	// 发送创建商品请求
@@ -180,6 +181,7 @@ func TestSimpleProductGet(t *testing.T) {
 	err := db.AutoMigrate(
 		&model.User{},
 		&model.Product{},
+		&model.ProductImage{},
 		&model.Category{},
 		&model.Order{},
 		&model.OrderItem{},
@@ -194,7 +196,7 @@ func TestSimpleProductGet(t *testing.T) {
 	// 创建测试数据
 	testCategory := helper.CreateTestCategory("测试分类", "test-category")
 	testProduct := helper.CreateTestProduct("测试商品", "99.99", 100)
-	
+
 	// 确保商品关联到测试分类
 	testProduct.CategoryID = testCategory.ID
 	db.Save(testProduct)
@@ -208,7 +210,7 @@ func TestSimpleProductGet(t *testing.T) {
 	{
 		productGroup := v1.Group("/products")
 		{
-			productGroup.GET("/:id", handler.GetByID)
+			productGroup.GET("/:id", handler.Get)
 		}
 	}
 
@@ -230,7 +232,7 @@ func TestSimpleProductGet(t *testing.T) {
 
 	// 检查获取响应
 	if w.Code == http.StatusOK {
-		assert.Equal(t, "获取商品详情成功", response["message"])
+		assert.Equal(t, "操作成功", response["message"])
 		assert.NotNil(t, response["data"])
 
 		// 验证商品数据

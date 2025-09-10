@@ -54,6 +54,7 @@ func (suite *ProductHandlerTestSuite) SetupSuite() {
 	err := suite.db.AutoMigrate(
 		&model.User{},
 		&model.Product{},
+		&model.ProductImage{},
 		&model.Category{},
 		&model.Order{},
 		&model.OrderItem{},
@@ -293,7 +294,7 @@ func (suite *ProductHandlerTestSuite) TestProductGet() {
 				assert.NotEmpty(suite.T(), productData["name"])
 				assert.NotEmpty(suite.T(), productData["price"])
 			} else {
-				assert.Contains(suite.T(), response["msg"].(string), tt.expectedMsg)
+				assert.Contains(suite.T(), response["message"].(string), tt.expectedMsg)
 			}
 		})
 	}

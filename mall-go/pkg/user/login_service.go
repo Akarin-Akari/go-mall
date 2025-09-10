@@ -103,7 +103,7 @@ func (ls *LoginService) Login(req *LoginRequest) (*LoginResponse, error) {
 	}
 
 	// 4. 验证密码
-	if !auth.CheckPassword(req.Password, user.Password) {
+	if !auth.CheckPassword(user.Password, req.Password) {
 		// 增加登录尝试次数
 		user.IncrementLoginAttempts()
 		ls.db.Save(user)
