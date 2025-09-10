@@ -30,74 +30,102 @@ func NewOrderService(db *gorm.DB, cartService *cart.CartService, calculationServ
 	}
 }
 
-// CreateOrder 创建订单
+// CreateOrder 创建订单 - 并发安全版本
 func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) (*model.Order, error) {
-	// 开始事务
-	tx := os.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+	// 使用事务确保数据一致性
+	var order *model.Order
+	err := os.db.Transaction(func(tx *gorm.DB) error {
+		// 获取购物车商品项（使用悲观锁防止并发修改）
+		var cartItems []model.CartItem
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").
+			Where("id IN ? AND cart_id IN (SELECT id FROM carts WHERE user_id = ?)",
+				req.CartItemIDs, userID).
+			Preload("Product").
+			Preload("SKU").
+			Find(&cartItems).Error; err != nil {
+			return fmt.Errorf("获取购物车商品失败: %v", err)
 		}
-	}()
 
-	// 获取购物车商品项
-	var cartItems []model.CartItem
-	if err := tx.Where("id IN ? AND cart_id IN (SELECT id FROM carts WHERE user_id = ?)",
-		req.CartItemIDs, userID).
-		Preload("Product").
-		Preload("SKU").
-		Find(&cartItems).Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("获取购物车商品失败: %v", err)
+		if len(cartItems) == 0 {
+			return fmt.Errorf("购物车商品为空")
+		}
+
+		// 预先验证所有商品和库存（在扣减前检查）
+		if err := os.validateCartItemsForOrder(tx, cartItems); err != nil {
+			return err
+		}
+
+		// 创建订单对象
+		var createErr error
+		order, createErr = os.createOrderWithItems(tx, userID, req, cartItems)
+		if createErr != nil {
+			return createErr
+		}
+
+		// 使用库存服务扣减库存（带乐观锁重试）
+		if err := os.deductStockWithInventoryService(cartItems); err != nil {
+			return fmt.Errorf("扣减库存失败: %v", err)
+		}
+
+		// 清理购物车商品项
+		if err := tx.Where("id IN ?", req.CartItemIDs).Delete(&model.CartItem{}).Error; err != nil {
+			return fmt.Errorf("清理购物车失败: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	if len(cartItems) == 0 {
-		tx.Rollback()
-		return nil, fmt.Errorf("购物车商品为空")
-	}
+	return order, nil
+}
 
-	// 验证商品状态和库存
+// validateCartItemsForOrder 验证购物车商品项是否可以下单
+func (os *OrderService) validateCartItemsForOrder(tx *gorm.DB, cartItems []model.CartItem) error {
 	for _, item := range cartItems {
 		if item.Product == nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("商品ID %d 不存在", item.ProductID)
+			return fmt.Errorf("商品ID %d 不存在", item.ProductID)
 		}
 
 		if item.Product.Status != model.ProductStatusActive {
-			tx.Rollback()
-			return nil, fmt.Errorf("商品 %s 已下架", item.Product.Name)
+			return fmt.Errorf("商品 %s 已下架", item.Product.Name)
 		}
 
 		// 检查库存
 		availableStock := item.Product.Stock
-		currentPrice := item.Product.Price
-
 		if item.SKUID > 0 {
 			if item.SKU == nil {
-				tx.Rollback()
-				return nil, fmt.Errorf("商品规格ID %d 不存在", item.SKUID)
+				return fmt.Errorf("商品规格ID %d 不存在", item.SKUID)
 			}
 			if item.SKU.Status != model.SKUStatusActive {
-				tx.Rollback()
-				return nil, fmt.Errorf("商品规格 %s 已下架", item.SKU.Name)
+				return fmt.Errorf("商品规格 %s 已下架", item.SKU.Name)
 			}
 			availableStock = item.SKU.Stock
-			currentPrice = item.SKU.Price
 		}
 
 		if availableStock < item.Quantity {
-			tx.Rollback()
-			return nil, fmt.Errorf("商品 %s 库存不足，当前库存：%d", item.Product.Name, availableStock)
+			return fmt.Errorf("商品 %s 库存不足，当前库存：%d", item.Product.Name, availableStock)
 		}
+	}
+	return nil
+}
 
-		// 更新商品价格为当前价格
-		item.Price = currentPrice
+// createOrderWithItems 创建订单和订单商品项
+func (os *OrderService) createOrderWithItems(tx *gorm.DB, userID uint, req *model.OrderCreateRequest, cartItems []model.CartItem) (*model.Order, error) {
+	// 更新商品价格为当前价格
+	for i := range cartItems {
+		currentPrice := cartItems[i].Product.Price
+		if cartItems[i].SKUID > 0 && cartItems[i].SKU != nil {
+			currentPrice = cartItems[i].SKU.Price
+		}
+		cartItems[i].Price = currentPrice
 	}
 
 	// 计算订单金额
 	calculation, err := os.calculateOrderAmount(cartItems, req)
 	if err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("计算订单金额失败: %v", err)
 	}
 
@@ -131,7 +159,6 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 	}
 
 	if err := tx.Create(order).Error; err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("创建订单失败: %v", err)
 	}
 
@@ -161,20 +188,7 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 	}
 
 	if err := tx.Create(&orderItems).Error; err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("创建订单商品失败: %v", err)
-	}
-
-	// 扣减库存（使用新的库存服务）
-	if err := os.deductStockWithInventoryService(cartItems); err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("扣减库存失败: %v", err)
-	}
-
-	// 删除购物车商品项
-	if err := tx.Where("id IN ?", req.CartItemIDs).Delete(&model.CartItem{}).Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("清理购物车失败: %v", err)
 	}
 
 	// 记录订单状态日志
@@ -188,15 +202,8 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 	}
 
 	if err := tx.Create(statusLog).Error; err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("记录订单日志失败: %v", err)
 	}
-
-	tx.Commit()
-
-	// 加载关联数据
-	order.OrderItems = orderItems
-	order.StatusLogs = []model.OrderStatusLog{*statusLog}
 
 	return order, nil
 }

@@ -170,9 +170,9 @@ func (cs *CartService) UpdateCartItem(userID uint, sessionID string, itemID uint
 	}
 
 	cartItem.Selected = req.Selected
-	cartItem.UpdatedAt = time.Now()
 
-	if err := cs.db.Save(&cartItem).Error; err != nil {
+	// 使用乐观锁更新购物车商品项
+	if err := cs.updateCartItemWithOptimisticLock(&cartItem, req.Quantity); err != nil {
 		return nil, fmt.Errorf("更新购物车商品失败: %v", err)
 	}
 
@@ -458,16 +458,16 @@ func (cs *CartService) updateCartSummary(cartID uint) error {
 // calculateCartSummary 计算购物车汇总信息
 func (cs *CartService) calculateCartSummary(cart *model.Cart) *model.CartSummary {
 	summary := &model.CartSummary{
-		ItemCount:       0,
-		TotalQty:        0,
-		SelectedCount:   0,
-		SelectedQty:     0,
-		TotalAmount:     decimal.Zero,
-		SelectedAmount:  decimal.Zero,
-		DiscountAmount:  decimal.Zero,
-		ShippingFee:     decimal.Zero,
-		FinalAmount:     decimal.Zero,
-		InvalidItems:    []model.CartItem{},
+		ItemCount:      0,
+		TotalQty:       0,
+		SelectedCount:  0,
+		SelectedQty:    0,
+		TotalAmount:    decimal.Zero,
+		SelectedAmount: decimal.Zero,
+		DiscountAmount: decimal.Zero,
+		ShippingFee:    decimal.Zero,
+		FinalAmount:    decimal.Zero,
+		InvalidItems:   []model.CartItem{},
 	}
 
 	for _, item := range cart.Items {
@@ -504,4 +504,48 @@ func InitGlobalCartService(db *gorm.DB) {
 // GetGlobalCartService 获取全局购物车服务
 func GetGlobalCartService() *CartService {
 	return globalCartService
+}
+
+// updateCartItemWithOptimisticLock 使用乐观锁更新购物车商品项
+func (cs *CartService) updateCartItemWithOptimisticLock(cartItem *model.CartItem, quantity int) error {
+	maxRetries := 3
+	for retries := 0; retries < maxRetries; retries++ {
+		// 获取当前购物车商品项信息
+		var currentItem model.CartItem
+		if err := cs.db.Where("id = ?", cartItem.ID).First(&currentItem).Error; err != nil {
+			return fmt.Errorf("购物车商品项不存在: %v", err)
+		}
+
+		// 使用乐观锁更新
+		result := cs.db.Model(&currentItem).
+			Where("id = ? AND version = ?", currentItem.ID, currentItem.Version).
+			Updates(map[string]interface{}{
+				"quantity":   quantity,
+				"selected":   cartItem.Selected,
+				"version":    currentItem.Version + 1,
+				"updated_at": time.Now(),
+			})
+
+		if result.Error != nil {
+			return fmt.Errorf("更新购物车商品项失败: %v", result.Error)
+		}
+
+		// 更新成功
+		if result.RowsAffected > 0 {
+			// 更新传入的cartItem对象
+			cartItem.Version = currentItem.Version + 1
+			cartItem.UpdatedAt = time.Now()
+			return nil
+		}
+
+		// 更新失败，说明版本号已变化，需要重试
+		if retries == maxRetries-1 {
+			return fmt.Errorf("购物车商品项更新失败，并发冲突过多，请重试")
+		}
+
+		// 短暂等待后重试
+		time.Sleep(time.Millisecond * time.Duration(10*(retries+1)))
+	}
+
+	return fmt.Errorf("购物车商品项更新失败，超过最大重试次数")
 }

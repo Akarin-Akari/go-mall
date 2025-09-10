@@ -46,17 +46,22 @@ type Product struct {
 	BrandID     uint   `gorm:"index" json:"brand_id"`
 	MerchantID  uint   `gorm:"not null;index" json:"merchant_id"`
 
+	// 冗余字段 - 性能优化，减少JOIN查询
+	CategoryName string `gorm:"size:100;index" json:"category_name"` // 分类名称冗余
+	BrandName    string `gorm:"size:100;index" json:"brand_name"`    // 品牌名称冗余
+	MerchantName string `gorm:"size:100;index" json:"merchant_name"` // 商家名称冗余
+
 	// 价格信息
-	Price       decimal.Decimal `gorm:"type:decimal(10,2);not null" json:"price"`
+	Price       decimal.Decimal `gorm:"type:decimal(10,2);not null;index" json:"price"` // 添加价格索引
 	OriginPrice decimal.Decimal `gorm:"type:decimal(10,2)" json:"origin_price"`
 	CostPrice   decimal.Decimal `gorm:"type:decimal(10,2)" json:"cost_price"`
 
 	// 库存信息
-	Stock     int `gorm:"not null;default:0" json:"stock"`
+	Stock     int `gorm:"not null;default:0;index" json:"stock"` // 添加库存索引
 	MinStock  int `gorm:"default:0" json:"min_stock"`
 	MaxStock  int `gorm:"default:0" json:"max_stock"`
-	SoldCount int `gorm:"default:0" json:"sold_count"`
-	Version   int `gorm:"not null;default:0" json:"version"` // 乐观锁版本号
+	SoldCount int `gorm:"default:0;index" json:"sold_count"` // 添加销量索引
+	Version   int `gorm:"not null;default:1" json:"version"` // 乐观锁版本号，默认值改为1
 
 	// 商品属性
 	Weight decimal.Decimal `gorm:"type:decimal(8,3)" json:"weight"`
@@ -151,7 +156,7 @@ type ProductSKU struct {
 	Name      string          `gorm:"size:255;not null" json:"name"`
 	Price     decimal.Decimal `gorm:"type:decimal(10,2);not null" json:"price"`
 	Stock     int             `gorm:"not null;default:0" json:"stock"`
-	Version   int             `gorm:"not null;default:0" json:"version"` // 乐观锁版本号
+	Version   int             `gorm:"not null;default:1" json:"version"` // 乐观锁版本号
 	Image     string          `gorm:"size:500" json:"image"`
 	Weight    decimal.Decimal `gorm:"type:decimal(8,3)" json:"weight"`
 	Volume    decimal.Decimal `gorm:"type:decimal(8,3)" json:"volume"`

@@ -1,7 +1,9 @@
 package product
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"mall-go/internal/model"
 
@@ -340,27 +342,63 @@ func (ps *ProductService) DeleteProduct(id uint) error {
 	return nil
 }
 
-// GetProduct 获取商品详情
+// GetProduct 获取商品详情 - 性能优化版本
 func (ps *ProductService) GetProduct(id uint) (*model.Product, error) {
 	var product model.Product
-	if err := ps.db.Preload("Category").
-		Preload("Brand").
-		Preload("Merchant").
-		Preload("Images", func(db *gorm.DB) *gorm.DB {
-			return db.Order("sort ASC")
-		}).
-		Preload("Attributes", func(db *gorm.DB) *gorm.DB {
-			return db.Order("sort ASC")
-		}).
-		Preload("SKUs", func(db *gorm.DB) *gorm.DB {
-			return db.Where("status = ?", model.SKUStatusActive)
-		}).
-		First(&product, id).Error; err != nil {
-		return nil, fmt.Errorf("商品不存在")
+
+	// 第一步：获取商品基本信息（使用冗余字段，避免复杂JOIN）
+	if err := ps.db.Where("id = ? AND status = ?", id, "active").
+		First(&product).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("商品不存在")
+		}
+		return nil, fmt.Errorf("获取商品失败: %v", err)
 	}
 
-	// 增加浏览次数
-	ps.db.Model(&product).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
+	// 第二步：按需加载关联数据（分步查询，提高性能）
+	if product.ID > 0 {
+		// 加载商品图片（最常用的关联数据）
+		var images []model.ProductImage
+		ps.db.Where("product_id = ?", product.ID).
+			Order("is_main DESC, sort ASC").
+			Find(&images)
+		product.Images = images
+
+		// 加载商品SKU（按需）
+		var skus []model.ProductSKU
+		ps.db.Where("product_id = ? AND status = ?", product.ID, "active").
+			Find(&skus)
+		product.SKUs = skus
+
+		// 加载商品属性（按需）
+		var attrs []model.ProductAttr
+		ps.db.Where("product_id = ?", product.ID).
+			Order("sort ASC").
+			Find(&attrs)
+		product.Attributes = attrs
+	}
+
+	// 异步增加浏览次数（避免影响查询性能）
+	go func() {
+		ps.db.Model(&product).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
+	}()
+
+	return &product, nil
+}
+
+// GetProductSimple 获取商品简单信息（仅基本字段，性能最优）
+func (ps *ProductService) GetProductSimple(id uint) (*model.Product, error) {
+	var product model.Product
+	err := ps.db.Select("id, name, price, stock, category_name, brand_name, merchant_name, status, view_count, sold_count").
+		Where("id = ? AND status = ?", id, "active").
+		First(&product).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("商品不存在")
+		}
+		return nil, fmt.Errorf("获取商品失败: %v", err)
+	}
 
 	return &product, nil
 }
@@ -399,7 +437,9 @@ func (ps *ProductService) GetProductList(req *ProductListRequest) ([]*model.Prod
 	}
 
 	if req.Keyword != "" {
-		query = query.Where("name LIKE ? OR description LIKE ?", "%"+req.Keyword+"%", "%"+req.Keyword+"%")
+		// 优化搜索：使用冗余字段进行搜索，减少JOIN
+		query = query.Where("name LIKE ? OR description LIKE ? OR category_name LIKE ? OR brand_name LIKE ?",
+			"%"+req.Keyword+"%", "%"+req.Keyword+"%", "%"+req.Keyword+"%", "%"+req.Keyword+"%")
 	}
 
 	// 价格范围筛选
@@ -434,19 +474,43 @@ func (ps *ProductService) GetProductList(req *ProductListRequest) ([]*model.Prod
 		orderBy = "created_at DESC"
 	}
 
-	// 分页查询
+	// 分页查询 - 性能优化版本（使用冗余字段，减少JOIN）
 	var products []*model.Product
 	offset := (req.Page - 1) * req.PageSize
-	if err := query.Preload("Category").
-		Preload("Brand").
-		Preload("Images", func(db *gorm.DB) *gorm.DB {
-			return db.Where("is_main = ?", true).Order("sort ASC").Limit(1)
-		}).
+
+	// 第一步：查询商品基本信息（使用冗余字段，避免JOIN Category和Brand）
+	if err := query.Select("id, name, sub_title, price, origin_price, stock, sold_count, view_count, category_name, brand_name, merchant_name, status, is_hot, is_new, is_recommend, created_at, updated_at").
 		Order(orderBy).
 		Offset(offset).
 		Limit(req.PageSize).
 		Find(&products).Error; err != nil {
 		return nil, 0, fmt.Errorf("查询商品列表失败: %v", err)
+	}
+
+	// 第二步：批量加载主图（分步查询，提高性能）
+	if len(products) > 0 {
+		productIDs := make([]uint, len(products))
+		for i, product := range products {
+			productIDs[i] = product.ID
+		}
+
+		// 批量查询主图
+		var images []model.ProductImage
+		ps.db.Where("product_id IN ? AND is_main = ?", productIDs, true).
+			Order("product_id, sort ASC").
+			Find(&images)
+
+		// 将图片分配给对应的商品
+		imageMap := make(map[uint][]model.ProductImage)
+		for _, img := range images {
+			imageMap[img.ProductID] = append(imageMap[img.ProductID], img)
+		}
+
+		for _, product := range products {
+			if imgs, exists := imageMap[product.ID]; exists {
+				product.Images = imgs
+			}
+		}
 	}
 
 	return products, total, nil
@@ -497,29 +561,59 @@ func (ps *ProductService) UpdateProductStock(id uint, stock int) error {
 	return nil
 }
 
-// DeductStock 扣减库存
+// DeductStock 扣减库存 - 使用乐观锁
 func (ps *ProductService) DeductStock(id uint, quantity int) error {
 	if quantity <= 0 {
 		return fmt.Errorf("扣减数量必须大于0")
 	}
 
-	// 使用乐观锁更新库存
-	result := ps.db.Model(&model.Product{}).
-		Where("id = ? AND stock >= ?", id, quantity).
-		Updates(map[string]interface{}{
-			"stock":      gorm.Expr("stock - ?", quantity),
-			"sold_count": gorm.Expr("sold_count + ?", quantity),
-		})
+	// 使用乐观锁重试机制扣减库存
+	return ps.deductStockWithOptimisticLock(id, quantity, 3)
+}
 
-	if result.Error != nil {
-		return fmt.Errorf("扣减库存失败: %v", result.Error)
+// deductStockWithOptimisticLock 使用乐观锁扣减库存（带重试）
+func (ps *ProductService) deductStockWithOptimisticLock(id uint, quantity int, maxRetries int) error {
+	for retries := 0; retries < maxRetries; retries++ {
+		// 获取当前商品信息
+		var product model.Product
+		if err := ps.db.Where("id = ?", id).First(&product).Error; err != nil {
+			return fmt.Errorf("商品不存在: %v", err)
+		}
+
+		// 检查库存是否足够
+		if product.Stock < quantity {
+			return fmt.Errorf("库存不足，当前库存：%d，需要：%d", product.Stock, quantity)
+		}
+
+		// 使用乐观锁更新库存
+		result := ps.db.Model(&product).
+			Where("id = ? AND version = ?", product.ID, product.Version).
+			Updates(map[string]interface{}{
+				"stock":      product.Stock - quantity,
+				"sold_count": product.SoldCount + quantity,
+				"version":    product.Version + 1,
+				"updated_at": time.Now(),
+			})
+
+		if result.Error != nil {
+			return fmt.Errorf("更新商品库存失败: %v", result.Error)
+		}
+
+		// 更新成功
+		if result.RowsAffected > 0 {
+			return nil
+		}
+
+		// 更新失败，说明版本号已变化，需要重试
+		if retries == maxRetries-1 {
+			return fmt.Errorf("库存更新失败，并发冲突过多，请重试")
+		}
+
+		// 短暂等待后重试
+		time.Sleep(time.Millisecond * time.Duration(10*(retries+1)))
 	}
 
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("库存不足或商品不存在")
-	}
-
-	return nil
+	return fmt.Errorf("库存更新失败，超过最大重试次数")
 }
 
 // RestoreStock 恢复库存

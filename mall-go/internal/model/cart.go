@@ -20,6 +20,9 @@ type Cart struct {
 	TotalQty    int             `gorm:"default:0" json:"total_qty"`                       // 商品总数量
 	TotalAmount decimal.Decimal `gorm:"type:decimal(10,2);default:0" json:"total_amount"` // 总金额
 
+	// 并发控制
+	Version int `gorm:"not null;default:1" json:"version"` // 乐观锁版本号
+
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -49,6 +52,9 @@ type CartItem struct {
 	// 状态信息
 	Selected bool   `gorm:"default:true" json:"selected"`                 // 是否选中
 	Status   string `gorm:"size:20;default:'normal';index" json:"status"` // 商品状态：normal/invalid/out_of_stock
+
+	// 并发控制
+	Version int `gorm:"not null;default:1" json:"version"` // 乐观锁版本号
 
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`

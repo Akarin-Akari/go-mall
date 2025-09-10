@@ -79,7 +79,7 @@ type Order struct {
 	RefundTime   *time.Time      `json:"refund_time"`                                       // 退款时间
 
 	// 乐观锁版本号
-	Version int `gorm:"not null;default:0" json:"version"` // 乐观锁版本号
+	Version int `gorm:"not null;default:1" json:"version"` // 乐观锁版本号
 
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`
