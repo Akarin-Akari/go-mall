@@ -702,7 +702,7 @@ kubectl get svc -n mall-go
 
 ### 📧 联系方式
 - **项目维护者**: [@Akarin-Akari](https://github.com/Akarin-Akari)
-- **邮箱**: 通过GitHub联系
+- **邮箱**: akarinzhang@foxmail.com
 
 ---
 
