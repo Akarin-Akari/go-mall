@@ -1,4 +1,4 @@
-# Mall Go - 企业级Go语言商城全栈项目 🚀
+# GoMall  - 企业级Go语言商城全栈项目 🚀
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![Gin Framework](https://img.shields.io/badge/Gin-1.9+-green.svg)](https://github.com/gin-gonic/gin)
@@ -8,7 +8,7 @@
 
 ## 📖 项目简介
 
-**Mall Go** 是一个企业级的全栈电商项目，包含完整的前后端实现和系统性的Go语言学习文档。项目不仅是一个功能完整的商城系统，更是一个从入门到精通的Go语言学习平台。
+**GoMall** 是一个企业级的全栈电商项目，包含完整的前后端实现和系统性的Go语言学习文档。项目不仅是一个功能完整的商城系统，更是一个从入门到精通的Go语言学习平台。
 
 ### 🌟 项目特色
 
