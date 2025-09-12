@@ -23,59 +23,65 @@ func NewCacheKeyManager(prefix string) *CacheKeyManager {
 // 缓存键命名规范常量
 const (
 	// 商品相关键
-	ProductInfoKey    = "product:{id}"           // 商品基础信息
-	ProductStockKey   = "stock:{id}"             // 商品库存
-	ProductPriceKey   = "price:{id}"             // 商品价格
-	ProductViewKey    = "stats:view:{id}"        // 商品浏览量
-	
+	ProductInfoKey  = "product:{id}"    // 商品基础信息
+	ProductStockKey = "stock:{id}"      // 商品库存
+	ProductPriceKey = "price:{id}"      // 商品价格
+	ProductViewKey  = "stats:view:{id}" // 商品浏览量
+
 	// 用户相关键
-	UserSessionKey    = "user:session:{token}"   // 用户会话
-	UserCartKey       = "cart:{user_id}"         // 购物车
-	UserProfileKey    = "user:profile:{id}"      // 用户资料
-	UserPreferenceKey = "user:pref:{id}"         // 用户偏好
-	
+	UserSessionKey    = "user:session:{token}" // 用户会话
+	UserCartKey       = "cart:{user_id}"       // 购物车
+	UserProfileKey    = "user:profile:{id}"    // 用户资料
+	UserPreferenceKey = "user:pref:{id}"       // 用户偏好
+
 	// 业务相关键
 	CategoryProductsKey = "category:{id}:products" // 分类商品
-	HotProductsKey     = "hot:products"            // 热门商品
-	OrderKey          = "order:{id}"               // 订单信息
-	OrderLockKey      = "lock:order:{id}"          // 订单锁
-	
+	HotProductsKey      = "hot:products"           // 热门商品
+	OrderKey            = "order:{id}"             // 订单信息
+	OrderLockKey        = "lock:order:{id}"        // 订单锁
+
 	// 统计相关键
-	DailyStatsKey     = "stats:daily:{date}"     // 日统计
-	HourlyStatsKey    = "stats:hourly:{hour}"    // 小时统计
-	CounterKey        = "counter:{type}:{id}"    // 计数器
-	
+	DailyStatsKey  = "stats:daily:{date}"  // 日统计
+	HourlyStatsKey = "stats:hourly:{hour}" // 小时统计
+	CounterKey     = "counter:{type}:{id}" // 计数器
+
 	// 缓存控制键
-	CacheVersionKey   = "version:{type}"         // 缓存版本
-	CacheLockKey      = "lock:{key}"             // 缓存锁
-	CacheWarmupKey    = "warmup:{type}"          // 预热标记
+	CacheVersionKey = "version:{type}" // 缓存版本
+	CacheLockKey    = "lock:{key}"     // 缓存锁
+	CacheWarmupKey  = "warmup:{type}"  // 预热标记
 )
 
 // TTL配置映射
 var CacheTTL = map[string]time.Duration{
 	// 基础数据 - 较长TTL
-	"product":     30 * time.Minute,  // 商品信息
-	"category":    60 * time.Minute,  // 分类信息
-	"user":        120 * time.Minute, // 用户资料
-	
+	"product":  30 * time.Minute,  // 商品信息
+	"category": 60 * time.Minute,  // 分类信息
+	"user":     120 * time.Minute, // 用户资料
+
 	// 动态数据 - 较短TTL
-	"stock":       10 * time.Minute,  // 库存数据
-	"price":       15 * time.Minute,  // 价格信息
-	"cart":        24 * time.Hour,    // 购物车
-	
+	"stock": 10 * time.Minute, // 库存数据
+	"price": 15 * time.Minute, // 价格信息
+	"cart":  24 * time.Hour,   // 购物车
+
 	// 会话数据 - 中等TTL
-	"session":     2 * time.Hour,     // 用户会话
-	"token":       30 * time.Minute,  // 访问令牌
-	
+	"session": 2 * time.Hour,    // 用户会话
+	"token":   30 * time.Minute, // 访问令牌
+
 	// 统计数据 - 短TTL
-	"stats":       5 * time.Minute,   // 实时统计
-	"hot":         60 * time.Minute,  // 热点数据
-	"counter":     1 * time.Hour,     // 计数器
-	
+	"stats":   5 * time.Minute,  // 实时统计
+	"hot":     60 * time.Minute, // 热点数据
+	"counter": 1 * time.Hour,    // 计数器
+
+	// 用户偏好数据 - 不同TTL策略
+	"browse_history": 7 * 24 * time.Hour,  // 浏览历史 - 7天
+	"favorite":       30 * 24 * time.Hour, // 收藏数据 - 30天（较长）
+	"recommendation": 4 * time.Hour,       // 推荐数据 - 4小时
+	"behavior":       30 * 24 * time.Hour, // 用户行为 - 30天
+
 	// 锁和控制 - 很短TTL
-	"lock":        30 * time.Second,  // 分布式锁
-	"version":     24 * time.Hour,    // 版本控制
-	"warmup":      10 * time.Minute,  // 预热标记
+	"lock":    30 * time.Second, // 分布式锁
+	"version": 24 * time.Hour,   // 版本控制
+	"warmup":  10 * time.Minute, // 预热标记
 }
 
 // KeyBuilder 键构建器
@@ -144,13 +150,63 @@ func (ckm *CacheKeyManager) GenerateProductPriceKey(productID uint) string {
 }
 
 // GenerateUserSessionKey 生成用户会话键
-func (ckm *CacheKeyManager) GenerateUserSessionKey(token string) string {
-	return NewKeyBuilder().Add("user").Add("session").Add(token).BuildWithPrefix(ckm.prefix)
+func (ckm *CacheKeyManager) GenerateUserSessionKey(userID uint) string {
+	return NewKeyBuilder().Add("user").Add("session").AddUint(userID).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateTokenKey 生成Token键
+func (ckm *CacheKeyManager) GenerateTokenKey(token string) string {
+	return NewKeyBuilder().Add("token").Add(token).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateRefreshTokenKey 生成刷新Token键
+func (ckm *CacheKeyManager) GenerateRefreshTokenKey(refreshToken string) string {
+	return NewKeyBuilder().Add("refresh_token").Add(refreshToken).BuildWithPrefix(ckm.prefix)
 }
 
 // GenerateUserCartKey 生成用户购物车键
 func (ckm *CacheKeyManager) GenerateUserCartKey(userID uint) string {
-	return NewKeyBuilder().Add("cart").AddUint(userID).BuildWithPrefix(ckm.prefix)
+	return NewKeyBuilder().Add("user").Add("cart").AddUint(userID).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateGuestCartKey 生成游客购物车键
+func (ckm *CacheKeyManager) GenerateGuestCartKey(sessionID string) string {
+	return NewKeyBuilder().Add("guest").Add("cart").Add(sessionID).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateCartSummaryKey 生成购物车汇总键
+func (ckm *CacheKeyManager) GenerateCartSummaryKey(cartID uint) string {
+	return NewKeyBuilder().Add("cart").Add("summary").AddUint(cartID).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateCartItemKey 生成购物车商品项键
+func (ckm *CacheKeyManager) GenerateCartItemKey(cartID uint, itemID uint) string {
+	return NewKeyBuilder().Add("cart").AddUint(cartID).Add("item").AddUint(itemID).BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateUserBrowseHistoryKey 生成用户浏览历史键
+func (ckm *CacheKeyManager) GenerateUserBrowseHistoryKey(userID uint) string {
+	return NewKeyBuilder().Add("user").AddUint(userID).Add("browse").Add("history").BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateUserFavoriteKey 生成用户收藏键
+func (ckm *CacheKeyManager) GenerateUserFavoriteKey(userID uint) string {
+	return NewKeyBuilder().Add("user").AddUint(userID).Add("favorite").BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateUserRecommendationKey 生成用户推荐键
+func (ckm *CacheKeyManager) GenerateUserRecommendationKey(userID uint) string {
+	return NewKeyBuilder().Add("user").AddUint(userID).Add("recommendation").BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateUserBehaviorKey 生成用户行为键
+func (ckm *CacheKeyManager) GenerateUserBehaviorKey(userID uint) string {
+	return NewKeyBuilder().Add("user").AddUint(userID).Add("behavior").BuildWithPrefix(ckm.prefix)
+}
+
+// GenerateUserSearchHistoryKey 生成用户搜索历史键
+func (ckm *CacheKeyManager) GenerateUserSearchHistoryKey(userID uint) string {
+	return NewKeyBuilder().Add("user").AddUint(userID).Add("search").Add("history").BuildWithPrefix(ckm.prefix)
 }
 
 // GenerateUserProfileKey 生成用户资料键
@@ -224,11 +280,11 @@ func ValidateKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
-	
+
 	if len(key) > 250 {
 		return fmt.Errorf("key too long: %d characters (max 250)", len(key))
 	}
-	
+
 	// 检查是否包含非法字符
 	invalidChars := []string{" ", "\t", "\n", "\r"}
 	for _, char := range invalidChars {
@@ -236,7 +292,7 @@ func ValidateKey(key string) error {
 			return fmt.Errorf("key contains invalid character: %q", char)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -244,7 +300,7 @@ func ValidateKey(key string) error {
 func ParseKey(key string) map[string]string {
 	parts := strings.Split(key, ":")
 	result := make(map[string]string)
-	
+
 	if len(parts) >= 1 {
 		result["prefix"] = parts[0]
 	}
@@ -257,10 +313,10 @@ func ParseKey(key string) map[string]string {
 	if len(parts) >= 4 {
 		result["subtype"] = parts[3]
 	}
-	
+
 	result["full"] = key
 	result["parts_count"] = fmt.Sprintf("%d", len(parts))
-	
+
 	return result
 }
 

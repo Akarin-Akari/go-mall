@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -49,8 +48,8 @@ func TestCacheKeyManager(t *testing.T) {
 	assert.Equal(t, "test:price:123", priceKey)
 
 	// 测试用户相关键生成
-	sessionKey := manager.GenerateUserSessionKey("abc123")
-	assert.Equal(t, "test:user:session:abc123", sessionKey)
+	sessionKey := manager.GenerateUserSessionKey(123)
+	assert.Equal(t, "test:user:session:123", sessionKey)
 
 	cartKey := manager.GenerateUserCartKey(456)
 	assert.Equal(t, "test:cart:456", cartKey)
@@ -264,7 +263,7 @@ func BenchmarkKeyGeneration(b *testing.B) {
 
 	b.Run("UserSessionKey", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			manager.GenerateUserSessionKey(fmt.Sprintf("token_%d", i))
+			manager.GenerateUserSessionKey(uint(i))
 		}
 	})
 

@@ -86,7 +86,7 @@ func testKeyGeneration(manager *cache.CacheKeyManager) {
 	fmt.Printf("  ✅ 价格键: %s\n", priceKey)
 
 	// 用户相关键
-	sessionKey := manager.GenerateUserSessionKey("abc123def456")
+	sessionKey := manager.GenerateUserSessionKey(123)
 	fmt.Printf("  ✅ 会话键: %s\n", sessionKey)
 
 	cartKey := manager.GenerateUserCartKey(456)
@@ -170,9 +170,9 @@ func testKeyValidation() {
 
 	// 无效键测试
 	invalidKeys := []string{
-		"",                           // 空键
-		"invalid key with space",     // 包含空格
-		"invalid\tkey\twith\ttab",   // 包含制表符
+		"",                            // 空键
+		"invalid key with space",      // 包含空格
+		"invalid\tkey\twith\ttab",     // 包含制表符
 		"invalid\nkey\nwith\nnewline", // 包含换行符
 	}
 
