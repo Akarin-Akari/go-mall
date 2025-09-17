@@ -10,7 +10,7 @@ import (
 
 	"mall-go/internal/model"
 	"mall-go/pkg/cache"
-	"mall-go/pkg/config"
+	"mall-go/internal/config"
 	"mall-go/pkg/logger"
 	"mall-go/tests/helpers"
 
