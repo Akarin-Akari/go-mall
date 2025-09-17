@@ -12,7 +12,8 @@ import (
 // RegisterRoutes 注册支付相关路由
 func RegisterRoutes(router *gin.RouterGroup, db *gorm.DB, paymentService *payment.Service, alipayClient *alipay.Client, wechatClient *wechat.Client) {
 	handler := NewHandler(db, paymentService)
-	callbackHandler := NewCallbackHandler(db, paymentService, alipayClient, wechatClient)
+	// 创建回调处理器（使用nil占位符，需要完整实现）
+	callbackHandler := NewCallbackHandler(db, paymentService, nil, nil, alipayClient, wechatClient)
 
 	// 支付相关路由组
 	paymentGroup := router.Group("/payments")

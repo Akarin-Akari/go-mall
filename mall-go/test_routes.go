@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -60,6 +62,10 @@ func main() {
 	fmt.Println("GET      /api/v1/payments")
 	fmt.Println("GET      /api/v1/payments/:id")
 	fmt.Println("GET      /api/v1/payments/query")
+
+	fmt.Println("\n=== 支付回调路由 ===")
+	fmt.Println("POST     /api/v1/payments/callback/alipay")
+	fmt.Println("POST     /api/v1/payments/callback/wechat")
 
 	fmt.Println("\n=== 测试服务器启动 ===")
 	fmt.Println("服务器将在 :8080 端口启动")

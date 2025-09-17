@@ -46,7 +46,7 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 	var req model.PaymentCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Error("绑定支付创建请求失败", zap.Error(err))
-		response.Error(c, http.StatusBadRequest, "请求参数错误", err.Error())
+		response.Error(c, http.StatusBadRequest, "请求参数错误")
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 	resp, err := h.paymentService.CreatePayment(&req)
 	if err != nil {
 		logger.Error("创建支付失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "创建支付失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "创建支付失败")
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *Handler) QueryPayment(c *gin.Context) {
 	var req model.PaymentQueryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		logger.Error("绑定支付查询请求失败", zap.Error(err))
-		response.Error(c, http.StatusBadRequest, "请求参数错误", err.Error())
+		response.Error(c, http.StatusBadRequest, "请求参数错误")
 		return
 	}
 
@@ -98,11 +98,11 @@ func (h *Handler) QueryPayment(c *gin.Context) {
 	resp, err := h.paymentService.QueryPayment(&req)
 	if err != nil {
 		if err == model.ErrPaymentNotFound {
-			response.Error(c, http.StatusNotFound, "支付记录不存在", err.Error())
+			response.Error(c, http.StatusNotFound, "支付记录不存在")
 			return
 		}
 		logger.Error("查询支付失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "查询支付失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "查询支付失败")
 		return
 	}
 
@@ -126,7 +126,7 @@ func (h *Handler) GetPaymentByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "无效的支付ID", err.Error())
+		response.Error(c, http.StatusBadRequest, "无效的支付ID")
 		return
 	}
 
@@ -137,11 +137,11 @@ func (h *Handler) GetPaymentByID(c *gin.Context) {
 	resp, err := h.paymentService.QueryPayment(req)
 	if err != nil {
 		if err == model.ErrPaymentNotFound {
-			response.Error(c, http.StatusNotFound, "支付记录不存在", err.Error())
+			response.Error(c, http.StatusNotFound, "支付记录不存在")
 			return
 		}
 		logger.Error("获取支付详情失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "获取支付详情失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "获取支付详情失败")
 		return
 	}
 
@@ -172,7 +172,7 @@ func (h *Handler) ListPayments(c *gin.Context) {
 	var req model.PaymentListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		logger.Error("绑定支付列表请求失败", zap.Error(err))
-		response.Error(c, http.StatusBadRequest, "请求参数错误", err.Error())
+		response.Error(c, http.StatusBadRequest, "请求参数错误")
 		return
 	}
 
@@ -223,7 +223,7 @@ func (h *Handler) ListPayments(c *gin.Context) {
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		logger.Error("获取支付总数失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "获取支付总数失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "获取支付总数失败")
 		return
 	}
 
@@ -232,7 +232,7 @@ func (h *Handler) ListPayments(c *gin.Context) {
 	offset := (req.Page - 1) * req.PageSize
 	if err := query.Offset(offset).Limit(req.PageSize).Order("created_at DESC").Find(&payments).Error; err != nil {
 		logger.Error("获取支付列表失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "获取支付列表失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "获取支付列表失败")
 		return
 	}
 
@@ -286,7 +286,7 @@ func (h *Handler) RefundPayment(c *gin.Context) {
 	var req model.PaymentRefundRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Error("绑定退款请求失败", zap.Error(err))
-		response.Error(c, http.StatusBadRequest, "请求参数错误", err.Error())
+		response.Error(c, http.StatusBadRequest, "请求参数错误")
 		return
 	}
 
@@ -299,11 +299,11 @@ func (h *Handler) RefundPayment(c *gin.Context) {
 	resp, err := h.paymentService.RefundPayment(&req)
 	if err != nil {
 		if err == model.ErrPaymentNotFound {
-			response.Error(c, http.StatusNotFound, "支付记录不存在", err.Error())
+			response.Error(c, http.StatusNotFound, "支付记录不存在")
 			return
 		}
 		logger.Error("申请退款失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "申请退款失败", err.Error())
+		response.Error(c, http.StatusInternalServerError, "申请退款失败")
 		return
 	}
 

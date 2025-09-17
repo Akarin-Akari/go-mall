@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -207,7 +208,18 @@ func hasPaymentPermission(userID interface{}) bool {
 // PaymentLogMiddleware 支付日志中间件
 func PaymentLogMiddleware() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return logger.FormatGinLog(param)
+		// 简单的日志格式化函数
+		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+			param.ClientIP,
+			param.TimeStamp.Format("02/Jan/2006:15:04:05 -0700"),
+			param.Method,
+			param.Path,
+			param.Request.Proto,
+			param.StatusCode,
+			param.Latency,
+			param.Request.UserAgent(),
+			param.ErrorMessage,
+		)
 	})
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 )
 
 // @title Mall Go API
@@ -55,9 +56,9 @@ func main() {
 		MaxConnAge:   3600,
 	}
 
-	redisClient, err := cache.NewRedisClient(redisConfig)
+	_, err := cache.NewRedisClient(redisConfig)
 	if err != nil {
-		logger.Warn("Redis服务连接失败，将在没有缓存的情况下运行", logger.Field("error", err))
+		logger.Warn("Redis服务连接失败，将在没有缓存的情况下运行", zap.Error(err))
 		rdb = nil
 	} else {
 		// 将封装的RedisClient转换为标准的redis.Client
@@ -76,7 +77,7 @@ func main() {
 	}
 	paymentService, err := payment.NewService(db, paymentConfig)
 	if err != nil {
-		logger.Warn("支付服务初始化失败，将在没有支付功能的情况下运行", logger.Field("error", err))
+		logger.Warn("支付服务初始化失败，将在没有支付功能的情况下运行", zap.Error(err))
 		paymentService = nil
 	}
 

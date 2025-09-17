@@ -28,19 +28,40 @@ func NewService(db *gorm.DB, config *PaymentConfig) (*Service, error) {
 		configManager: NewConfigManager(db, config),
 	}
 
+	// TODO: 重新启用支付客户端初始化
 	// 初始化支付宝客户端
-	if config.Alipay.Enabled {
-		client, err := alipay.NewClient(&config.Alipay)
-		if err != nil {
-			return nil, fmt.Errorf("初始化支付宝客户端失败: %v", err)
-		}
-		service.alipayClient = client
-	}
+	// if config.Alipay.Enabled {
+	// 	// 将PaymentConfig的AlipayConfig转换为config包的AlipayConfig
+	// 	alipayConfig := &config.AlipayConfig{
+	// 		AppID:        config.Alipay.AppID,
+	// 		PrivateKey:   config.Alipay.PrivateKey,
+	// 		PublicKey:    config.Alipay.PublicKey,
+	// 		SignType:     config.Alipay.SignType,
+	// 		Format:       config.Alipay.Format,
+	// 		Charset:      config.Alipay.Charset,
+	// 		GatewayURL:   config.Alipay.GatewayURL,
+	// 		Timeout:      config.Alipay.Timeout,
+	// 	}
+	// 	client, err := alipay.NewClient(alipayConfig)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("初始化支付宝客户端失败: %v", err)
+	// 	}
+	// 	service.alipayClient = client
+	// }
 
 	// 初始化微信支付客户端
-	if config.Wechat.Enabled {
-		service.wechatClient = wechat.NewClient(&config.Wechat)
-	}
+	// if config.Wechat.Enabled {
+	// 	// 将PaymentConfig的WechatConfig转换为config包的WechatConfig
+	// 	wechatConfig := &config.WechatConfig{
+	// 		AppID:        config.Wechat.AppID,
+	// 		MchID:        config.Wechat.MchID,
+	// 		APIKey:       config.Wechat.Key,
+	// 		SignType:     config.Wechat.SignType,
+	// 		GatewayURL:   config.Wechat.GatewayURL,
+	// 		Timeout:      config.Wechat.Timeout,
+	// 	}
+	// 	service.wechatClient = wechat.NewClient(wechatConfig)
+	// }
 
 	return service, nil
 }
@@ -77,7 +98,7 @@ func (s *Service) CreatePayment(req *model.PaymentCreateRequest) (*model.Payment
 	}
 
 	// 检查订单状态
-	if order.PaymentStatus == model.PaymentStatusPaid {
+	if order.PaymentStatus == string(model.PaymentStatusPaid) {
 		return nil, model.ErrPaymentAlreadyPaid
 	}
 

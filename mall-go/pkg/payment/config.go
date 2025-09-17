@@ -96,6 +96,7 @@ type SecurityConfig struct {
 	TokenExpiry     time.Duration             `json:"token_expiry" yaml:"token_expiry"`         // Token过期时间
 	MaxRequestSize  int64                     `json:"max_request_size" yaml:"max_request_size"` // 最大请求大小
 	RateLimitRPS    int                       `json:"rate_limit_rps" yaml:"rate_limit_rps"`     // 限流RPS
+	AllowedIPs      []string                  `json:"allowed_ips" yaml:"allowed_ips"`           // 允许的IP地址列表
 }
 
 // LimitsConfig 限额配置

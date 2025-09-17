@@ -2,7 +2,6 @@ package payment
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -231,19 +230,19 @@ func (sm *SyncManager) handlePaymentSuccess(event *SyncEvent) (*SyncResult, erro
 		}
 	}
 	
-	// 创建订单日志
-	orderLog := &model.OrderLog{
-		OrderID:     event.OrderID,
-		UserID:      event.UserID,
-		Action:      "PAYMENT_SUCCESS",
-		Description: "支付成功",
-		CreatedAt:   time.Now(),
-	}
+	// TODO: 创建订单日志功能需要实现OrderLog模型
+	// orderLog := &model.OrderLog{
+	// 	OrderID:     event.OrderID,
+	// 	UserID:      event.UserID,
+	// 	Action:      "PAYMENT_SUCCESS",
+	// 	Description: "支付成功",
+	// 	CreatedAt:   time.Now(),
+	// }
 	
-	if err := tx.Create(orderLog).Error; err != nil {
-		logger.Error("创建订单日志失败", zap.Error(err))
-		// 不影响主流程
-	}
+	// if err := tx.Create(orderLog).Error; err != nil {
+	// 	logger.Error("创建订单日志失败", zap.Error(err))
+	// 	// 不影响主流程
+	// }
 	
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
