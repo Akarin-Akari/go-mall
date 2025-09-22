@@ -42,7 +42,6 @@ func MonitoringMiddleware(collector *metrics.MetricsCollector) gin.HandlerFunc {
 		
 		// 记录错误率
 		if c.Writer.Status() >= 500 {
-			bizMetrics := collector.GetBusinessMetrics()
 			errorCounter := metrics.NewCounter("http_errors_total", map[string]string{
 				"method": c.Request.Method,
 				"status": status,

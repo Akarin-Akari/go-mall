@@ -1,7 +1,6 @@
 package response
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
