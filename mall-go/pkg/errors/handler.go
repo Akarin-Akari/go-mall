@@ -10,11 +10,11 @@ import (
 
 // HTTPErrorResponse HTTP错误响应结构
 type HTTPErrorResponse struct {
-	Success   bool                   `json:"success"`             // 是否成功
-	Code      string                 `json:"code"`                // 错误码
-	Message   string                 `json:"message"`             // 错误消息
-	Details   string                 `json:"details,omitempty"`   // 详细信息
-	Timestamp int64                  `json:"timestamp"`           // 时间戳
+	Success   bool                   `json:"success"`              // 是否成功
+	Code      string                 `json:"code"`                 // 错误码
+	Message   string                 `json:"message"`              // 错误消息
+	Details   string                 `json:"details,omitempty"`    // 详细信息
+	Timestamp int64                  `json:"timestamp"`            // 时间戳
 	RequestID string                 `json:"request_id,omitempty"` // 请求ID
 	TraceID   string                 `json:"trace_id,omitempty"`   // 链路追踪ID
 	Path      string                 `json:"path,omitempty"`       // 请求路径
@@ -215,7 +215,7 @@ func LogError(c *gin.Context, err *BusinessError) {
 
 	// 这里可以集成实际的日志库，如zap、logrus等
 	logData, _ := json.Marshal(logContext)
-	
+
 	switch err.Level {
 	case ErrorLevelFatal, ErrorLevelCritical:
 		// 使用实际的日志库记录错误
@@ -311,7 +311,7 @@ func RequirePermission(c *gin.Context, permission string) bool {
 	if !RequireAuth(c) {
 		return false
 	}
-	
+
 	// 这里应该集成实际的权限检查逻辑
 	// 现在简化为检查是否有权限标识
 	if perms, exists := c.Get("permissions"); exists {
@@ -323,7 +323,7 @@ func RequirePermission(c *gin.Context, permission string) bool {
 			}
 		}
 	}
-	
+
 	AbortWithPermissionError(c, permission, "access")
 	return false
 }

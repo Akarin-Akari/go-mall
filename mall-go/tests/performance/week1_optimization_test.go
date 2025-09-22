@@ -103,15 +103,15 @@ func (w *Week1OptimizationTest) setupTestData() error {
 		product := model.Product{
 			Name:         fmt.Sprintf("测试商品 %d", i),
 			Description:  fmt.Sprintf("这是第 %d 个测试商品", i),
-			CategoryID:   uint((i%5)+1),
-			BrandID:      uint((i%5)+1),
-			MerchantID:   uint((i%3)+1),
+			CategoryID:   uint((i % 5) + 1),
+			BrandID:      uint((i % 5) + 1),
+			MerchantID:   uint((i % 3) + 1),
 			Price:        price,
 			Stock:        100,
 			Status:       "active",
-			CategoryName: categories[(i%5)].Name,
-			BrandName:    brands[(i%5)].Name,
-			MerchantName: merchants[(i%3)].Username,
+			CategoryName: categories[(i % 5)].Name,
+			BrandName:    brands[(i % 5)].Name,
+			MerchantName: merchants[(i % 3)].Username,
 		}
 
 		if err := w.db.Create(&product).Error; err != nil {
@@ -134,7 +134,7 @@ func (w *Week1OptimizationTest) setupTestData() error {
 // TestProductQueryPerformance 测试商品查询性能
 func TestProductQueryPerformance(t *testing.T) {
 	test := NewWeek1OptimizationTest()
-	
+
 	// 设置测试数据
 	if err := test.setupTestData(); err != nil {
 		t.Fatalf("设置测试数据失败: %v", err)
@@ -164,7 +164,7 @@ func TestProductQueryPerformance(t *testing.T) {
 // testSingleProductQuery 测试单个商品查询
 func (w *Week1OptimizationTest) testSingleProductQuery(t *testing.T) {
 	fmt.Println("\n🔍 单个商品查询性能测试")
-	
+
 	// 测试优化后的查询
 	start := time.Now()
 	successCount := 0
@@ -279,7 +279,7 @@ func (w *Week1OptimizationTest) testConcurrentQuery(t *testing.T) {
 			localSuccess := 0
 
 			for j := 1; j <= queriesPerGoroutine; j++ {
-				productID := uint((goroutineID*queriesPerGoroutine + j) % 1000 + 1)
+				productID := uint((goroutineID*queriesPerGoroutine+j)%1000 + 1)
 				_, err := w.productService.GetProduct(productID)
 				if err == nil {
 					localSuccess++

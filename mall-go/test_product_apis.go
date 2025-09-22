@@ -39,13 +39,13 @@ type CreateProductRequest struct {
 
 func main() {
 	fmt.Println("🧪 测试商品管理模块API")
-	
+
 	baseURL := "http://localhost:8081"
-	
+
 	// 等待服务器启动
 	fmt.Println("⏳ 等待服务器启动...")
 	time.Sleep(2 * time.Second)
-	
+
 	// 测试健康检查
 	fmt.Println("\n🔍 测试健康检查...")
 	resp, err := http.Get(baseURL + "/health")
@@ -54,14 +54,14 @@ func main() {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode == 200 {
 		fmt.Println("✅ 健康检查成功")
 	} else {
 		fmt.Printf("❌ 健康检查失败，状态码: %d\n", resp.StatusCode)
 		return
 	}
-	
+
 	// 登录获取admin token
 	fmt.Println("\n🔐 使用admin账户登录...")
 	token, err := loginAsAdmin(baseURL)
@@ -70,19 +70,19 @@ func main() {
 		return
 	}
 	fmt.Printf("✅ 登录成功，Token: %s...\n", token[:50])
-	
+
 	// 测试商品列表API
 	fmt.Println("\n📋 测试商品列表API...")
 	testProductList(baseURL, token)
-	
+
 	// 测试商品详情API
 	fmt.Println("\n🔍 测试商品详情API...")
 	testProductDetail(baseURL, token)
-	
+
 	// 测试商品创建API
 	fmt.Println("\n➕ 测试商品创建API...")
 	testProductCreate(baseURL, token)
-	
+
 	fmt.Println("\n🎉 商品管理模块API测试完成！")
 }
 
@@ -91,40 +91,40 @@ func loginAsAdmin(baseURL string) (string, error) {
 		Username: "admin",
 		Password: "admin123",
 	}
-	
+
 	jsonData, err := json.Marshal(loginReq)
 	if err != nil {
 		return "", err
 	}
-	
+
 	resp, err := http.Post(baseURL+"/api/v1/users/login", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-	
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
-	
+
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("登录失败，状态码: %d, 响应: %s", resp.StatusCode, string(body))
 	}
-	
+
 	var loginResp LoginResponse
 	err = json.Unmarshal(body, &loginResp)
 	if err != nil {
 		return "", err
 	}
-	
+
 	if loginResp.Code != 200 {
 		return "", fmt.Errorf("登录失败: %s", loginResp.Msg)
 	}
-	
-	fmt.Printf("👤 用户信息: %s (%s) - 角色: %s\n", 
+
+	fmt.Printf("👤 用户信息: %s (%s) - 角色: %s\n",
 		loginResp.Data.User.Username, loginResp.Data.User.Email, loginResp.Data.User.Role)
-	
+
 	return loginResp.Data.Token, nil
 }
 
@@ -137,7 +137,7 @@ func testProductList(baseURL, token string) {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("  📊 状态码: %d\n", resp.StatusCode)
 	if resp.StatusCode == 200 {
@@ -145,7 +145,7 @@ func testProductList(baseURL, token string) {
 	} else {
 		fmt.Printf("  ❌ 响应: %s\n", string(body))
 	}
-	
+
 	// 测试带分页参数
 	fmt.Println("  测试2: 带分页参数")
 	resp2, err := http.Get(baseURL + "/api/v1/products?page=1&page_size=5")
@@ -154,7 +154,7 @@ func testProductList(baseURL, token string) {
 		return
 	}
 	defer resp2.Body.Close()
-	
+
 	body2, _ := io.ReadAll(resp2.Body)
 	fmt.Printf("  📊 状态码: %d\n", resp2.StatusCode)
 	if resp2.StatusCode == 200 {
@@ -173,7 +173,7 @@ func testProductDetail(baseURL, token string) {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("  📊 状态码: %d\n", resp.StatusCode)
 	if resp.StatusCode == 200 {
@@ -181,7 +181,7 @@ func testProductDetail(baseURL, token string) {
 	} else {
 		fmt.Printf("  ❌ 响应: %s\n", string(body))
 	}
-	
+
 	// 测试不存在的商品ID
 	fmt.Println("  测试2: 获取不存在的商品ID=999")
 	resp2, err := http.Get(baseURL + "/api/v1/products/999")
@@ -190,7 +190,7 @@ func testProductDetail(baseURL, token string) {
 		return
 	}
 	defer resp2.Body.Close()
-	
+
 	fmt.Printf("  📊 状态码: %d\n", resp2.StatusCode)
 	if resp2.StatusCode == 404 {
 		fmt.Println("  ✅ 不存在商品返回404正常")
@@ -209,34 +209,34 @@ func testProductCreate(baseURL, token string) {
 		Stock:       50,
 		Status:      "active",
 	}
-	
+
 	jsonData, err := json.Marshal(createReq)
 	if err != nil {
 		fmt.Printf("  ❌ JSON序列化失败: %v\n", err)
 		return
 	}
-	
+
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", baseURL+"/api/v1/products", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Printf("  ❌ 创建请求失败: %v\n", err)
 		return
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("  ❌ 请求失败: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("  📊 状态码: %d\n", resp.StatusCode)
 	fmt.Printf("  📄 响应: %s\n", string(body))
-	
+
 	if resp.StatusCode == 200 || resp.StatusCode == 201 {
 		fmt.Println("  ✅ 商品创建API正常")
 	} else {

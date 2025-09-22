@@ -318,13 +318,13 @@ func (ss *StatusService) AutoUpdateExpiredOrders() error {
 
 	// 处理支付超时的订单
 	var expiredOrders []model.Order
-	if err := ss.db.Where("status = ? AND pay_expire_time < ?", 
+	if err := ss.db.Where("status = ? AND pay_expire_time < ?",
 		model.OrderStatusPending, now).Find(&expiredOrders).Error; err != nil {
 		return fmt.Errorf("查询过期订单失败: %v", err)
 	}
 
 	for _, order := range expiredOrders {
-		if err := ss.UpdateOrderStatus(order.ID, model.OrderStatusCancelled, 0, 
+		if err := ss.UpdateOrderStatus(order.ID, model.OrderStatusCancelled, 0,
 			model.OperatorTypeSystem, "支付超时", "系统自动取消"); err != nil {
 			// 记录错误但继续处理其他订单
 			fmt.Printf("自动取消订单 %s 失败: %v\n", order.OrderNo, err)
@@ -333,13 +333,13 @@ func (ss *StatusService) AutoUpdateExpiredOrders() error {
 
 	// 处理自动确认收货的订单
 	var autoReceiveOrders []model.Order
-	if err := ss.db.Where("status = ? AND receive_expire_time < ?", 
+	if err := ss.db.Where("status = ? AND receive_expire_time < ?",
 		model.OrderStatusDelivered, now).Find(&autoReceiveOrders).Error; err != nil {
 		return fmt.Errorf("查询自动确认收货订单失败: %v", err)
 	}
 
 	for _, order := range autoReceiveOrders {
-		if err := ss.UpdateOrderStatus(order.ID, model.OrderStatusReceived, 0, 
+		if err := ss.UpdateOrderStatus(order.ID, model.OrderStatusReceived, 0,
 			model.OperatorTypeSystem, "自动确认收货", "系统自动确认收货"); err != nil {
 			fmt.Printf("自动确认收货订单 %s 失败: %v\n", order.OrderNo, err)
 		}

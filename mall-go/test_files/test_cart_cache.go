@@ -169,7 +169,7 @@ func testUserCartCache(cartCache *cache.CartCacheService) {
 		fmt.Printf("  ❌ 设置用户购物车缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置用户购物车缓存成功: UserID=%d, CartID=%d, ItemCount=%d\n", 
+	fmt.Printf("  ✅ 设置用户购物车缓存成功: UserID=%d, CartID=%d, ItemCount=%d\n",
 		cart.UserID, cart.ID, cart.ItemCount)
 
 	// 测试检查存在
@@ -183,15 +183,15 @@ func testUserCartCache(cartCache *cache.CartCacheService) {
 		return
 	}
 	if cartData != nil {
-		fmt.Printf("  ✅ 获取用户购物车缓存成功: UserID=%d, CartID=%d, ItemCount=%d\n", 
+		fmt.Printf("  ✅ 获取用户购物车缓存成功: UserID=%d, CartID=%d, ItemCount=%d\n",
 			cartData.UserID, cartData.CartID, cartData.ItemCount)
 		fmt.Printf("    - 购物车状态: %s\n", cartData.Status)
 		fmt.Printf("    - 商品总数量: %d\n", cartData.TotalQty)
 		fmt.Printf("    - 总金额: %s\n", cartData.TotalAmount)
 		fmt.Printf("    - 商品项数量: %d\n", len(cartData.Items))
-		
+
 		if len(cartData.Items) > 0 {
-			fmt.Printf("    - 第一个商品: %s (数量: %d, 价格: %s)\n", 
+			fmt.Printf("    - 第一个商品: %s (数量: %d, 价格: %s)\n",
 				cartData.Items[0].ProductName, cartData.Items[0].Quantity, cartData.Items[0].Price)
 		}
 	} else {
@@ -227,7 +227,7 @@ func testGuestCartCache(cartCache *cache.CartCacheService) {
 		fmt.Printf("  ❌ 设置游客购物车缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置游客购物车缓存成功: SessionID=%s, CartID=%d, ItemCount=%d\n", 
+	fmt.Printf("  ✅ 设置游客购物车缓存成功: SessionID=%s, CartID=%d, ItemCount=%d\n",
 		cart.SessionID, cart.ID, cart.ItemCount)
 
 	// 测试检查存在
@@ -241,7 +241,7 @@ func testGuestCartCache(cartCache *cache.CartCacheService) {
 		return
 	}
 	if cartData != nil {
-		fmt.Printf("  ✅ 获取游客购物车缓存成功: SessionID=%s, CartID=%d, ItemCount=%d\n", 
+		fmt.Printf("  ✅ 获取游客购物车缓存成功: SessionID=%s, CartID=%d, ItemCount=%d\n",
 			cartData.SessionID, cartData.CartID, cartData.ItemCount)
 		fmt.Printf("    - 购物车状态: %s\n", cartData.Status)
 		fmt.Printf("    - 商品总数量: %d\n", cartData.TotalQty)
@@ -264,7 +264,7 @@ func testCartSummaryCache(cartCache *cache.CartCacheService) {
 		fmt.Printf("  ❌ 设置购物车汇总缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置购物车汇总缓存成功: CartID=%d, ItemCount=%d, SelectedCount=%d\n", 
+	fmt.Printf("  ✅ 设置购物车汇总缓存成功: CartID=%d, ItemCount=%d, SelectedCount=%d\n",
 		cartID, summary.ItemCount, summary.SelectedCount)
 
 	// 测试获取购物车汇总缓存
@@ -318,7 +318,7 @@ func testCartItemCache(cartCache *cache.CartCacheService) {
 		fmt.Printf("  ❌ 设置购物车商品项缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置购物车商品项缓存成功: CartID=%d, ItemID=%d, ProductID=%d\n", 
+	fmt.Printf("  ✅ 设置购物车商品项缓存成功: CartID=%d, ItemID=%d, ProductID=%d\n",
 		item.CartID, item.ID, item.ProductID)
 
 	// 测试检查存在
@@ -332,7 +332,7 @@ func testCartItemCache(cartCache *cache.CartCacheService) {
 		return
 	}
 	if itemData != nil {
-		fmt.Printf("  ✅ 获取购物车商品项缓存成功: CartID=%d, ItemID=%d\n", 
+		fmt.Printf("  ✅ 获取购物车商品项缓存成功: CartID=%d, ItemID=%d\n",
 			itemData.CartID, itemData.ID)
 		fmt.Printf("    - 商品名称: %s\n", itemData.ProductName)
 		fmt.Printf("    - SKU名称: %s\n", itemData.SKUName)
@@ -350,7 +350,7 @@ func testCartItemCache(cartCache *cache.CartCacheService) {
 	if err != nil {
 		fmt.Printf("  ❌ 更新购物车商品项数量失败: %v\n", err)
 	} else {
-		fmt.Printf("  ✅ 更新购物车商品项数量成功: CartID=%d, ItemID=%d, Quantity=%d\n", 
+		fmt.Printf("  ✅ 更新购物车商品项数量成功: CartID=%d, ItemID=%d, Quantity=%d\n",
 			item.CartID, item.ID, newQuantity)
 	}
 
@@ -360,7 +360,7 @@ func testCartItemCache(cartCache *cache.CartCacheService) {
 	if err != nil {
 		fmt.Printf("  ❌ 更新购物车商品项选中状态失败: %v\n", err)
 	} else {
-		fmt.Printf("  ✅ 更新购物车商品项选中状态成功: CartID=%d, ItemID=%d, Selected=%v\n", 
+		fmt.Printf("  ✅ 更新购物车商品项选中状态成功: CartID=%d, ItemID=%d, Selected=%v\n",
 			item.CartID, item.ID, newSelected)
 	}
 }

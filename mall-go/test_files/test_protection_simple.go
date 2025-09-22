@@ -49,7 +49,7 @@ func main() {
 	// 测试配置
 	cfg := cpm.GetConfig()
 	if cfg != nil {
-		fmt.Printf("  ✅ 配置获取成功: Level=%d, Strategies=%v\n", 
+		fmt.Printf("  ✅ 配置获取成功: Level=%d, Strategies=%v\n",
 			cfg.Level, cfg.Strategies)
 	} else {
 		fmt.Println("  ❌ 配置获取失败")
@@ -65,7 +65,7 @@ func main() {
 	// 测试指标信息
 	metrics := cpm.GetMetrics()
 	if metrics != nil {
-		fmt.Printf("  ✅ 指标信息获取成功: TotalRequests=%d, ProtectedRequests=%d\n", 
+		fmt.Printf("  ✅ 指标信息获取成功: TotalRequests=%d, ProtectedRequests=%d\n",
 			metrics.TotalRequests, metrics.ProtectedRequests)
 	} else {
 		fmt.Println("  ❌ 指标信息获取失败")
@@ -121,7 +121,7 @@ func main() {
 	}
 
 	if bloomConfig != nil {
-		fmt.Printf("  ✅ 布隆过滤器配置验证成功: Elements=%d, FPR=%.3f, Hash=%d\n", 
+		fmt.Printf("  ✅ 布隆过滤器配置验证成功: Elements=%d, FPR=%.3f, Hash=%d\n",
 			bloomConfig.ExpectedElements, bloomConfig.FalsePositiveRate, bloomConfig.HashFunctions)
 	}
 
@@ -136,7 +136,7 @@ func main() {
 	}
 
 	if lockConfig != nil {
-		fmt.Printf("  ✅ 分布式锁配置验证成功: Timeout=%v, MaxRetries=%d, AutoRenew=%v\n", 
+		fmt.Printf("  ✅ 分布式锁配置验证成功: Timeout=%v, MaxRetries=%d, AutoRenew=%v\n",
 			lockConfig.LockTimeout, lockConfig.MaxRetries, lockConfig.AutoRenew)
 	}
 
@@ -148,7 +148,7 @@ func main() {
 	}
 
 	if nullConfig != nil {
-		fmt.Printf("  ✅ 空值缓存配置验证成功: TTL=%v, MaxKeys=%d, Cleanup=%v\n", 
+		fmt.Printf("  ✅ 空值缓存配置验证成功: TTL=%v, MaxKeys=%d, Cleanup=%v\n",
 			nullConfig.TTL, nullConfig.MaxNullKeys, nullConfig.CleanupInterval)
 	}
 
@@ -161,8 +161,8 @@ func main() {
 	}
 
 	if randomTTLConfig != nil {
-		fmt.Printf("  ✅ 随机TTL配置验证成功: Base=%v, Range=%v, Min=%v, Max=%v\n", 
-			randomTTLConfig.BaseTTL, randomTTLConfig.RandomRange, 
+		fmt.Printf("  ✅ 随机TTL配置验证成功: Base=%v, Range=%v, Min=%v, Max=%v\n",
+			randomTTLConfig.BaseTTL, randomTTLConfig.RandomRange,
 			randomTTLConfig.MinTTL, randomTTLConfig.MaxTTL)
 	}
 
@@ -175,7 +175,7 @@ func main() {
 	}
 
 	if circuitConfig != nil {
-		fmt.Printf("  ✅ 熔断器配置验证成功: Threshold=%d, Recovery=%v, HalfOpen=%d\n", 
+		fmt.Printf("  ✅ 熔断器配置验证成功: Threshold=%d, Recovery=%v, HalfOpen=%d\n",
 			circuitConfig.FailureThreshold, circuitConfig.RecoveryTimeout, circuitConfig.HalfOpenRequests)
 	}
 
@@ -197,8 +197,8 @@ func main() {
 	}
 
 	if metricsStruct != nil {
-		fmt.Printf("  ✅ 指标结构验证成功: Total=%d, Protected=%d, Rate=%.1f%%, Penetration=%d\n", 
-			metricsStruct.TotalRequests, metricsStruct.ProtectedRequests, 
+		fmt.Printf("  ✅ 指标结构验证成功: Total=%d, Protected=%d, Rate=%.1f%%, Penetration=%d\n",
+			metricsStruct.TotalRequests, metricsStruct.ProtectedRequests,
 			metricsStruct.ProtectionRate, metricsStruct.PenetrationBlocked)
 	}
 
@@ -217,7 +217,7 @@ func main() {
 
 	fmt.Println("\n💡 注意: 完整功能测试需要Redis服务器和数据库连接")
 	fmt.Println("💡 当前测试验证了接口设计和基础功能的正确性")
-	
+
 	fmt.Println("\n🛡️ 防护机制详细说明:")
 	fmt.Println("  🌨️  缓存雪崩防护: 通过随机TTL避免大量缓存同时过期")
 	fmt.Println("  🕳️  缓存穿透防护: 布隆过滤器+空值缓存双重防护")

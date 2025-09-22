@@ -19,11 +19,11 @@ import (
 
 // SecurityManager 安全管理器
 type SecurityManager struct {
-	config        *SecurityConfig
-	nonceStore    *NonceStore
-	ipWhitelist   map[string]bool
-	rateLimiter   *RateLimiter
-	mutex         sync.RWMutex
+	config      *SecurityConfig
+	nonceStore  *NonceStore
+	ipWhitelist map[string]bool
+	rateLimiter *RateLimiter
+	mutex       sync.RWMutex
 }
 
 // NonceStore 随机数存储
@@ -49,15 +49,15 @@ func NewSecurityManager(config *SecurityConfig) *SecurityManager {
 		ipWhitelist: make(map[string]bool),
 		rateLimiter: NewRateLimiter(config.RateLimitRPS, time.Minute),
 	}
-	
+
 	// 初始化IP白名单
 	for _, ip := range config.AllowedIPs {
 		sm.ipWhitelist[ip] = true
 	}
-	
+
 	// 启动清理任务
 	go sm.startCleanupTask()
-	
+
 	return sm
 }
 
@@ -83,13 +83,13 @@ func (sm *SecurityManager) VerifySignature(data map[string]string, signature str
 	if !sm.config.EnableSignature {
 		return nil
 	}
-	
+
 	// 计算签名
 	calculatedSign, err := sm.calculateSignature(data, signType)
 	if err != nil {
 		return fmt.Errorf("计算签名失败: %v", err)
 	}
-	
+
 	// 验证签名
 	if signature != calculatedSign {
 		logger.Error("签名验证失败",
@@ -97,7 +97,7 @@ func (sm *SecurityManager) VerifySignature(data map[string]string, signature str
 			zap.String("actual", signature))
 		return fmt.Errorf("签名验证失败")
 	}
-	
+
 	return nil
 }
 
@@ -110,7 +110,7 @@ func (sm *SecurityManager) calculateSignature(data map[string]string, signType s
 			keys = append(keys, k)
 		}
 	}
-	
+
 	// 字典序排序
 	for i := 0; i < len(keys)-1; i++ {
 		for j := i + 1; j < len(keys); j++ {
@@ -119,7 +119,7 @@ func (sm *SecurityManager) calculateSignature(data map[string]string, signType s
 			}
 		}
 	}
-	
+
 	// 构建签名字符串
 	var signStr strings.Builder
 	for i, k := range keys {
@@ -130,11 +130,11 @@ func (sm *SecurityManager) calculateSignature(data map[string]string, signType s
 		signStr.WriteString("=")
 		signStr.WriteString(data[k])
 	}
-	
+
 	// 添加密钥
 	signStr.WriteString("&key=")
 	signStr.WriteString(sm.config.SecretKey)
-	
+
 	// 根据签名类型计算签名
 	switch strings.ToUpper(signType) {
 	case "MD5":
@@ -158,15 +158,15 @@ func (sm *SecurityManager) CheckNonce(nonce string) error {
 func (ns *NonceStore) Check(nonce string) error {
 	ns.mutex.Lock()
 	defer ns.mutex.Unlock()
-	
+
 	// 检查是否已存在
 	if _, exists := ns.store[nonce]; exists {
 		return fmt.Errorf("随机数已使用")
 	}
-	
+
 	// 存储随机数
 	ns.store[nonce] = time.Now()
-	
+
 	return nil
 }
 
@@ -177,18 +177,18 @@ func (sm *SecurityManager) CheckTimestamp(timestamp string, tolerance time.Durat
 	if err != nil {
 		return fmt.Errorf("无效的时间戳格式: %v", err)
 	}
-	
+
 	// 检查时间差
 	now := time.Now().Unix()
 	diff := now - ts
 	if diff < 0 {
 		diff = -diff
 	}
-	
+
 	if time.Duration(diff)*time.Second > tolerance {
 		return fmt.Errorf("时间戳超出允许范围")
 	}
-	
+
 	return nil
 }
 
@@ -198,10 +198,10 @@ func (sm *SecurityManager) CheckIPWhitelist(clientIP string) error {
 	if len(sm.ipWhitelist) == 0 {
 		return nil
 	}
-	
+
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
-	
+
 	// 检查IP是否在白名单中
 	if !sm.ipWhitelist[clientIP] {
 		// 检查是否在CIDR范围内
@@ -212,7 +212,7 @@ func (sm *SecurityManager) CheckIPWhitelist(clientIP string) error {
 		}
 		return fmt.Errorf("IP地址不在白名单中: %s", clientIP)
 	}
-	
+
 	return nil
 }
 
@@ -222,17 +222,17 @@ func (sm *SecurityManager) isIPInCIDR(ip, cidr string) bool {
 	if !strings.Contains(cidr, "/") {
 		return ip == cidr
 	}
-	
+
 	_, network, err := net.ParseCIDR(cidr)
 	if err != nil {
 		return false
 	}
-	
+
 	clientIP := net.ParseIP(ip)
 	if clientIP == nil {
 		return false
 	}
-	
+
 	return network.Contains(clientIP)
 }
 
@@ -245,15 +245,15 @@ func (sm *SecurityManager) CheckRateLimit(key string) error {
 func (rl *RateLimiter) Check(key string) error {
 	rl.mutex.Lock()
 	defer rl.mutex.Unlock()
-	
+
 	now := time.Now()
-	
+
 	// 获取请求历史
 	requests, exists := rl.requests[key]
 	if !exists {
 		requests = make([]time.Time, 0)
 	}
-	
+
 	// 清理过期请求
 	var validRequests []time.Time
 	for _, reqTime := range requests {
@@ -261,16 +261,16 @@ func (rl *RateLimiter) Check(key string) error {
 			validRequests = append(validRequests, reqTime)
 		}
 	}
-	
+
 	// 检查是否超过限制
 	if len(validRequests) >= rl.limit {
 		return fmt.Errorf("请求频率超过限制")
 	}
-	
+
 	// 添加当前请求
 	validRequests = append(validRequests, now)
 	rl.requests[key] = validRequests
-	
+
 	return nil
 }
 
@@ -286,13 +286,13 @@ func (sm *SecurityManager) ValidateRequestSize(size int64) error {
 func (sm *SecurityManager) GenerateToken(data map[string]string) (string, error) {
 	// 添加时间戳
 	data["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
-	
+
 	// 生成签名
 	signature, err := sm.calculateSignature(data, "HMAC-SHA256")
 	if err != nil {
 		return "", err
 	}
-	
+
 	return signature, nil
 }
 
@@ -304,7 +304,7 @@ func (sm *SecurityManager) VerifyToken(data map[string]string, token string) err
 			return err
 		}
 	}
-	
+
 	// 验证签名
 	return sm.VerifySignature(data, token, "HMAC-SHA256")
 }
@@ -313,7 +313,7 @@ func (sm *SecurityManager) VerifyToken(data map[string]string, token string) err
 func (sm *SecurityManager) startCleanupTask() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		sm.cleanup()
 	}
@@ -323,7 +323,7 @@ func (sm *SecurityManager) startCleanupTask() {
 func (sm *SecurityManager) cleanup() {
 	// 清理过期的随机数
 	sm.nonceStore.cleanup()
-	
+
 	// 清理过期的限流记录
 	sm.rateLimiter.cleanup()
 }
@@ -332,7 +332,7 @@ func (sm *SecurityManager) cleanup() {
 func (ns *NonceStore) cleanup() {
 	ns.mutex.Lock()
 	defer ns.mutex.Unlock()
-	
+
 	now := time.Now()
 	for nonce, timestamp := range ns.store {
 		if now.Sub(timestamp) > ns.ttl {
@@ -345,7 +345,7 @@ func (ns *NonceStore) cleanup() {
 func (rl *RateLimiter) cleanup() {
 	rl.mutex.Lock()
 	defer rl.mutex.Unlock()
-	
+
 	now := time.Now()
 	for key, requests := range rl.requests {
 		var validRequests []time.Time
@@ -354,7 +354,7 @@ func (rl *RateLimiter) cleanup() {
 				validRequests = append(validRequests, reqTime)
 			}
 		}
-		
+
 		if len(validRequests) == 0 {
 			delete(rl.requests, key)
 		} else {
@@ -367,7 +367,7 @@ func (rl *RateLimiter) cleanup() {
 func (sm *SecurityManager) GetSecuritySummary() map[string]interface{} {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
-	
+
 	return map[string]interface{}{
 		"signature_enabled":  sm.config.EnableSignature,
 		"encrypt_enabled":    sm.config.EnableEncrypt,

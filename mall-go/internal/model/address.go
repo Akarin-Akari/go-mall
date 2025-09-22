@@ -8,20 +8,20 @@ import (
 
 // Address 地址模型
 type Address struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	UserID       uint           `gorm:"not null;index" json:"user_id"`
-	ReceiverName string         `gorm:"type:varchar(50);not null" json:"receiver_name"`       // 收货人姓名
-	ReceiverPhone string        `gorm:"type:varchar(20);not null" json:"receiver_phone"`     // 收货人电话
-	Province     string         `gorm:"type:varchar(50);not null" json:"province"`          // 省份
-	City         string         `gorm:"type:varchar(50);not null" json:"city"`              // 城市
-	District     string         `gorm:"type:varchar(50);not null" json:"district"`          // 区/县
-	DetailAddress string        `gorm:"type:varchar(200);not null" json:"detail_address"`   // 详细地址
-	PostalCode   string         `gorm:"type:varchar(10)" json:"postal_code"`                // 邮政编码
-	IsDefault    bool           `gorm:"default:false" json:"is_default"`                    // 是否默认地址
-	AddressType  AddressType    `gorm:"type:varchar(20);default:'home'" json:"address_type"` // 地址类型
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID            uint           `gorm:"primarykey" json:"id"`
+	UserID        uint           `gorm:"not null;index" json:"user_id"`
+	ReceiverName  string         `gorm:"type:varchar(50);not null" json:"receiver_name"`      // 收货人姓名
+	ReceiverPhone string         `gorm:"type:varchar(20);not null" json:"receiver_phone"`     // 收货人电话
+	Province      string         `gorm:"type:varchar(50);not null" json:"province"`           // 省份
+	City          string         `gorm:"type:varchar(50);not null" json:"city"`               // 城市
+	District      string         `gorm:"type:varchar(50);not null" json:"district"`           // 区/县
+	DetailAddress string         `gorm:"type:varchar(200);not null" json:"detail_address"`    // 详细地址
+	PostalCode    string         `gorm:"type:varchar(10)" json:"postal_code"`                 // 邮政编码
+	IsDefault     bool           `gorm:"default:false" json:"is_default"`                     // 是否默认地址
+	AddressType   AddressType    `gorm:"type:varchar(20);default:'home'" json:"address_type"` // 地址类型
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// 关联关系
 	User *User `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`

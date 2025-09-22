@@ -14,8 +14,8 @@ import (
 // CasbinTestSuite Casbin权限系统测试套件
 type CasbinTestSuite struct {
 	suite.Suite
-	db             *gorm.DB
-	casbinManager  *CasbinManager
+	db            *gorm.DB
+	casbinManager *CasbinManager
 }
 
 // SetupSuite 设置测试套件
@@ -47,13 +47,13 @@ func (suite *CasbinTestSuite) initTestPermissions() {
 		{model.RoleAdmin, model.ResourceUser, model.ActionManage},
 		{model.RoleAdmin, model.ResourceProduct, model.ActionManage},
 		{model.RoleAdmin, model.ResourceOrder, model.ActionManage},
-		
+
 		// 商家权限
 		{model.RoleMerchant, model.ResourceProduct, model.ActionCreate},
 		{model.RoleMerchant, model.ResourceProduct, model.ActionRead},
 		{model.RoleMerchant, model.ResourceProduct, model.ActionWrite},
 		{model.RoleMerchant, model.ResourceOrder, model.ActionRead},
-		
+
 		// 用户权限
 		{model.RoleUser, model.ResourceProduct, model.ActionRead},
 		{model.RoleUser, model.ResourceOrder, model.ActionCreate},
@@ -217,7 +217,7 @@ func (suite *CasbinTestSuite) TestGlobalFunctions() {
 func (suite *CasbinTestSuite) TestPermissionInheritance() {
 	// 创建角色继承关系：super_admin 继承 admin
 	suite.casbinManager.AddRoleForUser("super_admin", model.RoleAdmin)
-	
+
 	// 为用户分配 super_admin 角色
 	suite.casbinManager.AddRoleForUser("user:6", "super_admin")
 
@@ -247,7 +247,7 @@ func (suite *CasbinTestSuite) TestComplexPermissionScenarios() {
 	// 场景2：动态权限变更
 	// 临时给用户添加管理员权限
 	suite.casbinManager.AddRoleForUser("user:7", model.RoleAdmin)
-	
+
 	// 验证用户现在拥有管理员权限
 	hasAdminPermission, err := suite.casbinManager.CheckPermission("user:7", model.ResourceUser, model.ActionManage)
 	suite.NoError(err)
@@ -255,7 +255,7 @@ func (suite *CasbinTestSuite) TestComplexPermissionScenarios() {
 
 	// 撤销管理员权限
 	suite.casbinManager.DeleteRoleForUser("user:7", model.RoleAdmin)
-	
+
 	// 验证管理员权限已撤销
 	hasAdminPermission, err = suite.casbinManager.CheckPermission("user:7", model.ResourceUser, model.ActionManage)
 	suite.NoError(err)
@@ -266,7 +266,7 @@ func (suite *CasbinTestSuite) TestComplexPermissionScenarios() {
 func (suite *CasbinTestSuite) TestPolicyPersistence() {
 	// 添加新策略
 	suite.casbinManager.AddPolicy("test_persistence", "test_resource", "test_action")
-	
+
 	// 保存到数据库
 	err := suite.casbinManager.SavePolicy()
 	suite.NoError(err)

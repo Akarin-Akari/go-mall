@@ -159,7 +159,7 @@ func (h *Handler) CreateAddress(c *gin.Context) {
 		return
 	}
 
-	logger.Info("创建地址成功", 
+	logger.Info("创建地址成功",
 		zap.Uint("user_id", userID),
 		zap.Uint("address_id", address.ID),
 		zap.String("receiver_name", address.ReceiverName))
@@ -250,7 +250,7 @@ func (h *Handler) UpdateAddress(c *gin.Context) {
 		return
 	}
 
-	logger.Info("更新地址成功", 
+	logger.Info("更新地址成功",
 		zap.Uint("user_id", userID),
 		zap.Uint("address_id", address.ID))
 
@@ -304,7 +304,7 @@ func (h *Handler) DeleteAddress(c *gin.Context) {
 		return
 	}
 
-	logger.Info("删除地址成功", 
+	logger.Info("删除地址成功",
 		zap.Uint("user_id", userID),
 		zap.Uint("address_id", address.ID))
 
@@ -359,7 +359,7 @@ func (h *Handler) SetDefaultAddress(c *gin.Context) {
 		return
 	}
 
-	logger.Info("设置默认地址成功", 
+	logger.Info("设置默认地址成功",
 		zap.Uint("user_id", userID),
 		zap.Uint("address_id", address.ID))
 

@@ -26,8 +26,8 @@ func NewSecurityService(db *gorm.DB) *SecurityService {
 // LockUserRequest 锁定用户请求
 type LockUserRequest struct {
 	UserID   uint   `json:"user_id" binding:"required"`
-	Duration int    `json:"duration"`                   // 锁定时长（分钟），0表示永久锁定
-	Reason   string `json:"reason" binding:"required"`  // 锁定原因
+	Duration int    `json:"duration"`                  // 锁定时长（分钟），0表示永久锁定
+	Reason   string `json:"reason" binding:"required"` // 锁定原因
 }
 
 // UnlockUserRequest 解锁用户请求
@@ -57,16 +57,16 @@ type Disable2FARequest struct {
 type SecurityLog struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
 	UserID    uint      `gorm:"not null;index" json:"user_id"`
-	AdminID   uint      `gorm:"index" json:"admin_id"`              // 操作管理员ID（可为空）
-	Action    string    `gorm:"size:50;not null" json:"action"`     // 操作类型
-	Target    string    `gorm:"size:100" json:"target"`             // 操作目标
-	Reason    string    `gorm:"size:500" json:"reason"`             // 操作原因
-	IPAddress string    `gorm:"size:45" json:"ip_address"`          // IP地址
-	UserAgent string    `gorm:"size:500" json:"user_agent"`         // 用户代理
-	Status    string    `gorm:"size:20" json:"status"`              // 状态：success/failed
-	Details   string    `gorm:"type:text" json:"details"`           // 详细信息
+	AdminID   uint      `gorm:"index" json:"admin_id"`          // 操作管理员ID（可为空）
+	Action    string    `gorm:"size:50;not null" json:"action"` // 操作类型
+	Target    string    `gorm:"size:100" json:"target"`         // 操作目标
+	Reason    string    `gorm:"size:500" json:"reason"`         // 操作原因
+	IPAddress string    `gorm:"size:45" json:"ip_address"`      // IP地址
+	UserAgent string    `gorm:"size:500" json:"user_agent"`     // 用户代理
+	Status    string    `gorm:"size:20" json:"status"`          // 状态：success/failed
+	Details   string    `gorm:"type:text" json:"details"`       // 详细信息
 	CreatedAt time.Time `json:"created_at"`
-	
+
 	// 关联关系
 	User  *model.User `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Admin *model.User `gorm:"foreignKey:AdminID" json:"admin,omitempty"`
@@ -106,7 +106,7 @@ func (ss *SecurityService) LockUser(adminID uint, req *LockUserRequest) error {
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(req.UserID, adminID, "lock_user", fmt.Sprintf("user:%d", req.UserID), 
+	ss.recordSecurityLog(req.UserID, adminID, "lock_user", fmt.Sprintf("user:%d", req.UserID),
 		req.Reason, "", "", "success", fmt.Sprintf("锁定时长: %d分钟", req.Duration))
 
 	return nil
@@ -136,7 +136,7 @@ func (ss *SecurityService) UnlockUser(adminID uint, req *UnlockUserRequest) erro
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(req.UserID, adminID, "unlock_user", fmt.Sprintf("user:%d", req.UserID), 
+	ss.recordSecurityLog(req.UserID, adminID, "unlock_user", fmt.Sprintf("user:%d", req.UserID),
 		req.Reason, "", "", "success", "用户已解锁")
 
 	return nil
@@ -164,7 +164,7 @@ func (ss *SecurityService) BanUser(adminID uint, req *BanUserRequest) error {
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(req.UserID, adminID, "ban_user", fmt.Sprintf("user:%d", req.UserID), 
+	ss.recordSecurityLog(req.UserID, adminID, "ban_user", fmt.Sprintf("user:%d", req.UserID),
 		req.Reason, "", "", "success", "用户已封禁")
 
 	return nil
@@ -192,7 +192,7 @@ func (ss *SecurityService) UnbanUser(adminID uint, userID uint, reason string) e
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(userID, adminID, "unban_user", fmt.Sprintf("user:%d", userID), 
+	ss.recordSecurityLog(userID, adminID, "unban_user", fmt.Sprintf("user:%d", userID),
 		reason, "", "", "success", "用户已解封")
 
 	return nil
@@ -232,7 +232,7 @@ func (ss *SecurityService) Enable2FA(userID uint, req *Enable2FARequest) (string
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(userID, 0, "enable_2fa", fmt.Sprintf("user:%d", userID), 
+	ss.recordSecurityLog(userID, 0, "enable_2fa", fmt.Sprintf("user:%d", userID),
 		"用户启用双因子认证", "", "", "success", "双因子认证已启用")
 
 	return secret, nil
@@ -271,7 +271,7 @@ func (ss *SecurityService) Disable2FA(userID uint, req *Disable2FARequest) error
 	}
 
 	// 记录安全日志
-	ss.recordSecurityLog(userID, 0, "disable_2fa", fmt.Sprintf("user:%d", userID), 
+	ss.recordSecurityLog(userID, 0, "disable_2fa", fmt.Sprintf("user:%d", userID),
 		"用户禁用双因子认证", "", "", "success", "双因子认证已禁用")
 
 	return nil
@@ -326,21 +326,21 @@ func (ss *SecurityService) CheckAccountSecurity(userID uint) (map[string]interfa
 	securityScore := ss.calculateSecurityScore(&user, recentLogins)
 
 	result := map[string]interface{}{
-		"user_id":            user.ID,
-		"account_status":     user.Status,
-		"is_locked":          user.IsLocked(),
-		"email_verified":     user.EmailVerified,
-		"phone_verified":     user.PhoneVerified,
-		"two_factor_enabled": user.TwoFactorEnabled,
+		"user_id":             user.ID,
+		"account_status":      user.Status,
+		"is_locked":           user.IsLocked(),
+		"email_verified":      user.EmailVerified,
+		"phone_verified":      user.PhoneVerified,
+		"two_factor_enabled":  user.TwoFactorEnabled,
 		"password_changed_at": user.PasswordChangedAt,
-		"last_login_at":      user.LastLoginAt,
-		"last_login_ip":      user.LastLoginIP,
-		"login_attempts":     user.LoginAttempts,
-		"locked_until":       user.LockedUntil,
-		"recent_logins":      recentLogins,
-		"suspicious_logins":  suspiciousLogins,
-		"security_score":     securityScore,
-		"recommendations":    ss.getSecurityRecommendations(&user, securityScore),
+		"last_login_at":       user.LastLoginAt,
+		"last_login_ip":       user.LastLoginIP,
+		"login_attempts":      user.LoginAttempts,
+		"locked_until":        user.LockedUntil,
+		"recent_logins":       recentLogins,
+		"suspicious_logins":   suspiciousLogins,
+		"security_score":      securityScore,
+		"recommendations":     ss.getSecurityRecommendations(&user, securityScore),
 	}
 
 	return result, nil
@@ -370,7 +370,7 @@ func (ss *SecurityService) generate2FASecret() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return base32.StdEncoding.EncodeToString(secret), nil
 }
 
@@ -384,7 +384,7 @@ func (ss *SecurityService) verifyTOTP(secret, code string) bool {
 // detectSuspiciousLogins 检测可疑登录
 func (ss *SecurityService) detectSuspiciousLogins(logins []model.UserLoginLog) []model.UserLoginLog {
 	var suspicious []model.UserLoginLog
-	
+
 	if len(logins) < 2 {
 		return suspicious
 	}

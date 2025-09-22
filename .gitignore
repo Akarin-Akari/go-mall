@@ -65,6 +65,12 @@ log/
 .claude/
 .codex/
 .augment/
+.fleet/
+.android/
+.settings/
+.project
+.classpath
+.factorypath
 *.swp
 *.swo
 *~

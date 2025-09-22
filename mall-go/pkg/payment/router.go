@@ -14,11 +14,11 @@ import (
 
 // PaymentRouter 支付路由器 - 智能选择支付方式
 type PaymentRouter struct {
-	config    *PaymentConfig
-	alipay    AlipayClientInterface
-	wechat    WechatClientInterface
-	unionpay  UnionPayClientInterface
-	metrics   *PaymentMetrics
+	config   *PaymentConfig
+	alipay   AlipayClientInterface
+	wechat   WechatClientInterface
+	unionpay UnionPayClientInterface
+	metrics  *PaymentMetrics
 }
 
 // AlipayClientInterface 支付宝客户端接口
@@ -52,52 +52,52 @@ func NewPaymentRouter(config *PaymentConfig) *PaymentRouter {
 
 // CreatePaymentRequest 统一创建支付请求
 type CreatePaymentRequest struct {
-	OutTradeNo   string                  `json:"out_trade_no" binding:"required"`
-	Amount       decimal.Decimal         `json:"amount" binding:"required"`
-	Subject      string                  `json:"subject" binding:"required"`
-	Body         string                  `json:"body,omitempty"`
-	Method       model.PaymentMethod     `json:"method" binding:"required,oneof=alipay wechat unionpay"`
-	UserID       uint                    `json:"user_id" binding:"required"`
-	Currency     string                  `json:"currency,omitempty"`
-	ExpireTime   *time.Time             `json:"expire_time,omitempty"`
-	NotifyURL    string                  `json:"notify_url,omitempty"`
-	ReturnURL    string                  `json:"return_url,omitempty"`
-	ClientIP     string                  `json:"client_ip,omitempty"`
-	DeviceInfo   string                  `json:"device_info,omitempty"`
-	Extra        map[string]interface{}  `json:"extra,omitempty"`
+	OutTradeNo string                 `json:"out_trade_no" binding:"required"`
+	Amount     decimal.Decimal        `json:"amount" binding:"required"`
+	Subject    string                 `json:"subject" binding:"required"`
+	Body       string                 `json:"body,omitempty"`
+	Method     model.PaymentMethod    `json:"method" binding:"required,oneof=alipay wechat unionpay"`
+	UserID     uint                   `json:"user_id" binding:"required"`
+	Currency   string                 `json:"currency,omitempty"`
+	ExpireTime *time.Time             `json:"expire_time,omitempty"`
+	NotifyURL  string                 `json:"notify_url,omitempty"`
+	ReturnURL  string                 `json:"return_url,omitempty"`
+	ClientIP   string                 `json:"client_ip,omitempty"`
+	DeviceInfo string                 `json:"device_info,omitempty"`
+	Extra      map[string]interface{} `json:"extra,omitempty"`
 }
 
 // CreatePaymentResponse 统一创建支付响应
 type CreatePaymentResponse struct {
-	OutTradeNo    string                  `json:"out_trade_no"`
-	Method        model.PaymentMethod     `json:"method"`
-	QRCode        string                  `json:"qr_code,omitempty"`
-	CodeURL       string                  `json:"code_url,omitempty"`
-	PayURL        string                  `json:"pay_url,omitempty"`
-	PrepayID      string                  `json:"prepay_id,omitempty"`
-	Success       bool                    `json:"success"`
-	Message       string                  `json:"message,omitempty"`
-	ExpiresAt     *time.Time             `json:"expires_at,omitempty"`
-	Extra         map[string]interface{}  `json:"extra,omitempty"`
+	OutTradeNo string                 `json:"out_trade_no"`
+	Method     model.PaymentMethod    `json:"method"`
+	QRCode     string                 `json:"qr_code,omitempty"`
+	CodeURL    string                 `json:"code_url,omitempty"`
+	PayURL     string                 `json:"pay_url,omitempty"`
+	PrepayID   string                 `json:"prepay_id,omitempty"`
+	Success    bool                   `json:"success"`
+	Message    string                 `json:"message,omitempty"`
+	ExpiresAt  *time.Time             `json:"expires_at,omitempty"`
+	Extra      map[string]interface{} `json:"extra,omitempty"`
 }
 
 // QueryPaymentResponse 统一查询支付响应
 type QueryPaymentResponse struct {
-	OutTradeNo     string              `json:"out_trade_no"`
-	TransactionID  string              `json:"transaction_id"`
-	Method         model.PaymentMethod `json:"method"`
-	Status         model.PaymentStatus `json:"status"`
-	Amount         decimal.Decimal     `json:"amount"`
-	PaidAt         *time.Time         `json:"paid_at,omitempty"`
-	Success        bool                `json:"success"`
-	Message        string              `json:"message,omitempty"`
-	Extra          map[string]interface{} `json:"extra,omitempty"`
+	OutTradeNo    string                 `json:"out_trade_no"`
+	TransactionID string                 `json:"transaction_id"`
+	Method        model.PaymentMethod    `json:"method"`
+	Status        model.PaymentStatus    `json:"status"`
+	Amount        decimal.Decimal        `json:"amount"`
+	PaidAt        *time.Time             `json:"paid_at,omitempty"`
+	Success       bool                   `json:"success"`
+	Message       string                 `json:"message,omitempty"`
+	Extra         map[string]interface{} `json:"extra,omitempty"`
 }
 
 // CreatePayment 创建支付订单
 func (pr *PaymentRouter) CreatePayment(req *CreatePaymentRequest) (*CreatePaymentResponse, error) {
 	startTime := time.Now()
-	
+
 	logger.Info("开始创建支付订单",
 		zap.String("out_trade_no", req.OutTradeNo),
 		zap.String("method", string(req.Method)),
@@ -125,19 +125,19 @@ func (pr *PaymentRouter) CreatePayment(req *CreatePaymentRequest) (*CreatePaymen
 			return nil, fmt.Errorf("支付宝支付未启用")
 		}
 		response, err = pr.createAlipayPayment(req)
-		
+
 	case model.PaymentMethodWechat:
 		if !pr.config.Wechat.Enabled {
 			return nil, fmt.Errorf("微信支付未启用")
 		}
 		response, err = pr.createWechatPayment(req)
-		
+
 	case model.PaymentMethodUnionPay:
 		if !pr.config.UnionPay.Enabled {
 			return nil, fmt.Errorf("银联支付未启用")
 		}
 		response, err = pr.createUnionPayPayment(req)
-		
+
 	default:
 		err = fmt.Errorf("不支持的支付方式: %s", req.Method)
 	}
@@ -218,7 +218,7 @@ func (pr *PaymentRouter) validatePaymentLimits(req *CreatePaymentRequest) error 
 
 	// TODO: 实现日限额和月限额验证
 	// 这里需要查询数据库统计用户当日和当月的支付金额
-	
+
 	return nil
 }
 
@@ -264,7 +264,7 @@ func (pr *PaymentRouter) createUnionPayPayment(req *CreatePaymentRequest) (*Crea
 // QueryPayment 查询支付状态
 func (pr *PaymentRouter) QueryPayment(outTradeNo string, method model.PaymentMethod) (*QueryPaymentResponse, error) {
 	startTime := time.Now()
-	
+
 	logger.Info("查询支付状态",
 		zap.String("out_trade_no", outTradeNo),
 		zap.String("method", string(method)))
@@ -278,19 +278,19 @@ func (pr *PaymentRouter) QueryPayment(outTradeNo string, method model.PaymentMet
 			return nil, fmt.Errorf("支付宝支付未启用")
 		}
 		response, err = pr.queryAlipayPayment(outTradeNo)
-		
+
 	case model.PaymentMethodWechat:
 		if !pr.config.Wechat.Enabled {
 			return nil, fmt.Errorf("微信支付未启用")
 		}
 		response, err = pr.queryWechatPayment(outTradeNo)
-		
+
 	case model.PaymentMethodUnionPay:
 		if !pr.config.UnionPay.Enabled {
 			return nil, fmt.Errorf("银联支付未启用")
 		}
 		response, err = pr.queryUnionPayPayment(outTradeNo)
-		
+
 	default:
 		err = fmt.Errorf("不支持的支付方式: %s", method)
 	}
@@ -358,14 +358,14 @@ func (pr *PaymentRouter) queryUnionPayPayment(outTradeNo string) (*QueryPaymentR
 // generateMockQRCode 生成模拟二维码
 func (pr *PaymentRouter) generateMockQRCode(method, outTradeNo string) string {
 	// 生成模拟的支付二维码URL
-	return fmt.Sprintf("https://qr.%s.com/pay?orderNo=%s&t=%d&r=%d", 
+	return fmt.Sprintf("https://qr.%s.com/pay?orderNo=%s&t=%d&r=%d",
 		method, outTradeNo, time.Now().Unix(), rand.Intn(10000))
 }
 
 // GetSupportedMethods 获取支持的支付方式
 func (pr *PaymentRouter) GetSupportedMethods() []model.PaymentMethod {
 	var methods []model.PaymentMethod
-	
+
 	if pr.config.Alipay.Enabled {
 		methods = append(methods, model.PaymentMethodAlipay)
 	}
@@ -375,7 +375,7 @@ func (pr *PaymentRouter) GetSupportedMethods() []model.PaymentMethod {
 	if pr.config.UnionPay.Enabled {
 		methods = append(methods, model.PaymentMethodUnionPay)
 	}
-	
+
 	return methods
 }
 

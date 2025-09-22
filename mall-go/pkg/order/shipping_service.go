@@ -55,13 +55,13 @@ type ShippingRequest struct {
 
 // ShippingResponse 发货响应
 type ShippingResponse struct {
-	ShipmentNo      string           `json:"shipment_no"`
-	ShippingCompany string           `json:"shipping_company"`
-	TrackingNumber  string           `json:"tracking_number"`
-	Status          string           `json:"status"`
-	ShipTime        *time.Time       `json:"ship_time"`
-	EstimatedArrival *time.Time      `json:"estimated_arrival"`
-	TrackingInfo    []TrackingInfo   `json:"tracking_info"`
+	ShipmentNo       string         `json:"shipment_no"`
+	ShippingCompany  string         `json:"shipping_company"`
+	TrackingNumber   string         `json:"tracking_number"`
+	Status           string         `json:"status"`
+	ShipTime         *time.Time     `json:"ship_time"`
+	EstimatedArrival *time.Time     `json:"estimated_arrival"`
+	TrackingInfo     []TrackingInfo `json:"tracking_info"`
 }
 
 // CreateShipment 创建发货记录
@@ -137,11 +137,11 @@ func (ss *ShippingService) CreateShipment(req *ShippingRequest) (*ShippingRespon
 
 	// 更新订单信息
 	orderUpdates := map[string]interface{}{
-		"shipping_company":  req.ShippingCompany,
-		"tracking_number":   req.TrackingNumber,
-		"shipping_status":   model.ShippingStatusShipped,
-		"shipping_method":   req.ShippingMethod,
-		"ship_time":         &now,
+		"shipping_company": req.ShippingCompany,
+		"tracking_number":  req.TrackingNumber,
+		"shipping_status":  model.ShippingStatusShipped,
+		"shipping_method":  req.ShippingMethod,
+		"ship_time":        &now,
 	}
 
 	if shipment.DeliveryTime != nil {
@@ -154,7 +154,7 @@ func (ss *ShippingService) CreateShipment(req *ShippingRequest) (*ShippingRespon
 	}
 
 	// 更新订单状态为已发货
-	if err := ss.statusService.UpdateOrderStatus(req.OrderID, model.OrderStatusShipped, 
+	if err := ss.statusService.UpdateOrderStatus(req.OrderID, model.OrderStatusShipped,
 		0, model.OperatorTypeAdmin, "商品发货", "管理员发货操作"); err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("更新订单状态失败: %v", err)
@@ -248,7 +248,7 @@ func (ss *ShippingService) UpdateShippingStatus(shipmentNo, status, location, de
 	}
 
 	if orderStatus != "" {
-		if err := ss.statusService.UpdateOrderStatus(shipment.OrderID, orderStatus, 
+		if err := ss.statusService.UpdateOrderStatus(shipment.OrderID, orderStatus,
 			0, model.OperatorTypeSystem, reason, "物流状态自动更新"); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("更新订单状态失败: %v", err)
@@ -287,7 +287,7 @@ func (ss *ShippingService) GetShippingInfo(orderID uint) (*ShippingResponse, err
 func (ss *ShippingService) TrackShipment(trackingNumber, shippingCompany string) (*ShippingResponse, error) {
 	// 从数据库获取物流信息
 	var shipment model.OrderShipment
-	if err := ss.db.Where("tracking_number = ? AND shipping_company = ?", 
+	if err := ss.db.Where("tracking_number = ? AND shipping_company = ?",
 		trackingNumber, shippingCompany).First(&shipment).Error; err != nil {
 		return nil, fmt.Errorf("物流信息不存在")
 	}
@@ -307,7 +307,7 @@ func (ss *ShippingService) TrackShipment(trackingNumber, shippingCompany string)
 		// 检查是否有状态变化
 		latestStatus := latestTracking[len(latestTracking)-1].Status
 		if latestStatus != shipment.Status {
-			ss.UpdateShippingStatus(shipment.ShipmentNo, latestStatus, 
+			ss.UpdateShippingStatus(shipment.ShipmentNo, latestStatus,
 				latestTracking[len(latestTracking)-1].Location,
 				latestTracking[len(latestTracking)-1].Description)
 		}
@@ -328,7 +328,7 @@ func (ss *ShippingService) TrackShipment(trackingNumber, shippingCompany string)
 func (ss *ShippingService) queryThirdPartyTracking(trackingNumber, shippingCompany string) ([]TrackingInfo, error) {
 	// 这里应该调用真实的第三方物流查询接口
 	// 为了演示，返回模拟数据
-	
+
 	mockTracking := []TrackingInfo{
 		{
 			Time:        time.Now().Add(-2 * 24 * time.Hour),
@@ -433,7 +433,7 @@ func (ss *ShippingService) ConfirmReceipt(orderID uint, userID uint) error {
 	// 更新物流状态
 	var shipment model.OrderShipment
 	if err := ss.db.Where("order_id = ?", orderID).First(&shipment).Error; err == nil {
-		ss.UpdateShippingStatus(shipment.ShipmentNo, model.ShippingStatusReceived, 
+		ss.UpdateShippingStatus(shipment.ShipmentNo, model.ShippingStatusReceived,
 			order.ReceiverAddress, "用户确认收货")
 	}
 

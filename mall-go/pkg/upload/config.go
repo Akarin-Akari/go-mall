@@ -58,20 +58,20 @@ type LocalConfig struct {
 
 // OSSConfig 阿里云OSS配置
 type OSSConfig struct {
-	Endpoint        string `json:"endpoint" yaml:"endpoint"`                 // OSS端点
-	AccessKeyID     string `json:"access_key_id" yaml:"access_key_id"`       // AccessKey ID
+	Endpoint        string `json:"endpoint" yaml:"endpoint"`                   // OSS端点
+	AccessKeyID     string `json:"access_key_id" yaml:"access_key_id"`         // AccessKey ID
 	AccessKeySecret string `json:"access_key_secret" yaml:"access_key_secret"` // AccessKey Secret
-	BucketName      string `json:"bucket_name" yaml:"bucket_name"`           // 存储桶名称
-	URLPrefix       string `json:"url_prefix" yaml:"url_prefix"`             // URL前缀
+	BucketName      string `json:"bucket_name" yaml:"bucket_name"`             // 存储桶名称
+	URLPrefix       string `json:"url_prefix" yaml:"url_prefix"`               // URL前缀
 }
 
 // S3Config AWS S3配置
 type S3Config struct {
-	Region          string `json:"region" yaml:"region"`                     // AWS区域
-	AccessKeyID     string `json:"access_key_id" yaml:"access_key_id"`       // AccessKey ID
+	Region          string `json:"region" yaml:"region"`                       // AWS区域
+	AccessKeyID     string `json:"access_key_id" yaml:"access_key_id"`         // AccessKey ID
 	SecretAccessKey string `json:"secret_access_key" yaml:"secret_access_key"` // Secret Access Key
-	BucketName      string `json:"bucket_name" yaml:"bucket_name"`           // 存储桶名称
-	URLPrefix       string `json:"url_prefix" yaml:"url_prefix"`             // URL前缀
+	BucketName      string `json:"bucket_name" yaml:"bucket_name"`             // 存储桶名称
+	URLPrefix       string `json:"url_prefix" yaml:"url_prefix"`               // URL前缀
 }
 
 // COSConfig 腾讯云COS配置

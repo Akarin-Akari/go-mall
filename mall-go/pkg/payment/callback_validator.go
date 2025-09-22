@@ -43,21 +43,21 @@ type ValidationResult struct {
 
 // AlipayCallbackData 支付宝回调数据
 type AlipayCallbackData struct {
-	AppID        string `json:"app_id"`
-	TradeNo      string `json:"trade_no"`
-	OutTradeNo   string `json:"out_trade_no"`
-	TradeStatus  string `json:"trade_status"`
-	TotalAmount  string `json:"total_amount"`
-	BuyerID      string `json:"buyer_id"`
-	GmtCreate    string `json:"gmt_create"`
-	GmtPayment   string `json:"gmt_payment"`
-	Sign         string `json:"sign"`
-	SignType     string `json:"sign_type"`
-	NotifyTime   string `json:"notify_time"`
-	NotifyType   string `json:"notify_type"`
-	NotifyID     string `json:"notify_id"`
-	Version      string `json:"version"`
-	Charset      string `json:"charset"`
+	AppID       string `json:"app_id"`
+	TradeNo     string `json:"trade_no"`
+	OutTradeNo  string `json:"out_trade_no"`
+	TradeStatus string `json:"trade_status"`
+	TotalAmount string `json:"total_amount"`
+	BuyerID     string `json:"buyer_id"`
+	GmtCreate   string `json:"gmt_create"`
+	GmtPayment  string `json:"gmt_payment"`
+	Sign        string `json:"sign"`
+	SignType    string `json:"sign_type"`
+	NotifyTime  string `json:"notify_time"`
+	NotifyType  string `json:"notify_type"`
+	NotifyID    string `json:"notify_id"`
+	Version     string `json:"version"`
+	Charset     string `json:"charset"`
 }
 
 // WechatCallbackData 微信回调数据
@@ -225,7 +225,7 @@ func (cv *CallbackValidator) validateNotifyID(platform, notifyID string) bool {
 	}
 
 	key := fmt.Sprintf("callback_notify:%s:%s", platform, notifyID)
-	
+
 	// 检查是否已存在
 	exists, err := cv.rdb.Exists(cv.rdb.Context(), key).Result()
 	if err != nil {
@@ -263,7 +263,7 @@ func (cv *CallbackValidator) validateAlipaySign(data *AlipayCallbackData, secret
 
 	// 排序并构建签名字符串
 	signStr := cv.buildSignString(params)
-	
+
 	// 计算签名
 	var expectedSign string
 	if data.SignType == "MD5" {
@@ -293,10 +293,10 @@ func (cv *CallbackValidator) validateWechatSign(data *WechatCallbackData, secret
 
 	// 构建签名字符串
 	signStr := cv.buildSignString(params) + "&key=" + secretKey
-	
+
 	// 计算MD5签名
 	expectedSign := cv.md5Sign(signStr)
-	
+
 	return strings.ToUpper(expectedSign) == strings.ToUpper(data.Sign)
 }
 
@@ -308,14 +308,14 @@ func (cv *CallbackValidator) buildSignString(params map[string]string) string {
 			keys = append(keys, k)
 		}
 	}
-	
+
 	sort.Strings(keys)
-	
+
 	var parts []string
 	for _, k := range keys {
 		parts = append(parts, fmt.Sprintf("%s=%s", k, params[k]))
 	}
-	
+
 	return strings.Join(parts, "&")
 }
 
@@ -379,7 +379,7 @@ func (cv *CallbackValidator) validateWechatPaymentStatus(payment *model.Payment,
 // validateIdempotency 验证幂等性
 func (cv *CallbackValidator) validateIdempotency(platform, outTradeNo, thirdPartyID string) bool {
 	key := fmt.Sprintf("callback_processed:%s:%s:%s", platform, outTradeNo, thirdPartyID)
-	
+
 	// 检查是否已处理
 	exists, err := cv.rdb.Exists(cv.rdb.Context(), key).Result()
 	if err != nil {

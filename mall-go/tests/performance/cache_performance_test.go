@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"mall-go/internal/config"
 	"mall-go/internal/model"
 	"mall-go/pkg/cache"
-	"mall-go/internal/config"
 	"mall-go/pkg/logger"
 	"mall-go/tests/helpers"
 

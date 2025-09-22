@@ -22,7 +22,7 @@ func main() {
 		fmt.Println("  ❌ 配置创建失败")
 		return
 	}
-	
+
 	fmt.Printf("  ✅ 默认配置创建成功\n")
 	fmt.Printf("    - 监控级别: %d\n", config.Level)
 	fmt.Printf("    - 收集间隔: %v\n", config.CollectInterval)
@@ -32,11 +32,11 @@ func main() {
 
 	// 2. 测试监控管理器创建
 	fmt.Println("\n🏗️ 测试2: 监控管理器创建")
-	
+
 	// 初始化键管理器
 	cache.InitKeyManager("test")
 	keyManager := cache.GetKeyManager()
-	
+
 	// 创建监控管理器（使用nil依赖进行基础测试）
 	monitoringManager := cache.NewCacheMonitoringManager(
 		config,
@@ -47,19 +47,19 @@ func main() {
 		nil, // protectionMgr
 		nil, // optimisticLock
 	)
-	
+
 	if monitoringManager == nil {
 		fmt.Println("  ❌ 监控管理器创建失败")
 		return
 	}
-	
+
 	fmt.Printf("  ✅ 监控管理器创建成功\n")
 	fmt.Printf("    - 运行状态: %v\n", monitoringManager.IsRunning())
 	fmt.Printf("    - 配置级别: %d\n", monitoringManager.GetConfig().Level)
 
 	// 3. 测试基础功能
 	fmt.Println("\n📊 测试3: 基础功能")
-	
+
 	// 测试响应时间记录
 	fmt.Printf("  📈 测试响应时间记录...\n")
 	for i := 0; i < 10; i++ {
@@ -67,7 +67,7 @@ func main() {
 		monitoringManager.RecordResponseTime(responseTime)
 	}
 	fmt.Printf("    ✅ 记录了10次响应时间\n")
-	
+
 	// 测试热点键记录
 	fmt.Printf("  🔥 测试热点键记录...\n")
 	for i := 0; i < 15; i++ {
@@ -84,7 +84,7 @@ func main() {
 		fmt.Println("  ❌ 统计信息获取失败")
 		return
 	}
-	
+
 	fmt.Printf("  ✅ 统计信息获取成功\n")
 	fmt.Printf("    - 平均响应时间: %v\n", stats.AvgResponseTime)
 	fmt.Printf("    - P95响应时间: %v\n", stats.P95ResponseTime)
@@ -96,10 +96,10 @@ func main() {
 	// 5. 测试热点键分析
 	fmt.Println("\n🔥 测试5: 热点键分析")
 	hotKeys := monitoringManager.GetHotKeys(5)
-	
+
 	fmt.Printf("  ✅ 热点键分析成功\n")
 	fmt.Printf("    - 热点键数量: %d\n", len(hotKeys))
-	
+
 	for i, hotKey := range hotKeys {
 		fmt.Printf("    - TOP%d: %s\n", i+1, hotKey.Key)
 		fmt.Printf("      * 访问次数: %d\n", hotKey.AccessCount)
@@ -122,10 +122,10 @@ func main() {
 	// 7. 测试告警系统
 	fmt.Println("\n🚨 测试7: 告警系统")
 	alerts := monitoringManager.GetActiveAlerts()
-	
+
 	fmt.Printf("  ✅ 告警系统运行正常\n")
 	fmt.Printf("    - 活跃告警数量: %d\n", len(alerts))
-	
+
 	if len(alerts) > 0 {
 		for i, alert := range alerts {
 			fmt.Printf("    - 告警%d: %s (级别:%d)\n", i+1, alert.Message, alert.Level)
@@ -137,18 +137,18 @@ func main() {
 	// 8. 测试性能报告
 	fmt.Println("\n📋 测试8: 性能报告")
 	report := monitoringManager.GeneratePerformanceReport("basic_test")
-	
+
 	if report == nil {
 		fmt.Println("  ❌ 性能报告生成失败")
 		return
 	}
-	
+
 	fmt.Printf("  ✅ 性能报告生成成功\n")
 	fmt.Printf("    - 报告ID: %s\n", report.ReportID)
 	fmt.Printf("    - 生成时间: %v\n", report.GeneratedAt.Format("15:04:05"))
 	fmt.Printf("    - 统计周期: %s\n", report.Period)
 	fmt.Printf("    - 优化建议数量: %d\n", len(report.Recommendations))
-	
+
 	if len(report.Recommendations) > 0 {
 		fmt.Printf("    - 优化建议:\n")
 		for i, rec := range report.Recommendations {
@@ -159,15 +159,15 @@ func main() {
 	// 9. 测试数据导出
 	fmt.Println("\n📤 测试9: 数据导出")
 	data := monitoringManager.GetMonitoringData()
-	
+
 	if data == nil {
 		fmt.Println("  ❌ 监控数据获取失败")
 		return
 	}
-	
+
 	fmt.Printf("  ✅ 监控数据获取成功\n")
 	fmt.Printf("    - 数据项数量: %d\n", len(data))
-	
+
 	expectedKeys := []string{"stats", "time_series", "active_alerts", "hot_keys", "config"}
 	for _, key := range expectedKeys {
 		if _, exists := data[key]; exists {
@@ -179,23 +179,23 @@ func main() {
 
 	// 10. 测试重置功能
 	fmt.Println("\n🔄 测试10: 重置功能")
-	
+
 	// 记录重置前的状态
 	beforeReset := monitoringManager.GetStats()
 	beforeHotKeys := len(monitoringManager.GetHotKeys(10))
-	
+
 	// 执行重置
 	monitoringManager.ResetStats()
-	
+
 	// 检查重置后的状态
 	afterReset := monitoringManager.GetStats()
 	afterHotKeys := len(monitoringManager.GetHotKeys(10))
-	
+
 	fmt.Printf("  ✅ 统计重置功能正常\n")
 	fmt.Printf("    - 重置前热点键数量: %d\n", beforeHotKeys)
 	fmt.Printf("    - 重置后热点键数量: %d\n", afterHotKeys)
 	fmt.Printf("    - 重置时间: %v\n", afterReset.LastResetTime.Format("15:04:05"))
-	
+
 	if afterHotKeys == 0 && !afterReset.LastResetTime.Equal(beforeReset.LastResetTime) {
 		fmt.Printf("    - ✅ 重置功能验证成功\n")
 	} else {
@@ -214,7 +214,7 @@ func main() {
 	fmt.Println("  ✅ 性能报告生成 - 正常")
 	fmt.Println("  ✅ 数据导出 - 正常")
 	fmt.Println("  ✅ 重置功能 - 正常")
-	
+
 	fmt.Println("\n🎯 缓存监控管理器基础功能验证成功！")
 	fmt.Println("   所有核心功能模块均正常工作，可以进行下一步的集成测试。")
 }

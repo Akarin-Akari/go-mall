@@ -50,10 +50,10 @@ func NewCounter(name string, labels map[string]string) *Counter {
 	}
 }
 
-func (c *Counter) Name() string                { return c.name }
-func (c *Counter) Type() MetricType            { return CounterMetric }
-func (c *Counter) Labels() map[string]string  { return c.labels }
-func (c *Counter) Timestamp() time.Time       { return c.timestamp }
+func (c *Counter) Name() string              { return c.name }
+func (c *Counter) Type() MetricType          { return CounterMetric }
+func (c *Counter) Labels() map[string]string { return c.labels }
+func (c *Counter) Timestamp() time.Time      { return c.timestamp }
 
 func (c *Counter) Value() interface{} {
 	c.mutex.RLock()
@@ -93,10 +93,10 @@ func NewGauge(name string, labels map[string]string) *Gauge {
 	}
 }
 
-func (g *Gauge) Name() string                { return g.name }
-func (g *Gauge) Type() MetricType            { return GaugeMetric }
-func (g *Gauge) Labels() map[string]string  { return g.labels }
-func (g *Gauge) Timestamp() time.Time       { return g.timestamp }
+func (g *Gauge) Name() string              { return g.name }
+func (g *Gauge) Type() MetricType          { return GaugeMetric }
+func (g *Gauge) Labels() map[string]string { return g.labels }
+func (g *Gauge) Timestamp() time.Time      { return g.timestamp }
 
 func (g *Gauge) Value() interface{} {
 	g.mutex.RLock()
@@ -148,7 +148,7 @@ func NewHistogram(name string, buckets []float64, labels map[string]string) *His
 		// 默认桶
 		buckets = []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10}
 	}
-	
+
 	return &Histogram{
 		name:      name,
 		buckets:   buckets,
@@ -160,10 +160,10 @@ func NewHistogram(name string, buckets []float64, labels map[string]string) *His
 	}
 }
 
-func (h *Histogram) Name() string                { return h.name }
-func (h *Histogram) Type() MetricType            { return HistogramMetric }
-func (h *Histogram) Labels() map[string]string  { return h.labels }
-func (h *Histogram) Timestamp() time.Time       { return h.timestamp }
+func (h *Histogram) Name() string              { return h.name }
+func (h *Histogram) Type() MetricType          { return HistogramMetric }
+func (h *Histogram) Labels() map[string]string { return h.labels }
+func (h *Histogram) Timestamp() time.Time      { return h.timestamp }
 
 func (h *Histogram) Value() interface{} {
 	h.mutex.RLock()
@@ -180,11 +180,11 @@ func (h *Histogram) Value() interface{} {
 func (h *Histogram) Observe(value float64) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	
+
 	h.sum += value
 	h.count++
 	h.timestamp = time.Now()
-	
+
 	// 找到对应的桶
 	for i, bucket := range h.buckets {
 		if value <= bucket {
@@ -199,14 +199,14 @@ func (h *Histogram) Observe(value float64) {
 func (h *Histogram) GetPercentile(percentile float64) float64 {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	
+
 	if h.count == 0 {
 		return 0
 	}
-	
+
 	target := float64(h.count) * percentile / 100
 	cumulative := int64(0)
-	
+
 	for i, count := range h.counts {
 		cumulative += count
 		if float64(cumulative) >= target {
@@ -216,7 +216,7 @@ func (h *Histogram) GetPercentile(percentile float64) float64 {
 			return h.buckets[len(h.buckets)-1]
 		}
 	}
-	
+
 	return h.buckets[len(h.buckets)-1]
 }
 
@@ -237,12 +237,12 @@ func NewMetricsRegistry() *MetricsRegistry {
 func (r *MetricsRegistry) Register(metric Metric) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	
+
 	key := r.getMetricKey(metric.Name(), metric.Labels())
 	if _, exists := r.metrics[key]; exists {
 		return fmt.Errorf("metric already exists: %s", key)
 	}
-	
+
 	r.metrics[key] = metric
 	return nil
 }
@@ -251,7 +251,7 @@ func (r *MetricsRegistry) Register(metric Metric) error {
 func (r *MetricsRegistry) GetMetric(name string, labels map[string]string) Metric {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
-	
+
 	key := r.getMetricKey(name, labels)
 	return r.metrics[key]
 }
@@ -260,7 +260,7 @@ func (r *MetricsRegistry) GetMetric(name string, labels map[string]string) Metri
 func (r *MetricsRegistry) GetAllMetrics() map[string]Metric {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
-	
+
 	result := make(map[string]Metric)
 	for k, v := range r.metrics {
 		result[k] = v
@@ -279,12 +279,12 @@ func (r *MetricsRegistry) getMetricKey(name string, labels map[string]string) st
 
 // SystemMetrics 系统指标
 type SystemMetrics struct {
-	cpuUsage    *Gauge
-	memUsage    *Gauge
-	goroutines  *Gauge
-	registry    *MetricsRegistry
-	ticker      *time.Ticker
-	stopChan    chan struct{}
+	cpuUsage   *Gauge
+	memUsage   *Gauge
+	goroutines *Gauge
+	registry   *MetricsRegistry
+	ticker     *time.Ticker
+	stopChan   chan struct{}
 }
 
 // NewSystemMetrics 创建系统指标
@@ -296,19 +296,19 @@ func NewSystemMetrics(registry *MetricsRegistry) *SystemMetrics {
 		registry:   registry,
 		stopChan:   make(chan struct{}),
 	}
-	
+
 	// 注册指标
 	registry.Register(sm.cpuUsage)
 	registry.Register(sm.memUsage)
 	registry.Register(sm.goroutines)
-	
+
 	return sm
 }
 
 // Start 开始收集系统指标
 func (sm *SystemMetrics) Start(interval time.Duration) {
 	sm.ticker = time.NewTicker(interval)
-	
+
 	go func() {
 		for {
 			select {
@@ -333,26 +333,26 @@ func (sm *SystemMetrics) Stop() {
 func (sm *SystemMetrics) collectMetrics() {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
-	
+
 	// 内存使用量
 	sm.memUsage.Set(float64(mem.Alloc))
-	
+
 	// Goroutine数量
 	sm.goroutines.Set(float64(runtime.NumGoroutine()))
-	
+
 	// CPU使用率需要通过其他方式获取，这里简化处理
 	// 在实际生产环境中，可以使用第三方库如 gopsutil
 }
 
 // ApplicationMetrics 应用指标
 type ApplicationMetrics struct {
-	httpRequests     *Counter
-	httpDuration     *Histogram
-	dbConnections    *Gauge
-	cacheHitRate     *Gauge
-	activeUsers      *Gauge
-	errorRate        *Counter
-	registry         *MetricsRegistry
+	httpRequests  *Counter
+	httpDuration  *Histogram
+	dbConnections *Gauge
+	cacheHitRate  *Gauge
+	activeUsers   *Gauge
+	errorRate     *Counter
+	registry      *MetricsRegistry
 }
 
 // NewApplicationMetrics 创建应用指标
@@ -366,7 +366,7 @@ func NewApplicationMetrics(registry *MetricsRegistry) *ApplicationMetrics {
 		errorRate:     NewCounter("errors_total", map[string]string{"type": ""}),
 		registry:      registry,
 	}
-	
+
 	// 注册指标
 	registry.Register(am.httpRequests)
 	registry.Register(am.httpDuration)
@@ -374,7 +374,7 @@ func NewApplicationMetrics(registry *MetricsRegistry) *ApplicationMetrics {
 	registry.Register(am.cacheHitRate)
 	registry.Register(am.activeUsers)
 	registry.Register(am.errorRate)
-	
+
 	return am
 }
 
@@ -384,7 +384,7 @@ func (am *ApplicationMetrics) RecordHTTPRequest(method, status string, duration 
 	labels := map[string]string{"method": method, "status": status}
 	counter := NewCounter("http_requests_total", labels)
 	counter.Inc()
-	
+
 	// 记录请求时长
 	histLabels := map[string]string{"method": method, "endpoint": ""}
 	hist := NewHistogram("http_request_duration_seconds", nil, histLabels)
@@ -393,14 +393,14 @@ func (am *ApplicationMetrics) RecordHTTPRequest(method, status string, duration 
 
 // BusinessMetrics 业务指标
 type BusinessMetrics struct {
-	orderTotal      *Counter
-	orderValue      *Histogram
+	orderTotal       *Counter
+	orderValue       *Histogram
 	userRegistration *Counter
-	productViews    *Counter
-	cartAdditions   *Counter
-	paymentSuccess  *Counter
-	paymentFailure  *Counter
-	registry        *MetricsRegistry
+	productViews     *Counter
+	cartAdditions    *Counter
+	paymentSuccess   *Counter
+	paymentFailure   *Counter
+	registry         *MetricsRegistry
 }
 
 // NewBusinessMetrics 创建业务指标
@@ -415,7 +415,7 @@ func NewBusinessMetrics(registry *MetricsRegistry) *BusinessMetrics {
 		paymentFailure:   NewCounter("payments_failure_total", map[string]string{"method": "", "reason": ""}),
 		registry:         registry,
 	}
-	
+
 	// 注册指标
 	registry.Register(bm.orderTotal)
 	registry.Register(bm.orderValue)
@@ -424,7 +424,7 @@ func NewBusinessMetrics(registry *MetricsRegistry) *BusinessMetrics {
 	registry.Register(bm.cartAdditions)
 	registry.Register(bm.paymentSuccess)
 	registry.Register(bm.paymentFailure)
-	
+
 	return bm
 }
 
@@ -433,24 +433,24 @@ func (bm *BusinessMetrics) RecordOrder(status string, value float64) {
 	labels := map[string]string{"status": status}
 	counter := NewCounter("orders_total", labels)
 	counter.Inc()
-	
+
 	bm.orderValue.Observe(value)
 }
 
 // MetricsCollector 指标收集器
 type MetricsCollector struct {
-	registry     *MetricsRegistry
+	registry      *MetricsRegistry
 	systemMetrics *SystemMetrics
-	appMetrics   *ApplicationMetrics
-	bizMetrics   *BusinessMetrics
-	ticker       *time.Ticker
-	stopChan     chan struct{}
+	appMetrics    *ApplicationMetrics
+	bizMetrics    *BusinessMetrics
+	ticker        *time.Ticker
+	stopChan      chan struct{}
 }
 
 // NewMetricsCollector 创建指标收集器
 func NewMetricsCollector() *MetricsCollector {
 	registry := NewMetricsRegistry()
-	
+
 	return &MetricsCollector{
 		registry:      registry,
 		systemMetrics: NewSystemMetrics(registry),
@@ -464,10 +464,10 @@ func NewMetricsCollector() *MetricsCollector {
 func (mc *MetricsCollector) Start(reportInterval time.Duration) {
 	// 启动系统指标收集
 	mc.systemMetrics.Start(30 * time.Second)
-	
+
 	// 启动定期报告
 	mc.ticker = time.NewTicker(reportInterval)
-	
+
 	go func() {
 		for {
 			select {
@@ -478,7 +478,7 @@ func (mc *MetricsCollector) Start(reportInterval time.Duration) {
 			}
 		}
 	}()
-	
+
 	logger.Info("Metrics collector started",
 		zap.Duration("report_interval", reportInterval))
 }
@@ -486,12 +486,12 @@ func (mc *MetricsCollector) Start(reportInterval time.Duration) {
 // Stop 停止收集指标
 func (mc *MetricsCollector) Stop() {
 	mc.systemMetrics.Stop()
-	
+
 	if mc.ticker != nil {
 		mc.ticker.Stop()
 	}
 	close(mc.stopChan)
-	
+
 	logger.Info("Metrics collector stopped")
 }
 
@@ -519,7 +519,7 @@ func (mc *MetricsCollector) GetRegistry() *MetricsRegistry {
 func (mc *MetricsCollector) reportMetrics() {
 	ctx := context.Background()
 	metrics := mc.registry.GetAllMetrics()
-	
+
 	for name, metric := range metrics {
 		logger.LogPerformance(ctx, "metrics_report", 0, map[string]interface{}{
 			"metric_name":  name,
@@ -534,32 +534,32 @@ func (mc *MetricsCollector) reportMetrics() {
 // GetMetricsSummary 获取指标摘要
 func (mc *MetricsCollector) GetMetricsSummary() map[string]interface{} {
 	summary := make(map[string]interface{})
-	
+
 	// 系统指标摘要
 	summary["system"] = map[string]interface{}{
 		"memory_usage_mb": float64(mc.systemMetrics.memUsage.Value().(float64)) / 1024 / 1024,
 		"goroutines":      mc.systemMetrics.goroutines.Value(),
 	}
-	
+
 	// 应用指标摘要
 	summary["application"] = map[string]interface{}{
 		"db_connections": mc.appMetrics.dbConnections.Value(),
 		"cache_hit_rate": mc.appMetrics.cacheHitRate.Value(),
 		"active_users":   mc.appMetrics.activeUsers.Value(),
 	}
-	
+
 	return summary
 }
 
 // Alert 告警
 type Alert struct {
-	Name        string            `json:"name"`
-	Level       string            `json:"level"`       // info, warning, critical
-	Message     string            `json:"message"`
-	Labels      map[string]string `json:"labels"`
-	Timestamp   time.Time         `json:"timestamp"`
-	Resolved    bool              `json:"resolved"`
-	ResolvedAt  *time.Time        `json:"resolved_at,omitempty"`
+	Name       string            `json:"name"`
+	Level      string            `json:"level"` // info, warning, critical
+	Message    string            `json:"message"`
+	Labels     map[string]string `json:"labels"`
+	Timestamp  time.Time         `json:"timestamp"`
+	Resolved   bool              `json:"resolved"`
+	ResolvedAt *time.Time        `json:"resolved_at,omitempty"`
 }
 
 // AlertManager 告警管理器
@@ -580,7 +580,7 @@ type LogAlertHandler struct{}
 // Handle 处理告警
 func (h *LogAlertHandler) Handle(alert Alert) error {
 	ctx := context.Background()
-	
+
 	severity := "info"
 	switch alert.Level {
 	case "critical":
@@ -588,13 +588,13 @@ func (h *LogAlertHandler) Handle(alert Alert) error {
 	case "warning":
 		severity = "medium"
 	}
-	
+
 	details := map[string]interface{}{
 		"alert_name": alert.Name,
 		"labels":     alert.Labels,
 		"resolved":   alert.Resolved,
 	}
-	
+
 	logger.LogSecurityEvent(ctx, alert.Message, severity, details)
 	return nil
 }
@@ -605,10 +605,10 @@ func NewAlertManager() *AlertManager {
 		alerts:   make([]Alert, 0),
 		handlers: make([]AlertHandler, 0),
 	}
-	
+
 	// 添加默认的日志处理器
 	am.AddHandler(&LogAlertHandler{})
-	
+
 	return am
 }
 
@@ -627,11 +627,11 @@ func (am *AlertManager) FireAlert(name, level, message string, labels map[string
 		Timestamp: time.Now(),
 		Resolved:  false,
 	}
-	
+
 	am.mutex.Lock()
 	am.alerts = append(am.alerts, alert)
 	am.mutex.Unlock()
-	
+
 	// 处理告警
 	for _, handler := range am.handlers {
 		if err := handler.Handle(alert); err != nil {
@@ -646,7 +646,7 @@ func (am *AlertManager) FireAlert(name, level, message string, labels map[string
 func (am *AlertManager) ResolveAlert(name string, labels map[string]string) {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
-	
+
 	for i := range am.alerts {
 		if am.alerts[i].Name == name && !am.alerts[i].Resolved {
 			// 检查标签匹配
@@ -657,7 +657,7 @@ func (am *AlertManager) ResolveAlert(name string, labels map[string]string) {
 					break
 				}
 			}
-			
+
 			if match {
 				now := time.Now()
 				am.alerts[i].Resolved = true
@@ -672,14 +672,14 @@ func (am *AlertManager) ResolveAlert(name string, labels map[string]string) {
 func (am *AlertManager) GetActiveAlerts() []Alert {
 	am.mutex.RLock()
 	defer am.mutex.RUnlock()
-	
+
 	var active []Alert
 	for _, alert := range am.alerts {
 		if !alert.Resolved {
 			active = append(active, alert)
 		}
 	}
-	
+
 	return active
 }
 
@@ -687,10 +687,10 @@ func (am *AlertManager) GetActiveAlerts() []Alert {
 func (am *AlertManager) GetAllAlerts() []Alert {
 	am.mutex.RLock()
 	defer am.mutex.RUnlock()
-	
+
 	result := make([]Alert, len(am.alerts))
 	copy(result, am.alerts)
-	
+
 	return result
 }
 
@@ -707,10 +707,10 @@ func NewMonitoringService() *MonitoringService {
 		collector:    NewMetricsCollector(),
 		alertManager: NewAlertManager(),
 		thresholds: map[string]float64{
-			"memory_usage_mb":    1000,  // 1GB
-			"response_time_ms":   2000,  // 2秒
-			"error_rate_percent": 5,     // 5%
-			"cpu_usage_percent":  80,    // 80%
+			"memory_usage_mb":    1000, // 1GB
+			"response_time_ms":   2000, // 2秒
+			"error_rate_percent": 5,    // 5%
+			"cpu_usage_percent":  80,   // 80%
 		},
 	}
 }
@@ -718,10 +718,10 @@ func NewMonitoringService() *MonitoringService {
 // Start 启动监控服务
 func (ms *MonitoringService) Start() {
 	ms.collector.Start(1 * time.Minute)
-	
+
 	// 启动阈值检查
 	go ms.checkThresholds()
-	
+
 	logger.Info("Monitoring service started")
 }
 
@@ -735,10 +735,10 @@ func (ms *MonitoringService) Stop() {
 func (ms *MonitoringService) checkThresholds() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		summary := ms.collector.GetMetricsSummary()
-		
+
 		// 检查内存使用
 		if memUsage, ok := summary["system"].(map[string]interface{})["memory_usage_mb"].(float64); ok {
 			if memUsage > ms.thresholds["memory_usage_mb"] {
@@ -767,7 +767,7 @@ func (ms *MonitoringService) GetAlertManager() *AlertManager {
 func (ms *MonitoringService) GetHealthStatus() map[string]interface{} {
 	summary := ms.collector.GetMetricsSummary()
 	alerts := ms.alertManager.GetActiveAlerts()
-	
+
 	status := "healthy"
 	if len(alerts) > 0 {
 		for _, alert := range alerts {
@@ -779,7 +779,7 @@ func (ms *MonitoringService) GetHealthStatus() map[string]interface{} {
 			}
 		}
 	}
-	
+
 	return map[string]interface{}{
 		"status":        status,
 		"metrics":       summary,

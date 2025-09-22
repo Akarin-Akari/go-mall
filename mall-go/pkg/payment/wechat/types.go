@@ -13,13 +13,13 @@ import (
 
 // PaymentRequest 支付请求
 type PaymentRequest struct {
-	Body        string          `json:"body"`         // 商品描述
-	Detail      string          `json:"detail"`       // 商品详情
-	Attach      string          `json:"attach"`       // 附加数据
-	OutTradeNo  string          `json:"out_trade_no"` // 商户订单号
-	TotalFee    decimal.Decimal `json:"total_fee"`    // 订单总金额(元)
-	NotifyURL   string          `json:"notify_url"`   // 异步通知地址
-	TimeExpire  *time.Time      `json:"time_expire"`  // 订单过期时间
+	Body       string          `json:"body"`         // 商品描述
+	Detail     string          `json:"detail"`       // 商品详情
+	Attach     string          `json:"attach"`       // 附加数据
+	OutTradeNo string          `json:"out_trade_no"` // 商户订单号
+	TotalFee   decimal.Decimal `json:"total_fee"`    // 订单总金额(元)
+	NotifyURL  string          `json:"notify_url"`   // 异步通知地址
+	TimeExpire *time.Time      `json:"time_expire"`  // 订单过期时间
 }
 
 // PaymentResponse 支付响应
@@ -33,51 +33,51 @@ type PaymentResponse struct {
 
 // QueryResponse 查询响应
 type QueryResponse struct {
-	OutTradeNo    string                `json:"out_trade_no"`    // 商户订单号
-	TransactionID string                `json:"transaction_id"`  // 微信支付订单号
-	TradeState    string                `json:"trade_state"`     // 交易状态
-	TotalFee      decimal.Decimal       `json:"total_fee"`       // 订单金额
-	Status        model.PaymentStatus   `json:"status"`          // 标准化状态
-	TimeEnd       string                `json:"time_end"`        // 支付完成时间
-	Success       bool                  `json:"success"`         // 是否成功
-	Message       string                `json:"message"`         // 错误信息
+	OutTradeNo    string              `json:"out_trade_no"`   // 商户订单号
+	TransactionID string              `json:"transaction_id"` // 微信支付订单号
+	TradeState    string              `json:"trade_state"`    // 交易状态
+	TotalFee      decimal.Decimal     `json:"total_fee"`      // 订单金额
+	Status        model.PaymentStatus `json:"status"`         // 标准化状态
+	TimeEnd       string              `json:"time_end"`       // 支付完成时间
+	Success       bool                `json:"success"`        // 是否成功
+	Message       string              `json:"message"`        // 错误信息
 }
 
 // CallbackData 回调数据
 type CallbackData struct {
 	XMLName xml.Name `xml:"xml"`
-	
+
 	// 基本信息
-	ReturnCode string `xml:"return_code"` // 返回状态码
-	ReturnMsg  string `xml:"return_msg"`  // 返回信息
-	ResultCode string `xml:"result_code"` // 业务结果
-	ErrCode    string `xml:"err_code"`    // 错误代码
+	ReturnCode string `xml:"return_code"`  // 返回状态码
+	ReturnMsg  string `xml:"return_msg"`   // 返回信息
+	ResultCode string `xml:"result_code"`  // 业务结果
+	ErrCode    string `xml:"err_code"`     // 错误代码
 	ErrCodeDes string `xml:"err_code_des"` // 错误代码描述
-	
+
 	// 应用信息
 	AppID    string `xml:"appid"`     // 公众账号ID
 	MchID    string `xml:"mch_id"`    // 商户号
 	NonceStr string `xml:"nonce_str"` // 随机字符串
 	Sign     string `xml:"sign"`      // 签名
 	SignType string `xml:"sign_type"` // 签名类型
-	
+
 	// 交易信息
-	OpenID        string `xml:"openid"`         // 用户标识
-	IsSubscribe   string `xml:"is_subscribe"`   // 是否关注公众账号
-	TradeType     string `xml:"trade_type"`     // 交易类型
-	BankType      string `xml:"bank_type"`      // 付款银行
-	TotalFee      string `xml:"total_fee"`      // 订单金额(分)
+	OpenID             string `xml:"openid"`               // 用户标识
+	IsSubscribe        string `xml:"is_subscribe"`         // 是否关注公众账号
+	TradeType          string `xml:"trade_type"`           // 交易类型
+	BankType           string `xml:"bank_type"`            // 付款银行
+	TotalFee           string `xml:"total_fee"`            // 订单金额(分)
 	SettlementTotalFee string `xml:"settlement_total_fee"` // 应结订单金额
-	FeeType       string `xml:"fee_type"`       // 货币种类
-	CashFee       string `xml:"cash_fee"`       // 现金支付金额
-	CashFeeType   string `xml:"cash_fee_type"`  // 现金支付货币类型
-	
+	FeeType            string `xml:"fee_type"`             // 货币种类
+	CashFee            string `xml:"cash_fee"`             // 现金支付金额
+	CashFeeType        string `xml:"cash_fee_type"`        // 现金支付货币类型
+
 	// 订单信息
 	TransactionID string `xml:"transaction_id"` // 微信支付订单号
 	OutTradeNo    string `xml:"out_trade_no"`   // 商户订单号
 	Attach        string `xml:"attach"`         // 商家数据包
 	TimeEnd       string `xml:"time_end"`       // 支付完成时间
-	
+
 	// 优惠信息
 	CouponFee   string `xml:"coupon_fee"`   // 代金券金额
 	CouponCount string `xml:"coupon_count"` // 代金券使用数量
@@ -85,29 +85,29 @@ type CallbackData struct {
 
 // RefundRequest 退款请求
 type RefundRequest struct {
-	OutTradeNo    string          `json:"out_trade_no"`    // 商户订单号
-	TransactionID string          `json:"transaction_id"`  // 微信订单号
-	OutRefundNo   string          `json:"out_refund_no"`   // 商户退款单号
-	TotalFee      decimal.Decimal `json:"total_fee"`       // 订单金额
-	RefundFee     decimal.Decimal `json:"refund_fee"`      // 退款金额
-	RefundDesc    string          `json:"refund_desc"`     // 退款原因
-	NotifyURL     string          `json:"notify_url"`      // 退款通知地址
+	OutTradeNo    string          `json:"out_trade_no"`   // 商户订单号
+	TransactionID string          `json:"transaction_id"` // 微信订单号
+	OutRefundNo   string          `json:"out_refund_no"`  // 商户退款单号
+	TotalFee      decimal.Decimal `json:"total_fee"`      // 订单金额
+	RefundFee     decimal.Decimal `json:"refund_fee"`     // 退款金额
+	RefundDesc    string          `json:"refund_desc"`    // 退款原因
+	NotifyURL     string          `json:"notify_url"`     // 退款通知地址
 }
 
 // RefundResponse 退款响应
 type RefundResponse struct {
-	OutTradeNo      string          `json:"out_trade_no"`      // 商户订单号
-	TransactionID   string          `json:"transaction_id"`    // 微信订单号
-	OutRefundNo     string          `json:"out_refund_no"`     // 商户退款单号
-	RefundID        string          `json:"refund_id"`         // 微信退款单号
-	RefundFee       decimal.Decimal `json:"refund_fee"`        // 退款金额
+	OutTradeNo          string          `json:"out_trade_no"`          // 商户订单号
+	TransactionID       string          `json:"transaction_id"`        // 微信订单号
+	OutRefundNo         string          `json:"out_refund_no"`         // 商户退款单号
+	RefundID            string          `json:"refund_id"`             // 微信退款单号
+	RefundFee           decimal.Decimal `json:"refund_fee"`            // 退款金额
 	SettlementRefundFee decimal.Decimal `json:"settlement_refund_fee"` // 应结退款金额
-	TotalFee        decimal.Decimal `json:"total_fee"`         // 订单金额
-	SettlementTotalFee decimal.Decimal `json:"settlement_total_fee"` // 应结订单金额
-	CashFee         decimal.Decimal `json:"cash_fee"`          // 现金支付金额
-	CashRefundFee   decimal.Decimal `json:"cash_refund_fee"`   // 现金退款金额
-	Success         bool            `json:"success"`           // 是否成功
-	Message         string          `json:"message"`           // 错误信息
+	TotalFee            decimal.Decimal `json:"total_fee"`             // 订单金额
+	SettlementTotalFee  decimal.Decimal `json:"settlement_total_fee"`  // 应结订单金额
+	CashFee             decimal.Decimal `json:"cash_fee"`              // 现金支付金额
+	CashRefundFee       decimal.Decimal `json:"cash_refund_fee"`       // 现金退款金额
+	Success             bool            `json:"success"`               // 是否成功
+	Message             string          `json:"message"`               // 错误信息
 }
 
 // TradeState 交易状态常量
@@ -177,13 +177,13 @@ func (cd *CallbackData) GetPaymentTime() (*time.Time, error) {
 	if cd.TimeEnd == "" {
 		return nil, nil
 	}
-	
+
 	// 解析时间格式: 20060102150405
 	t, err := time.Parse("20060102150405", cd.TimeEnd)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &t, nil
 }
 
@@ -192,23 +192,23 @@ func (cd *CallbackData) Validate() error {
 	if cd.ReturnCode != ReturnCodeSuccess {
 		return fmt.Errorf("回调返回失败: %s", cd.ReturnMsg)
 	}
-	
+
 	if cd.ResultCode != ResultCodeSuccess {
 		return fmt.Errorf("业务处理失败: %s - %s", cd.ErrCode, cd.ErrCodeDes)
 	}
-	
+
 	if cd.OutTradeNo == "" {
 		return fmt.Errorf("商户订单号不能为空")
 	}
-	
+
 	if cd.TransactionID == "" {
 		return fmt.Errorf("微信支付订单号不能为空")
 	}
-	
+
 	if cd.TotalFee == "" {
 		return fmt.Errorf("订单金额不能为空")
 	}
-	
+
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (cd *CallbackData) ToPaymentCallbackData() *model.PaymentCallbackData {
 		now := time.Now()
 		paidAt = &now
 	}
-	
+
 	return &model.PaymentCallbackData{
 		PaymentMethod: model.PaymentMethodWechat,
 		ThirdPartyID:  cd.TransactionID,
@@ -234,15 +234,15 @@ func (cd *CallbackData) ToPaymentCallbackData() *model.PaymentCallbackData {
 
 // ErrorCode 错误码常量
 const (
-	ErrorCodeOrderNotExist    = "ORDERNOTEXIST"    // 订单不存在
-	ErrorCodeSystemError      = "SYSTEMERROR"      // 系统错误
-	ErrorCodeSignError        = "SIGNERROR"        // 签名错误
-	ErrorCodeParamError       = "PARAM_ERROR"      // 参数错误
-	ErrorCodeNotEnoughFunds   = "NOTENOUGH"        // 余额不足
-	ErrorCodeOrderPaid        = "ORDERPAID"        // 商户订单已支付
-	ErrorCodeOrderClosed      = "ORDERCLOSED"      // 订单已关闭
-	ErrorCodeAuthCodeExpire   = "AUTHCODEEXPIRE"   // 授权码过期
-	ErrorCodeAuthCodeInvalid  = "AUTHCODEINVALID"  // 授权码无效
+	ErrorCodeOrderNotExist   = "ORDERNOTEXIST"   // 订单不存在
+	ErrorCodeSystemError     = "SYSTEMERROR"     // 系统错误
+	ErrorCodeSignError       = "SIGNERROR"       // 签名错误
+	ErrorCodeParamError      = "PARAM_ERROR"     // 参数错误
+	ErrorCodeNotEnoughFunds  = "NOTENOUGH"       // 余额不足
+	ErrorCodeOrderPaid       = "ORDERPAID"       // 商户订单已支付
+	ErrorCodeOrderClosed     = "ORDERCLOSED"     // 订单已关闭
+	ErrorCodeAuthCodeExpire  = "AUTHCODEEXPIRE"  // 授权码过期
+	ErrorCodeAuthCodeInvalid = "AUTHCODEINVALID" // 授权码无效
 )
 
 // GetErrorMessage 获取错误信息
@@ -250,7 +250,7 @@ func GetErrorMessage(errCode, errCodeDes string) string {
 	if errCodeDes != "" {
 		return errCodeDes
 	}
-	
+
 	switch errCode {
 	case ErrorCodeOrderNotExist:
 		return "订单不存在"

@@ -80,7 +80,7 @@ func main() {
 // clearExistingPolicies 清空现有权限策略
 func clearExistingPolicies(cm *auth.CasbinManager) error {
 	enforcer := cm.GetEnforcer()
-	
+
 	// 清空所有策略
 	_, err := enforcer.RemoveFilteredPolicy(0)
 	if err != nil {
@@ -181,10 +181,10 @@ func verifyPermissions(cm *auth.CasbinManager) error {
 // 辅助函数：显示所有权限
 func showAllPermissions(cm *auth.CasbinManager) {
 	fmt.Println("\n========== 所有权限策略 ==========")
-	
+
 	enforcer := cm.GetEnforcer()
 	policies := enforcer.GetPolicy()
-	
+
 	for _, policy := range policies {
 		if len(policy) >= 3 {
 			fmt.Printf("权限: %s 可以 %s %s\n", policy[0], policy[2], policy[1])
@@ -192,7 +192,7 @@ func showAllPermissions(cm *auth.CasbinManager) {
 	}
 
 	fmt.Println("\n========== 所有用户角色 ==========")
-	
+
 	groupingPolicies := enforcer.GetGroupingPolicy()
 	for _, gp := range groupingPolicies {
 		if len(gp) >= 2 {

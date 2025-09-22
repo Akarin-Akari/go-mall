@@ -14,8 +14,8 @@ import (
 	"mall-go/internal/handler"
 	"mall-go/internal/model"
 
-	"github.com/glebarez/sqlite"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -31,17 +31,17 @@ type PerformanceTestSuite struct {
 
 // PerformanceResult 性能测试结果
 type PerformanceResult struct {
-	TotalRequests    int           `json:"total_requests"`
-	SuccessRequests  int           `json:"success_requests"`
-	FailedRequests   int           `json:"failed_requests"`
-	TotalTime        time.Duration `json:"total_time"`
-	AverageTime      time.Duration `json:"average_time"`
-	MinTime          time.Duration `json:"min_time"`
-	MaxTime          time.Duration `json:"max_time"`
-	RequestsPerSec   float64       `json:"requests_per_sec"`
-	P95ResponseTime  time.Duration `json:"p95_response_time"`
-	P99ResponseTime  time.Duration `json:"p99_response_time"`
-	ErrorRate        float64       `json:"error_rate"`
+	TotalRequests   int           `json:"total_requests"`
+	SuccessRequests int           `json:"success_requests"`
+	FailedRequests  int           `json:"failed_requests"`
+	TotalTime       time.Duration `json:"total_time"`
+	AverageTime     time.Duration `json:"average_time"`
+	MinTime         time.Duration `json:"min_time"`
+	MaxTime         time.Duration `json:"max_time"`
+	RequestsPerSec  float64       `json:"requests_per_sec"`
+	P95ResponseTime time.Duration `json:"p95_response_time"`
+	P99ResponseTime time.Duration `json:"p99_response_time"`
+	ErrorRate       float64       `json:"error_rate"`
 }
 
 // RequestResult 单个请求结果
@@ -98,7 +98,7 @@ func SetupPerformanceTest(t *testing.T) *PerformanceTestSuite {
 
 	// 创建路由
 	r := gin.Default()
-	
+
 	// 注册简化的路由用于测试
 	handler.RegisterMiddleware(r)
 	handler.RegisterRoutes(r, db, nil, nil)
@@ -172,7 +172,7 @@ func (pts *PerformanceTestSuite) CreateTestData(t *testing.T) {
 		product := &model.Product{
 			Name:        fmt.Sprintf("性能测试商品%d", i),
 			Description: fmt.Sprintf("用于性能测试的商品%d", i),
-			CategoryID:  uint((i-1)%20 + 1), // 分配到不同分类
+			CategoryID:  uint((i-1)%20 + 1),   // 分配到不同分类
 			MerchantID:  uint((i-1)%10 + 101), // 分配到不同商家
 			Price:       price,
 			Stock:       1000,
@@ -193,52 +193,52 @@ func (pts *PerformanceTestSuite) RunConcurrentTest(
 	totalRequests int,
 	requestFunc func() *RequestResult,
 ) *PerformanceResult {
-	
+
 	t.Logf("🚀 开始性能测试: %s - 并发数: %d, 总请求数: %d", testName, concurrency, totalRequests)
-	
+
 	results := make(chan *RequestResult, totalRequests)
 	var wg sync.WaitGroup
-	
+
 	startTime := time.Now()
-	
+
 	// 控制并发数
 	semaphore := make(chan struct{}, concurrency)
-	
+
 	// 发送请求
 	for i := 0; i < totalRequests; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			semaphore <- struct{}{} // 获取信号量
+			semaphore <- struct{}{}        // 获取信号量
 			defer func() { <-semaphore }() // 释放信号量
-			
+
 			result := requestFunc()
 			results <- result
 		}()
 	}
-	
+
 	// 等待所有请求完成
 	wg.Wait()
 	close(results)
-	
+
 	totalTime := time.Since(startTime)
-	
+
 	// 统计结果
 	var responseTimes []time.Duration
 	successCount := 0
 	failedCount := 0
 	minTime := time.Duration(0)
 	maxTime := time.Duration(0)
-	
+
 	for result := range results {
 		responseTimes = append(responseTimes, result.Duration)
-		
+
 		if result.Success {
 			successCount++
 		} else {
 			failedCount++
 		}
-		
+
 		if minTime == 0 || result.Duration < minTime {
 			minTime = result.Duration
 		}
@@ -246,23 +246,23 @@ func (pts *PerformanceTestSuite) RunConcurrentTest(
 			maxTime = result.Duration
 		}
 	}
-	
+
 	// 计算平均时间
 	var totalResponseTime time.Duration
 	for _, duration := range responseTimes {
 		totalResponseTime += duration
 	}
 	averageTime := totalResponseTime / time.Duration(len(responseTimes))
-	
+
 	// 计算P95和P99
 	p95Time, p99Time := calculatePercentiles(responseTimes)
-	
+
 	// 计算QPS
 	requestsPerSec := float64(totalRequests) / totalTime.Seconds()
-	
+
 	// 计算错误率
 	errorRate := float64(failedCount) / float64(totalRequests) * 100
-	
+
 	result := &PerformanceResult{
 		TotalRequests:   totalRequests,
 		SuccessRequests: successCount,
@@ -276,7 +276,7 @@ func (pts *PerformanceTestSuite) RunConcurrentTest(
 		P99ResponseTime: p99Time,
 		ErrorRate:       errorRate,
 	}
-	
+
 	// 输出测试结果
 	t.Logf("📊 %s 性能测试结果:", testName)
 	t.Logf("   总请求数: %d", result.TotalRequests)
@@ -290,7 +290,7 @@ func (pts *PerformanceTestSuite) RunConcurrentTest(
 	t.Logf("   P95响应时间: %v", result.P95ResponseTime)
 	t.Logf("   P99响应时间: %v", result.P99ResponseTime)
 	t.Logf("   错误率: %.2f%%", result.ErrorRate)
-	
+
 	return result
 }
 
@@ -299,7 +299,7 @@ func calculatePercentiles(times []time.Duration) (p95, p99 time.Duration) {
 	if len(times) == 0 {
 		return 0, 0
 	}
-	
+
 	// 简单排序
 	for i := 0; i < len(times)-1; i++ {
 		for j := 0; j < len(times)-i-1; j++ {
@@ -308,27 +308,27 @@ func calculatePercentiles(times []time.Duration) (p95, p99 time.Duration) {
 			}
 		}
 	}
-	
+
 	p95Index := int(float64(len(times)) * 0.95)
 	p99Index := int(float64(len(times)) * 0.99)
-	
+
 	if p95Index >= len(times) {
 		p95Index = len(times) - 1
 	}
 	if p99Index >= len(times) {
 		p99Index = len(times) - 1
 	}
-	
+
 	return times[p95Index], times[p99Index]
 }
 
 // MakeHTTPRequest 发送HTTP请求
 func (pts *PerformanceTestSuite) MakeHTTPRequest(method, path string, body interface{}) *RequestResult {
 	startTime := time.Now()
-	
+
 	var reqBody []byte
 	var err error
-	
+
 	if body != nil {
 		reqBody, err = json.Marshal(body)
 		if err != nil {
@@ -340,7 +340,7 @@ func (pts *PerformanceTestSuite) MakeHTTPRequest(method, path string, body inter
 			}
 		}
 	}
-	
+
 	req, err := http.NewRequest(method, pts.server.URL+path, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return &RequestResult{
@@ -350,9 +350,9 @@ func (pts *PerformanceTestSuite) MakeHTTPRequest(method, path string, body inter
 			Error:      err,
 		}
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -364,10 +364,10 @@ func (pts *PerformanceTestSuite) MakeHTTPRequest(method, path string, body inter
 		}
 	}
 	defer resp.Body.Close()
-	
+
 	duration := time.Since(startTime)
 	success := resp.StatusCode >= 200 && resp.StatusCode < 300
-	
+
 	return &RequestResult{
 		Duration:   duration,
 		StatusCode: resp.StatusCode,

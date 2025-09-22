@@ -18,8 +18,8 @@ type OSSStorage struct {
 
 // NewOSSStorage 创建OSS存储
 func NewOSSStorage(config *UploadConfig) (*OSSStorage, error) {
-	if config.OSS.Endpoint == "" || config.OSS.AccessKeyID == "" || 
-	   config.OSS.AccessKeySecret == "" || config.OSS.BucketName == "" {
+	if config.OSS.Endpoint == "" || config.OSS.AccessKeyID == "" ||
+		config.OSS.AccessKeySecret == "" || config.OSS.BucketName == "" {
 		return nil, fmt.Errorf("OSS配置不完整")
 	}
 
@@ -130,7 +130,7 @@ func (os *OSSStorage) GetURL(filePath string) string {
 	if os.config.OSS.URLPrefix != "" {
 		return os.config.OSS.URLPrefix + "/" + filePath
 	}
-	
+
 	// 生成默认URL
 	return fmt.Sprintf("https://%s.%s/%s", os.config.OSS.BucketName, os.config.OSS.Endpoint, filePath)
 }
@@ -140,7 +140,7 @@ func (os *OSSStorage) ListFiles(prefix string, limit int) ([]*FileInfo, error) {
 	options := []oss.Option{
 		oss.Prefix(prefix),
 	}
-	
+
 	if limit > 0 {
 		options = append(options, oss.MaxKeys(limit))
 	}

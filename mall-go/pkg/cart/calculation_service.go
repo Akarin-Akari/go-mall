@@ -25,49 +25,49 @@ func NewCalculationService(db *gorm.DB) *CalculationService {
 // CartCalculation 购物车计算结果
 type CartCalculation struct {
 	// 基础金额
-	SubtotalAmount    decimal.Decimal `json:"subtotal_amount"`    // 小计金额
-	SelectedAmount    decimal.Decimal `json:"selected_amount"`    // 选中商品金额
-	
+	SubtotalAmount decimal.Decimal `json:"subtotal_amount"` // 小计金额
+	SelectedAmount decimal.Decimal `json:"selected_amount"` // 选中商品金额
+
 	// 优惠信息
 	CouponDiscount    decimal.Decimal `json:"coupon_discount"`    // 优惠券折扣
 	PromotionDiscount decimal.Decimal `json:"promotion_discount"` // 促销折扣
 	MemberDiscount    decimal.Decimal `json:"member_discount"`    // 会员折扣
 	TotalDiscount     decimal.Decimal `json:"total_discount"`     // 总折扣
-	
+
 	// 运费信息
-	ShippingFee       decimal.Decimal `json:"shipping_fee"`       // 运费
+	ShippingFee           decimal.Decimal `json:"shipping_fee"`            // 运费
 	FreeShippingThreshold decimal.Decimal `json:"free_shipping_threshold"` // 包邮门槛
-	
+
 	// 税费信息
-	TaxAmount         decimal.Decimal `json:"tax_amount"`         // 税费
-	TaxRate           decimal.Decimal `json:"tax_rate"`           // 税率
-	
+	TaxAmount decimal.Decimal `json:"tax_amount"` // 税费
+	TaxRate   decimal.Decimal `json:"tax_rate"`   // 税率
+
 	// 最终金额
-	PayableAmount     decimal.Decimal `json:"payable_amount"`     // 应付金额
-	SavedAmount       decimal.Decimal `json:"saved_amount"`       // 节省金额
-	
+	PayableAmount decimal.Decimal `json:"payable_amount"` // 应付金额
+	SavedAmount   decimal.Decimal `json:"saved_amount"`   // 节省金额
+
 	// 商品统计
-	ItemCount         int             `json:"item_count"`         // 商品种类数
-	TotalQuantity     int             `json:"total_quantity"`     // 商品总数量
-	SelectedCount     int             `json:"selected_count"`     // 选中商品种类数
-	SelectedQuantity  int             `json:"selected_quantity"`  // 选中商品数量
-	
+	ItemCount        int `json:"item_count"`        // 商品种类数
+	TotalQuantity    int `json:"total_quantity"`    // 商品总数量
+	SelectedCount    int `json:"selected_count"`    // 选中商品种类数
+	SelectedQuantity int `json:"selected_quantity"` // 选中商品数量
+
 	// 重量信息
-	TotalWeight       decimal.Decimal `json:"total_weight"`       // 总重量
-	
+	TotalWeight decimal.Decimal `json:"total_weight"` // 总重量
+
 	// 积分信息
-	EarnPoints        int             `json:"earn_points"`        // 可获得积分
-	UsedPoints        int             `json:"used_points"`        // 使用积分
-	PointsDiscount    decimal.Decimal `json:"points_discount"`    // 积分抵扣金额
+	EarnPoints     int             `json:"earn_points"`     // 可获得积分
+	UsedPoints     int             `json:"used_points"`     // 使用积分
+	PointsDiscount decimal.Decimal `json:"points_discount"` // 积分抵扣金额
 }
 
 // PromotionRule 促销规则
 type PromotionRule struct {
 	ID          uint            `json:"id"`
 	Name        string          `json:"name"`
-	Type        string          `json:"type"`        // full_reduction, discount, gift
-	Threshold   decimal.Decimal `json:"threshold"`   // 门槛金额
-	Discount    decimal.Decimal `json:"discount"`    // 折扣金额或比例
+	Type        string          `json:"type"`         // full_reduction, discount, gift
+	Threshold   decimal.Decimal `json:"threshold"`    // 门槛金额
+	Discount    decimal.Decimal `json:"discount"`     // 折扣金额或比例
 	MaxDiscount decimal.Decimal `json:"max_discount"` // 最大折扣金额
 	StartTime   string          `json:"start_time"`
 	EndTime     string          `json:"end_time"`
@@ -76,14 +76,14 @@ type PromotionRule struct {
 
 // ShippingRule 运费规则
 type ShippingRule struct {
-	ID                uint            `json:"id"`
-	Name              string          `json:"name"`
-	BaseWeight        decimal.Decimal `json:"base_weight"`        // 首重
-	BaseFee           decimal.Decimal `json:"base_fee"`           // 首重费用
-	AdditionalWeight  decimal.Decimal `json:"additional_weight"`  // 续重
-	AdditionalFee     decimal.Decimal `json:"additional_fee"`     // 续重费用
-	FreeThreshold     decimal.Decimal `json:"free_threshold"`     // 包邮门槛
-	MaxFee            decimal.Decimal `json:"max_fee"`            // 最高运费
+	ID               uint            `json:"id"`
+	Name             string          `json:"name"`
+	BaseWeight       decimal.Decimal `json:"base_weight"`       // 首重
+	BaseFee          decimal.Decimal `json:"base_fee"`          // 首重费用
+	AdditionalWeight decimal.Decimal `json:"additional_weight"` // 续重
+	AdditionalFee    decimal.Decimal `json:"additional_fee"`    // 续重费用
+	FreeThreshold    decimal.Decimal `json:"free_threshold"`    // 包邮门槛
+	MaxFee           decimal.Decimal `json:"max_fee"`           // 最高运费
 }
 
 // CalculateCart 计算购物车
@@ -139,16 +139,16 @@ func (cs *CalculationService) calculateBasicAmount(cart *model.Cart, calc *CartC
 		if item.Status == model.CartItemStatusNormal {
 			calc.ItemCount++
 			calc.TotalQuantity += item.Quantity
-			
+
 			itemTotal := item.Price.Mul(decimal.NewFromInt(int64(item.Quantity)))
 			calc.SubtotalAmount = calc.SubtotalAmount.Add(itemTotal)
-			
+
 			if item.Selected {
 				calc.SelectedCount++
 				calc.SelectedQuantity += item.Quantity
 				calc.SelectedAmount = calc.SelectedAmount.Add(itemTotal)
 			}
-			
+
 			// 计算重量
 			if item.Product != nil {
 				weight := item.Product.Weight.Mul(decimal.NewFromInt(int64(item.Quantity)))
@@ -346,12 +346,12 @@ func (cs *CalculationService) applyCoupon(couponID, userID uint, selectedAmount 
 
 	// 模拟优惠券数据
 	coupons := map[uint]struct {
-		Name      string
-		Type      string          // fixed, percentage
-		Value     decimal.Decimal
-		MinAmount decimal.Decimal
+		Name        string
+		Type        string // fixed, percentage
+		Value       decimal.Decimal
+		MinAmount   decimal.Decimal
 		MaxDiscount decimal.Decimal
-		Used      bool
+		Used        bool
 	}{
 		1: {"新用户专享券", "fixed", decimal.NewFromFloat(10.0), decimal.NewFromFloat(50.0), decimal.Zero, false},
 		2: {"满100减20", "fixed", decimal.NewFromFloat(20.0), decimal.NewFromFloat(100.0), decimal.Zero, false},
@@ -397,7 +397,7 @@ func (cs *CalculationService) EstimateShipping(cart *model.Cart, region string) 
 		if item.Selected && item.Status == model.CartItemStatusNormal {
 			itemTotal := item.Price.Mul(decimal.NewFromInt(int64(item.Quantity)))
 			calc.SelectedAmount = calc.SelectedAmount.Add(itemTotal)
-			
+
 			if item.Product != nil {
 				weight := item.Product.Weight.Mul(decimal.NewFromInt(int64(item.Quantity)))
 				calc.TotalWeight = calc.TotalWeight.Add(weight)

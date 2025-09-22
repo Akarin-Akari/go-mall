@@ -25,15 +25,15 @@ func TestOrderAPIPerformance(t *testing.T) {
 		requestFunc := func() *RequestResult {
 			// 随机用户创建订单
 			userID := rand.Intn(100) + 1
-			
+
 			// 创建订单项
 			orderItems := make([]map[string]interface{}, 0)
 			itemCount := rand.Intn(3) + 1 // 1-3个商品
-			
+
 			for i := 0; i < itemCount; i++ {
 				productID := rand.Intn(1000) + 1
 				quantity := rand.Intn(5) + 1
-				
+
 				orderItems = append(orderItems, map[string]interface{}{
 					"product_id": productID,
 					"quantity":   quantity,
@@ -59,7 +59,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 100.0, "QPS应大于100")
 		assert.Less(t, result.ErrorRate, 10.0, "错误率应小于10%")
 
-		t.Logf("✅ 订单创建性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 订单创建性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -92,8 +92,8 @@ func TestOrderAPIPerformance(t *testing.T) {
 			userID := rand.Intn(100) + 1
 			page := rand.Intn(5) + 1
 			pageSize := rand.Intn(10) + 10
-			
-			path := fmt.Sprintf("/api/order/list?user_id=%d&page=%d&page_size=%d", 
+
+			path := fmt.Sprintf("/api/order/list?user_id=%d&page=%d&page_size=%d",
 				userID, page, pageSize)
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
@@ -106,7 +106,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 400.0, "QPS应大于400")
 		assert.Less(t, result.ErrorRate, 3.0, "错误率应小于3%")
 
-		t.Logf("✅ 订单查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 订单查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -129,7 +129,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 600.0, "QPS应大于600")
 		assert.Less(t, result.ErrorRate, 2.0, "错误率应小于2%")
 
-		t.Logf("✅ 订单详情查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 订单详情查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -161,7 +161,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 350.0, "QPS应大于350")
 		assert.Less(t, result.ErrorRate, 8.0, "错误率应小于8%")
 
-		t.Logf("✅ 订单状态更新性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 订单状态更新性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -172,7 +172,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		requestFunc := func() *RequestResult {
 			// 高并发创建订单
 			userID := rand.Intn(100) + 1
-			
+
 			// 使用热门商品测试库存并发
 			hotProducts := []int{1, 2, 3, 4, 5}
 			productID := hotProducts[rand.Intn(len(hotProducts))]
@@ -205,7 +205,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		// 高并发创建订单可能因为库存不足导致较高错误率
 		assert.Less(t, result.ErrorRate, 30.0, "压力测试错误率应小于30%")
 
-		t.Logf("✅ 订单高并发创建压力测试通过 - 平均响应时间: %v, QPS: %.2f, 错误率: %.2f%%", 
+		t.Logf("✅ 订单高并发创建压力测试通过 - 平均响应时间: %v, QPS: %.2f, 错误率: %.2f%%",
 			result.AverageTime, result.RequestsPerSec, result.ErrorRate)
 	})
 
@@ -219,7 +219,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 			// 随机选择操作类型
 			operation := operations[rand.Intn(len(operations))]
 			userID := rand.Intn(100) + 1
-			
+
 			switch operation {
 			case "create":
 				orderItems := []map[string]interface{}{
@@ -235,16 +235,16 @@ func TestOrderAPIPerformance(t *testing.T) {
 					"phone":       "13800138000",
 				}
 				return suite.MakeHTTPRequest("POST", "/api/order/create", createOrderReq)
-				
+
 			case "list":
 				path := fmt.Sprintf("/api/order/list?user_id=%d", userID)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			case "detail":
 				orderID := rand.Intn(100) + 1
 				path := fmt.Sprintf("/api/order/%d", orderID)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			case "update_status":
 				orderID := rand.Intn(100) + 1
 				statuses := []string{"paid", "shipped", "delivered"}
@@ -254,7 +254,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 				}
 				path := fmt.Sprintf("/api/order/%d/status", orderID)
 				return suite.MakeHTTPRequest("PUT", path, updateReq)
-				
+
 			default:
 				path := fmt.Sprintf("/api/order/list?user_id=%d", userID)
 				return suite.MakeHTTPRequest("GET", path, nil)
@@ -269,7 +269,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 200.0, "QPS应大于200")
 		assert.Less(t, result.ErrorRate, 15.0, "错误率应小于15%")
 
-		t.Logf("✅ 订单混合操作性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 订单混合操作性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 }
@@ -278,7 +278,7 @@ func TestOrderAPIPerformance(t *testing.T) {
 func BenchmarkOrderCreate(b *testing.B) {
 	suite := SetupPerformanceTest(&testing.T{})
 	defer suite.CleanupPerformanceTest()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(&testing.T{})
 
@@ -317,7 +317,7 @@ func BenchmarkOrderCreate(b *testing.B) {
 func BenchmarkOrderList(b *testing.B) {
 	suite := SetupPerformanceTest(&testing.T{})
 	defer suite.CleanupPerformanceTest()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(&testing.T{})
 
@@ -329,10 +329,10 @@ func BenchmarkOrderList(b *testing.B) {
 			userID := i%100 + 1
 			page := i%10 + 1
 			pageSize := 20
-			
-			path := fmt.Sprintf("/api/order/list?user_id=%d&page=%d&page_size=%d", 
+
+			path := fmt.Sprintf("/api/order/list?user_id=%d&page=%d&page_size=%d",
 				userID, page, pageSize)
-			
+
 			result := suite.MakeHTTPRequest("GET", path, nil)
 			if !result.Success {
 				b.Errorf("订单列表查询失败: %v", result.Error)

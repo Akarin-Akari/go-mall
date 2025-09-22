@@ -36,7 +36,7 @@ func TestAuthMiddleware_Success(t *testing.T) {
 		userID, _ := c.Get("user_id")
 		username, _ := c.Get("username")
 		role, _ := c.Get("user_role")
-		
+
 		c.JSON(http.StatusOK, gin.H{
 			"user_id":  userID,
 			"username": username,
@@ -47,7 +47,7 @@ func TestAuthMiddleware_Success(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -67,7 +67,7 @@ func TestAuthMiddleware_NoToken(t *testing.T) {
 
 	// 创建没有token的请求
 	req, _ := http.NewRequest("GET", "/test", nil)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -88,7 +88,7 @@ func TestAuthMiddleware_InvalidTokenFormat(t *testing.T) {
 	// 创建格式错误的token请求
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "InvalidToken")
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -109,7 +109,7 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 	// 创建无效token的请求
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer invalid.token.here")
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -123,7 +123,7 @@ func TestGetUserFromContext(t *testing.T) {
 	// 创建Gin上下文
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// 设置用户信息
 	c.Set("user_id", uint(1))
 	c.Set("username", "testuser")
@@ -131,7 +131,7 @@ func TestGetUserFromContext(t *testing.T) {
 
 	// 测试获取用户信息
 	userID, username, role, exists := GetUserFromContext(c)
-	
+
 	assert.True(t, exists)
 	assert.Equal(t, uint(1), userID)
 	assert.Equal(t, "testuser", username)
@@ -145,7 +145,7 @@ func TestGetUserFromContext_NotExists(t *testing.T) {
 
 	// 测试获取不存在的用户信息
 	_, _, _, exists := GetUserFromContext(c)
-	
+
 	assert.False(t, exists)
 }
 
@@ -165,7 +165,7 @@ func TestAdminMiddleware_Success(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/admin", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -191,7 +191,7 @@ func TestAdminMiddleware_Forbidden(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/admin", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -217,7 +217,7 @@ func TestMerchantMiddleware_Success(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/merchant", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -243,7 +243,7 @@ func TestAdminOrMerchantMiddleware_AdminSuccess(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/admin-or-merchant", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -268,7 +268,7 @@ func TestAdminOrMerchantMiddleware_MerchantSuccess(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/admin-or-merchant", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -293,7 +293,7 @@ func TestAdminOrMerchantMiddleware_UserForbidden(t *testing.T) {
 	// 创建请求
 	req, _ := http.NewRequest("GET", "/admin-or-merchant", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	// 执行请求
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)

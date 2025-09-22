@@ -157,7 +157,7 @@ func TestSimpleCartAddNoRedis(t *testing.T) {
 
 	// 设置路由
 	router := gin.New()
-	
+
 	// 添加认证中间件
 	router.Use(func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

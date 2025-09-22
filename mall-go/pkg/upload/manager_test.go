@@ -256,7 +256,7 @@ func (suite *FileManagerTestSuite) TestFileManager_DeleteFile_Permission() {
 // TestFileManager_DownloadFile 测试下载文件
 func (suite *FileManagerTestSuite) TestFileManager_DownloadFile() {
 	testContent := "Download test content"
-	
+
 	// 上传测试文件
 	req := &UploadFileRequest{
 		UserID:   1,
@@ -363,7 +363,7 @@ func (suite *FileManagerTestSuite) TestFileManager_GetFileStatistics() {
 	// 验证统计数据
 	suite.GreaterOrEqual(stats["total_files"].(int64), int64(4))
 	suite.GreaterOrEqual(stats["total_size"].(int64), int64(40))
-	
+
 	categoryStats, ok := stats["category_stats"].([]struct {
 		Category string `json:"category"`
 		Count    int64  `json:"count"`

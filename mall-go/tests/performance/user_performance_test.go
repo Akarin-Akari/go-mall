@@ -45,7 +45,7 @@ func TestUserAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 100.0, "QPS应大于100")
 		assert.Less(t, result.ErrorRate, 5.0, "错误率应小于5%")
 
-		t.Logf("✅ 用户注册性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 用户注册性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -72,7 +72,7 @@ func TestUserAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 200.0, "QPS应大于200")
 		assert.Less(t, result.ErrorRate, 3.0, "错误率应小于3%")
 
-		t.Logf("✅ 用户登录性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 用户登录性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -94,7 +94,7 @@ func TestUserAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 500.0, "QPS应大于500")
 		assert.Less(t, result.ErrorRate, 2.0, "错误率应小于2%")
 
-		t.Logf("✅ 用户信息查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 用户信息查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -124,7 +124,7 @@ func TestUserAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 50.0, "压力测试QPS应大于50")
 		assert.Less(t, result.ErrorRate, 10.0, "压力测试错误率应小于10%")
 
-		t.Logf("✅ 用户并发注册压力测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 用户并发注册压力测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -151,7 +151,7 @@ func TestUserAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 100.0, "高并发测试QPS应大于100")
 		assert.Less(t, result.ErrorRate, 15.0, "高并发测试错误率应小于15%")
 
-		t.Logf("✅ 用户登录高并发测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 用户登录高并发测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 }
