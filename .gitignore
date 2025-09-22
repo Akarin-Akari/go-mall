@@ -1,3 +1,104 @@
+# Compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test the application
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Environment files
+*.env
+*.env.local
+*.env.production
+*.env.staging
+.env*
+
+# Configuration files with sensitive data
+config/local.json
+config/production.json
+config/staging.json
+config/database.json
+
+# Secret and key files
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+credentials/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+database.sql
+dump.sql
+
+# Test configuration files
+test_*.json
+debug_*.json
+*_test_data.json
+test_login.json
+test_register.json
+test_api_call.json
+
+# Log files
+*.log
+logs/
+log/
+
+# IDE and editor files
+.idea/
+.vscode/
+.cursor/
+.claude/
+.codex/
+.augment/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if applicable)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Archive files
+*.tar.gz
+*.zip
+*.rar
+
+# Temporary files
+temp/
+tmp/
+.tmp/
+
+# Cache directories
+.cache/
+cache/
 
 # YoYo AI version control directory
 .yoyo/
