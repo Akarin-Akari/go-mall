@@ -1,6 +1,6 @@
 # 第4章：微前端架构实践 🏢
 
-> *"微前端不是银弹，但它是大型应用架构的有力武器！"* 🚀
+> _"微前端不是银弹，但它是大型应用架构的有力武器！"_ 🚀
 
 ## 📚 本章导览
 
@@ -77,16 +77,16 @@ interface MicroFrontendArchitecture {
     composition: '运行时组合，统一用户体验';
     autonomy: '团队自治，独立决策';
   };
-  
+
   // 架构组成
   components: {
-    shell: ShellApplication;      // 主应用/容器应用
-    micros: MicroApplication[];   // 微应用
-    router: MicroRouter;          // 路由系统
-    loader: MicroLoader;          // 加载器
+    shell: ShellApplication; // 主应用/容器应用
+    micros: MicroApplication[]; // 微应用
+    router: MicroRouter; // 路由系统
+    loader: MicroLoader; // 加载器
     communication: Communication; // 通信机制
   };
-  
+
   // 生命周期
   lifecycle: {
     bootstrap: '应用初始化';
@@ -104,7 +104,7 @@ const microFrontendBenefits = {
     examples: [
       '主应用使用React，子应用可以使用Vue、Angular',
       '新功能可以尝试新技术，无需重写整个应用',
-      '遗留系统可以逐步迁移，而不是一次性重写'
+      '遗留系统可以逐步迁移，而不是一次性重写',
     ],
     implementation: `
       // 主应用 (React)
@@ -127,9 +127,9 @@ const microFrontendBenefits = {
         template: '<order-list></order-list>'
       })
       class OrderMicroApp { }
-    `
+    `,
   },
-  
+
   // 2. 团队自治
   teamAutonomy: {
     benefit: '团队可以独立开发、测试、部署',
@@ -137,7 +137,7 @@ const microFrontendBenefits = {
       '减少团队间依赖',
       '提高开发效率',
       '降低沟通成本',
-      '支持并行开发'
+      '支持并行开发',
     ],
     organizationStructure: `
       团队组织结构:
@@ -157,34 +157,29 @@ const microFrontendBenefits = {
           ├── 用户管理
           ├── 权限控制
           └── 个人中心
-    `
+    `,
   },
-  
+
   // 3. 独立部署
   independentDeployment: {
     benefit: '微应用可以独立部署，不影响其他应用',
-    advantages: [
-      '降低部署风险',
-      '提高发布频率',
-      '支持灰度发布',
-      '快速回滚'
-    ],
+    advantages: ['降低部署风险', '提高发布频率', '支持灰度发布', '快速回滚'],
     deploymentStrategy: `
       部署策略:
       1. 独立构建: 每个微应用独立构建
       2. 版本管理: 独立的版本号和发布周期
       3. 环境隔离: 可以部署到不同环境
       4. 渐进发布: 支持蓝绿部署和金丝雀发布
-    `
+    `,
   },
-  
+
   // 4. 增量升级
   incrementalUpgrade: {
     benefit: '可以逐步升级技术栈，而不需要重写整个应用',
     strategies: [
       'Strangler Fig Pattern: 逐步替换旧功能',
       'Legacy Wrapper: 包装遗留系统',
-      'Progressive Migration: 渐进式迁移'
+      'Progressive Migration: 渐进式迁移',
     ],
     example: `
       // 遗留系统迁移示例
@@ -204,8 +199,8 @@ const microFrontendBenefits = {
         
         return <div id="legacy-app-container" />;
       };
-    `
-  }
+    `,
+  },
 };
 
 // 微前端挑战
@@ -217,33 +212,28 @@ const microFrontendChallenges = {
       '应用间通信复杂',
       '状态管理困难',
       '调试和监控复杂',
-      '性能优化挑战'
+      '性能优化挑战',
     ],
     mitigation: [
       '制定清晰的架构规范',
       '使用成熟的微前端框架',
       '建立完善的监控体系',
-      '提供开发工具支持'
-    ]
+      '提供开发工具支持',
+    ],
   },
-  
+
   // 2. 性能影响
   performance: {
     challenge: '可能带来性能开销',
-    issues: [
-      '重复加载依赖',
-      '运行时开销',
-      '网络请求增加',
-      '内存占用增加'
-    ],
+    issues: ['重复加载依赖', '运行时开销', '网络请求增加', '内存占用增加'],
     optimization: [
       '共享依赖库',
       '懒加载微应用',
       '缓存策略优化',
-      '代码分割优化'
-    ]
+      '代码分割优化',
+    ],
   },
-  
+
   // 3. 一致性维护
   consistency: {
     challenge: '保持用户体验一致性',
@@ -251,15 +241,15 @@ const microFrontendChallenges = {
       '设计系统一致性',
       '交互行为一致性',
       '性能表现一致性',
-      '错误处理一致性'
+      '错误处理一致性',
     ],
     solutions: [
       '统一的设计系统',
       '共享组件库',
       '统一的错误处理',
-      '性能监控标准'
-    ]
-  }
+      '性能监控标准',
+    ],
+  },
 };
 ```
 
@@ -296,16 +286,16 @@ const microFrontendPatterns = {
           <Route path="/users" component={UserApp} />
         </Router>
       );
-    `
+    `,
   },
-  
+
   // 2. 运行时集成 (Runtime Integration)
   runtimeIntegration: {
     description: '在运行时动态加载和集成微应用',
     pros: ['真正的独立部署', '技术栈无关', '灵活性高'],
     cons: ['复杂度高', '性能开销', '调试困难'],
     useCase: '大型团队，技术栈多样',
-    
+
     // 客户端集成
     clientSideIntegration: {
       description: '在浏览器中动态加载微应用',
@@ -343,9 +333,9 @@ const microFrontendPatterns = {
           
           return <div ref={containerRef} />;
         };
-      `
+      `,
     },
-    
+
     // 服务端集成
     serverSideIntegration: {
       description: '在服务端组合微应用的HTML',
@@ -371,18 +361,18 @@ const microFrontendPatterns = {
             </footer>
           </body>
         </html>
-      `
-    }
+      `,
+    },
   },
-  
+
   // 3. 边缘侧集成 (Edge-side Integration)
   edgeSideIntegration: {
     description: '在CDN边缘节点进行应用组合',
     pros: ['性能最优', '缓存友好', '全球分发'],
     cons: ['技术复杂', '调试困难', '成本较高'],
     useCase: '全球化应用，性能要求极高',
-    technologies: ['Edge Workers', 'Lambda@Edge', 'Cloudflare Workers']
-  }
+    technologies: ['Edge Workers', 'Lambda@Edge', 'Cloudflare Workers'],
+  },
 };
 ```
 
@@ -601,9 +591,9 @@ const microFrontendSuitability = {
         '减少团队间依赖',
         '支持并行开发',
         '降低沟通成本',
-        '提高开发效率'
+        '提高开发效率',
       ],
-      example: '电商平台：产品团队、订单团队、用户团队、支付团队'
+      example: '电商平台：产品团队、订单团队、用户团队、支付团队',
     },
 
     diverseTechStack: {
@@ -612,7 +602,7 @@ const microFrontendSuitability = {
         '遗留系统迁移',
         '技术栈试验',
         '团队技能差异',
-        '第三方系统集成'
+        '第三方系统集成',
       ],
       example: `
         // 不同技术栈的微应用
@@ -620,7 +610,7 @@ const microFrontendSuitability = {
         产品模块: Vue 3 + Composition API
         订单模块: Angular 15 + RxJS
         报表模块: 遗留jQuery应用
-      `
+      `,
     },
 
     independentDeployment: {
@@ -629,8 +619,8 @@ const microFrontendSuitability = {
         '不同发布周期',
         '独立回滚能力',
         '灰度发布需求',
-        '高可用要求'
-      ]
+        '高可用要求',
+      ],
     },
 
     businessDomainSeparation: {
@@ -639,9 +629,9 @@ const microFrontendSuitability = {
         '业务边界明确',
         '数据相对独立',
         '功能耦合度低',
-        '用户场景分离'
-      ]
-    }
+        '用户场景分离',
+      ],
+    },
   },
 
   // 不适合使用微前端的场景
@@ -652,8 +642,8 @@ const microFrontendSuitability = {
         '架构复杂度过高',
         '维护成本大于收益',
         '技术栈统一更简单',
-        '沟通成本可控'
-      ]
+        '沟通成本可控',
+      ],
     },
 
     simpleApplications: {
@@ -662,8 +652,8 @@ const microFrontendSuitability = {
         '功能相对简单',
         '业务逻辑不复杂',
         '用户量不大',
-        '性能要求不高'
-      ]
+        '性能要求不高',
+      ],
     },
 
     tightCoupling: {
@@ -672,8 +662,8 @@ const microFrontendSuitability = {
         '频繁的跨应用交互',
         '共享状态过多',
         '业务流程复杂',
-        '数据强依赖'
-      ]
+        '数据强依赖',
+      ],
     },
 
     performanceCritical: {
@@ -682,9 +672,9 @@ const microFrontendSuitability = {
         '加载时间敏感',
         '运行时性能要求',
         '内存使用限制',
-        '网络带宽限制'
-      ]
-    }
+        '网络带宽限制',
+      ],
+    },
   },
 
   // 决策框架
@@ -692,21 +682,21 @@ const microFrontendSuitability = {
     teamSize: {
       small: '< 5人 → 单体应用',
       medium: '5-20人 → 考虑微前端',
-      large: '> 20人 → 推荐微前端'
+      large: '> 20人 → 推荐微前端',
     },
 
     complexity: {
       low: '简单应用 → 单体应用',
       medium: '中等复杂度 → 模块化单体',
-      high: '高复杂度 → 微前端'
+      high: '高复杂度 → 微前端',
     },
 
     autonomy: {
       low: '团队协作紧密 → 单体应用',
       medium: '部分独立 → 模块化架构',
-      high: '完全自治 → 微前端'
-    }
-  }
+      high: '完全自治 → 微前端',
+    },
+  },
 };
 
 // 常见面试问题
@@ -719,22 +709,22 @@ const commonInterviewQuestions = {
         granularity: '业务功能级别',
         communication: 'HTTP/RPC/消息队列',
         deployment: '独立部署和扩展',
-        dataManagement: '独立数据库'
+        dataManagement: '独立数据库',
       },
       microfrontends: {
         scope: '前端应用架构',
         granularity: '用户界面级别',
         communication: '事件/Props/共享状态',
         deployment: '独立部署和加载',
-        stateManagement: '独立状态管理'
+        stateManagement: '独立状态管理',
       },
       similarities: [
         '都遵循单一职责原则',
         '都支持独立开发和部署',
         '都提高了系统的可维护性',
-        '都增加了架构复杂度'
-      ]
-    }
+        '都增加了架构复杂度',
+      ],
+    },
   },
 
   q2: {
@@ -751,7 +741,7 @@ const commonInterviewQuestions = {
               theme={currentTheme}
               onUserChange={handleUserChange}
             />
-          `
+          `,
         },
 
         events: {
@@ -767,7 +757,7 @@ const commonInterviewQuestions = {
             window.addEventListener('user-updated', (event) => {
               setUser(event.detail.user);
             });
-          `
+          `,
         },
 
         sharedState: {
@@ -785,7 +775,7 @@ const commonInterviewQuestions = {
             globalStore.subscribe('user', (user) => {
               updateLocalUser(user);
             });
-          `
+          `,
         },
 
         url: {
@@ -798,10 +788,10 @@ const commonInterviewQuestions = {
             // 微应用读取URL参数
             const searchParams = new URLSearchParams(location.search);
             const category = searchParams.get('category');
-          `
-        }
-      }
-    }
+          `,
+        },
+      },
+    },
   },
 
   q3: {
@@ -825,7 +815,7 @@ const commonInterviewQuestions = {
             const Button = () => (
               <button className={styles.button}>Click me</button>
             );
-          `
+          `,
         },
 
         styledComponents: {
@@ -840,7 +830,7 @@ const commonInterviewQuestions = {
               color: white;
               padding: 8px 16px;
             \`;
-          `
+          `,
         },
 
         shadowDOM: {
@@ -861,7 +851,7 @@ const commonInterviewQuestions = {
             }
 
             customElements.define('micro-app', MicroAppElement);
-          `
+          `,
         },
 
         namespace: {
@@ -876,10 +866,10 @@ const commonInterviewQuestions = {
             // 订单微应用样式
             .order-app .button { }
             .order-app .card { }
-          `
-        }
-      }
-    }
+          `,
+        },
+      },
+    },
   },
 
   q4: {
@@ -891,7 +881,7 @@ const commonInterviewQuestions = {
             '共享依赖库减少重复加载',
             '代码分割和懒加载',
             'Tree Shaking移除无用代码',
-            '压缩和混淆代码'
+            '压缩和混淆代码',
           ],
           example: `
             // 共享依赖配置
@@ -900,7 +890,7 @@ const commonInterviewQuestions = {
               'react-dom': { singleton: true, eager: true },
               lodash: { singleton: false } // 允许多版本
             }
-          `
+          `,
         },
 
         loadingOptimization: {
@@ -908,7 +898,7 @@ const commonInterviewQuestions = {
             '预加载关键微应用',
             '按需加载非关键应用',
             '并行加载多个应用',
-            '缓存策略优化'
+            '缓存策略优化',
           ],
           example: `
             // 预加载策略
@@ -919,7 +909,7 @@ const commonInterviewQuestions = {
               link.href = \`/apps/\${app}/index.js\`;
               document.head.appendChild(link);
             });
-          `
+          `,
         },
 
         runtimeOptimization: {
@@ -927,8 +917,8 @@ const commonInterviewQuestions = {
             '避免不必要的重渲染',
             '优化状态管理',
             '减少DOM操作',
-            '使用虚拟滚动'
-          ]
+            '使用虚拟滚动',
+          ],
         },
 
         networkOptimization: {
@@ -936,12 +926,12 @@ const commonInterviewQuestions = {
             'CDN分发静态资源',
             'HTTP/2推送关键资源',
             '资源压缩和缓存',
-            '减少网络请求数量'
-          ]
-        }
-      }
-    }
-  }
+            '减少网络请求数量',
+          ],
+        },
+      },
+    },
+  },
 };
 ```
 
@@ -954,6 +944,7 @@ const commonInterviewQuestions = {
 **任务**: 使用Module Federation将Mall-Frontend拆分为多个微应用。
 
 **要求**:
+
 - 主应用负责路由和布局
 - 产品、订单、用户分别为独立微应用
 - 实现共享依赖和组件库
@@ -964,6 +955,7 @@ const commonInterviewQuestions = {
 **任务**: 实现微前端间的通信机制，包括状态共享和事件通信。
 
 **要求**:
+
 - 实现全局状态管理
 - 支持事件总线通信
 - 处理跨应用的用户状态同步
@@ -974,6 +966,7 @@ const commonInterviewQuestions = {
 **任务**: 设计微前端的CI/CD流程和部署策略。
 
 **要求**:
+
 - 独立的构建和部署流程
 - 版本管理和回滚机制
 - 环境隔离和配置管理
@@ -1022,5 +1015,8 @@ const commonInterviewQuestions = {
 
 ---
 
-*下一章我们将学习《前端性能优化策略》，探索现代前端应用的性能优化技术！* 🚀
+_下一章我们将学习《前端性能优化策略》，探索现代前端应用的性能优化技术！_ 🚀
+
+```
+
 ```

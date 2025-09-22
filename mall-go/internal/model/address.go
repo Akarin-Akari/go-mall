@@ -18,7 +18,7 @@ type Address struct {
 	DetailAddress string        `gorm:"type:varchar(200);not null" json:"detail_address"`   // 详细地址
 	PostalCode   string         `gorm:"type:varchar(10)" json:"postal_code"`                // 邮政编码
 	IsDefault    bool           `gorm:"default:false" json:"is_default"`                    // 是否默认地址
-	AddressType  AddressType    `gorm:"type:enum('home','company','other');default:'home'" json:"address_type"` // 地址类型
+	AddressType  AddressType    `gorm:"type:varchar(20);default:'home'" json:"address_type"` // 地址类型
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

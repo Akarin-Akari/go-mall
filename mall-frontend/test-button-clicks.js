@@ -16,40 +16,40 @@ const mockProduct = {
   stock: 10,
   sales_count: 1500,
   rating: 4.5,
-  created_at: new Date().toISOString()
+  created_at: new Date().toISOString(),
 };
 
 // 测试ProductCard组件的props
 const testProductCardProps = {
   product: mockProduct,
-  onAddToCart: (product) => {
+  onAddToCart: product => {
     console.log('✅ onAddToCart 回调被正确调用:', product.name);
     return Promise.resolve();
   },
-  onViewDetail: (productId) => {
+  onViewDetail: productId => {
     console.log('✅ onViewDetail 回调被正确调用, productId:', productId);
   },
   showBadge: '热销',
-  badgeColor: '#ff4d4f'
+  badgeColor: '#ff4d4f',
 };
 
 // 测试路由函数
 const testRouterFunctions = {
-  push: (path) => {
+  push: path => {
     console.log('✅ router.push 被正确调用, path:', path);
   },
   back: () => {
     console.log('✅ router.back 被正确调用');
-  }
+  },
 };
 
 // 测试ROUTES常量
 const testRoutes = {
   HOME: '/',
   PRODUCTS: '/products',
-  PRODUCT_DETAIL: (id) => `/products/${id}`,
+  PRODUCT_DETAIL: id => `/products/${id}`,
   CART: '/cart',
-  CHECKOUT: '/checkout'
+  CHECKOUT: '/checkout',
 };
 
 console.log('📋 测试结果:');

@@ -1,8 +1,26 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Form, Input, Button, Card, Typography, Divider, Checkbox, message, Alert, Space } from 'antd';
-import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, LoadingOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Divider,
+  Checkbox,
+  message,
+  Alert,
+  Space,
+} from 'antd';
+import {
+  UserOutlined,
+  LockOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  LoadingOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -28,7 +46,12 @@ const LoginPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user, error, loading: authLoading } = useAppSelector(selectAuth);
+  const {
+    isAuthenticated,
+    user,
+    error,
+    loading: authLoading,
+  } = useAppSelector(selectAuth);
 
   // 获取重定向URL
   const redirectUrl = searchParams?.get('redirect') || ROUTES.HOME;
@@ -50,7 +73,9 @@ const LoginPage: React.FC = () => {
   // 防暴力破解：检查登录尝试次数
   useEffect(() => {
     const attempts = parseInt(localStorage.getItem('login_attempts') || '0');
-    const lastAttempt = parseInt(localStorage.getItem('last_login_attempt') || '0');
+    const lastAttempt = parseInt(
+      localStorage.getItem('last_login_attempt') || '0'
+    );
     const now = Date.now();
 
     // 如果超过5次失败，且在30分钟内，则阻止登录
@@ -94,7 +119,7 @@ const LoginPage: React.FC = () => {
       if (savedEmail) {
         form.setFieldsValue({
           email: savedEmail,
-          remember: true
+          remember: true,
         });
       }
     }
@@ -103,7 +128,9 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (values: LoginFormData) => {
     // 检查是否被阻止
     if (isBlocked) {
-      message.error(`登录尝试过多，请等待 ${Math.ceil(blockTimeLeft / 60)} 分钟后再试`);
+      message.error(
+        `登录尝试过多，请等待 ${Math.ceil(blockTimeLeft / 60)} 分钟后再试`
+      );
       return;
     }
 
@@ -150,7 +177,8 @@ const LoginPage: React.FC = () => {
           setBlockTimeLeft(30 * 60); // 30分钟
           message.error('登录失败次数过多，账户已被临时锁定30分钟');
         } else {
-          const errorMsg = result.payload as string || '登录失败，请检查邮箱和密码';
+          const errorMsg =
+            (result.payload as string) || '登录失败，请检查邮箱和密码';
           message.error(`${errorMsg} (剩余尝试次数: ${5 - newAttempts})`);
         }
       }
@@ -168,14 +196,16 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px',
+      }}
+    >
       <Card
         style={{
           width: '100%',
@@ -189,17 +219,15 @@ const LoginPage: React.FC = () => {
           <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
             🛒 Go商城
           </Title>
-          <Text type="secondary">
-            欢迎回来，请登录您的账户
-          </Text>
+          <Text type='secondary'>欢迎回来，请登录您的账户</Text>
         </div>
 
         {/* 错误提示 */}
         {error && (
           <Alert
-            message="登录失败"
+            message='登录失败'
             description={error}
-            type="error"
+            type='error'
             showIcon
             closable
             style={{ marginBottom: 16 }}
@@ -210,19 +238,20 @@ const LoginPage: React.FC = () => {
         {/* 安全提示 */}
         {isBlocked && (
           <Alert
-            message="账户临时锁定"
+            message='账户临时锁定'
             description={
-              <Space direction="vertical" size="small">
+              <Space direction='vertical' size='small'>
                 <Text>由于多次登录失败，您的账户已被临时锁定</Text>
                 <Text strong>
-                  剩余时间: {Math.floor(blockTimeLeft / 60)}分{blockTimeLeft % 60}秒
+                  剩余时间: {Math.floor(blockTimeLeft / 60)}分
+                  {blockTimeLeft % 60}秒
                 </Text>
-                <Text type="secondary">
+                <Text type='secondary'>
                   为了您的账户安全，请稍后再试或联系客服
                 </Text>
               </Space>
             }
-            type="warning"
+            type='warning'
             showIcon
             style={{ marginBottom: 16 }}
           />
@@ -233,7 +262,7 @@ const LoginPage: React.FC = () => {
           <Alert
             message={`登录失败 ${loginAttempts} 次`}
             description={`还有 ${5 - loginAttempts} 次尝试机会，超过5次将被临时锁定30分钟`}
-            type="info"
+            type='info'
             showIcon
             style={{ marginBottom: 16 }}
           />
@@ -241,16 +270,16 @@ const LoginPage: React.FC = () => {
 
         <Form
           form={form}
-          name="login"
+          name='login'
           onFinish={handleSubmit}
           onFinishFailed={handleFormFailed}
-          autoComplete="off"
-          size="large"
-          layout="vertical"
+          autoComplete='off'
+          size='large'
+          layout='vertical'
         >
           <Form.Item
-            name="email"
-            label="邮箱地址"
+            name='email'
+            label='邮箱地址'
             rules={[
               { required: true, message: '请输入邮箱地址' },
               { type: 'email', message: '请输入有效的邮箱地址' },
@@ -258,14 +287,14 @@ const LoginPage: React.FC = () => {
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="请输入邮箱地址"
-              autoComplete="email"
+              placeholder='请输入邮箱地址'
+              autoComplete='email'
             />
           </Form.Item>
 
           <Form.Item
-            name="password"
-            label="密码"
+            name='password'
+            label='密码'
             rules={[
               { required: true, message: '请输入密码' },
               { min: 6, message: '密码至少6位字符' },
@@ -273,18 +302,26 @@ const LoginPage: React.FC = () => {
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="请输入密码"
-              autoComplete="current-password"
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              placeholder='请输入密码'
+              autoComplete='current-password'
+              iconRender={visible =>
+                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+              }
             />
           </Form.Item>
 
           <Form.Item>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Form.Item name="remember" valuePropName="checked" noStyle>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Form.Item name='remember' valuePropName='checked' noStyle>
                 <Checkbox>记住登录状态</Checkbox>
               </Form.Item>
-              <Link href="/forgot-password" style={{ color: '#1890ff' }}>
+              <Link href='/forgot-password' style={{ color: '#1890ff' }}>
                 忘记密码？
               </Link>
             </div>
@@ -292,12 +329,18 @@ const LoginPage: React.FC = () => {
 
           <Form.Item style={{ marginBottom: 16 }}>
             <Button
-              type="primary"
-              htmlType="submit"
+              type='primary'
+              htmlType='submit'
               loading={loading || authLoading}
               disabled={isBlocked}
               block
-              icon={loading || authLoading ? <LoadingOutlined /> : <SafetyCertificateOutlined />}
+              icon={
+                loading || authLoading ? (
+                  <LoadingOutlined />
+                ) : (
+                  <SafetyCertificateOutlined />
+                )
+              }
               style={{
                 height: 48,
                 fontSize: 16,
@@ -308,56 +351,65 @@ const LoginPage: React.FC = () => {
                 ? `账户锁定中 (${Math.floor(blockTimeLeft / 60)}:${String(blockTimeLeft % 60).padStart(2, '0')})`
                 : loading || authLoading
                   ? '登录中...'
-                  : '安全登录'
-              }
+                  : '安全登录'}
             </Button>
           </Form.Item>
 
           {/* 安全提示 */}
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type='secondary' style={{ fontSize: 12 }}>
               <SafetyCertificateOutlined style={{ marginRight: 4 }} />
               您的登录信息将被加密传输
             </Text>
           </div>
 
           <Divider>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type='secondary' style={{ fontSize: 12 }}>
               其他登录方式
             </Text>
           </Divider>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 24 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 16,
+              marginBottom: 24,
+            }}
+          >
             <Button
-              shape="circle"
-              size="large"
+              shape='circle'
+              size='large'
               style={{ border: '1px solid #d9d9d9' }}
-              title="微信登录"
+              title='微信登录'
             >
               💬
             </Button>
             <Button
-              shape="circle"
-              size="large"
+              shape='circle'
+              size='large'
               style={{ border: '1px solid #d9d9d9' }}
-              title="QQ登录"
+              title='QQ登录'
             >
               🐧
             </Button>
             <Button
-              shape="circle"
-              size="large"
+              shape='circle'
+              size='large'
               style={{ border: '1px solid #d9d9d9' }}
-              title="支付宝登录"
+              title='支付宝登录'
             >
               💰
             </Button>
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">
+            <Text type='secondary'>
               还没有账户？{' '}
-              <Link href={ROUTES.REGISTER} style={{ color: '#1890ff', fontWeight: 500 }}>
+              <Link
+                href={ROUTES.REGISTER}
+                style={{ color: '#1890ff', fontWeight: 500 }}
+              >
                 立即注册
               </Link>
             </Text>

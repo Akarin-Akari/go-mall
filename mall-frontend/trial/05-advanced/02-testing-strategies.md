@@ -1,6 +1,6 @@
 # 第2章：测试策略与质量保证 🧪
 
-> *"测试不是为了证明代码没有bug，而是为了建立对代码的信心！"* 🚀
+> _"测试不是为了证明代码没有bug，而是为了建立对代码的信心！"_ 🚀
 
 ## 📚 本章导览
 
@@ -81,16 +81,11 @@ interface TestingPyramid {
       '成本低',
       '易于维护',
       '反馈及时',
-      '隔离性强'
+      '隔离性强',
     ];
-    examples: [
-      '纯函数测试',
-      '组件渲染测试',
-      '工具函数测试',
-      'Hook测试'
-    ];
+    examples: ['纯函数测试', '组件渲染测试', '工具函数测试', 'Hook测试'];
   };
-  
+
   // 集成测试 (Integration Tests) - 金字塔中层
   integrationTests: {
     proportion: '20%';
@@ -99,16 +94,11 @@ interface TestingPyramid {
       '运行速度中等',
       '成本中等',
       '覆盖交互逻辑',
-      '发现接口问题'
+      '发现接口问题',
     ];
-    examples: [
-      'API集成测试',
-      '组件交互测试',
-      '状态管理测试',
-      '路由测试'
-    ];
+    examples: ['API集成测试', '组件交互测试', '状态管理测试', '路由测试'];
   };
-  
+
   // 端到端测试 (E2E Tests) - 金字塔顶层
   e2eTests: {
     proportion: '10%';
@@ -118,14 +108,9 @@ interface TestingPyramid {
       '成本高',
       '维护复杂',
       '最接近真实使用',
-      '发现系统性问题'
+      '发现系统性问题',
     ];
-    examples: [
-      '用户注册流程',
-      '购买流程',
-      '支付流程',
-      '关键业务路径'
-    ];
+    examples: ['用户注册流程', '购买流程', '支付流程', '关键业务路径'];
   };
 }
 
@@ -137,64 +122,64 @@ const testingCategories = {
       definition: '测试单个组件或函数',
       tools: ['Jest', 'Vitest', 'React Testing Library'],
       benefits: ['快速反馈', '易于调试', '成本低'],
-      challenges: ['无法发现集成问题', '可能过度mock']
+      challenges: ['无法发现集成问题', '可能过度mock'],
     },
-    
+
     integrationTesting: {
       definition: '测试多个组件或模块的交互',
       tools: ['Jest', 'React Testing Library', 'MSW'],
       benefits: ['发现接口问题', '验证数据流', '真实性更高'],
-      challenges: ['设置复杂', '运行较慢', '调试困难']
+      challenges: ['设置复杂', '运行较慢', '调试困难'],
     },
-    
+
     systemTesting: {
       definition: '测试完整系统功能',
       tools: ['Cypress', 'Playwright', 'Selenium'],
       benefits: ['最接近用户体验', '发现系统问题', '验证完整流程'],
-      challenges: ['运行很慢', '维护成本高', '环境依赖强']
-    }
+      challenges: ['运行很慢', '维护成本高', '环境依赖强'],
+    },
   },
-  
+
   // 按测试目的分类
   byPurpose: {
     functionalTesting: {
       description: '验证功能是否按预期工作',
-      types: ['单元测试', '集成测试', '系统测试', '验收测试']
+      types: ['单元测试', '集成测试', '系统测试', '验收测试'],
     },
-    
+
     nonFunctionalTesting: {
       description: '验证非功能性需求',
-      types: ['性能测试', '安全测试', '可用性测试', '兼容性测试']
+      types: ['性能测试', '安全测试', '可用性测试', '兼容性测试'],
     },
-    
+
     regressionTesting: {
       description: '确保新变更不破坏现有功能',
-      strategies: ['自动化回归测试', '选择性回归测试', '完整回归测试']
-    }
+      strategies: ['自动化回归测试', '选择性回归测试', '完整回归测试'],
+    },
   },
-  
+
   // 按测试方法分类
   byMethod: {
     blackBoxTesting: {
       description: '不关注内部实现，只测试输入输出',
       techniques: ['等价类划分', '边界值分析', '决策表测试'],
       advantages: ['独立于实现', '用户视角', '易于理解'],
-      disadvantages: ['覆盖率难保证', '无法测试内部逻辑']
+      disadvantages: ['覆盖率难保证', '无法测试内部逻辑'],
     },
-    
+
     whiteBoxTesting: {
       description: '基于代码内部结构进行测试',
       techniques: ['语句覆盖', '分支覆盖', '路径覆盖'],
       advantages: ['覆盖率高', '能测试内部逻辑', '发现隐藏bug'],
-      disadvantages: ['依赖实现', '维护成本高', '可能过度测试']
+      disadvantages: ['依赖实现', '维护成本高', '可能过度测试'],
     },
-    
+
     grayBoxTesting: {
       description: '结合黑盒和白盒测试的优点',
       applications: ['集成测试', 'API测试', '系统测试'],
-      benefits: ['平衡覆盖率和维护性', '更真实的测试场景']
-    }
-  }
+      benefits: ['平衡覆盖率和维护性', '更真实的测试场景'],
+    },
+  },
 };
 
 // 测试策略制定
@@ -207,7 +192,7 @@ const testingStrategy = {
       '变更频率',
       '复杂度',
       '历史缺陷密度',
-      '用户使用频率'
+      '用户使用频率',
     ],
     implementation: `
       // 风险评估矩阵
@@ -245,9 +230,9 @@ const testingStrategy = {
         productReviews: 'low',         // 产品评价
         wishlist: 'low'                // 愿望清单
       };
-    `
+    `,
   },
-  
+
   // 测试左移策略
   shiftLeftTesting: {
     principle: '在开发生命周期早期引入测试',
@@ -256,53 +241,48 @@ const testingStrategy = {
       '设计阶段的测试用例设计',
       '编码阶段的TDD实践',
       '代码审查中的测试审查',
-      '持续集成中的自动化测试'
+      '持续集成中的自动化测试',
     ],
-    benefits: [
-      '早期发现缺陷',
-      '降低修复成本',
-      '提高代码质量',
-      '加快交付速度'
-    ]
+    benefits: ['早期发现缺陷', '降低修复成本', '提高代码质量', '加快交付速度'],
   },
-  
+
   // 测试自动化策略
   testAutomationStrategy: {
     automationPyramid: {
       unitTests: {
         automationLevel: '100%',
-        rationale: '成本低，收益高，易于维护'
+        rationale: '成本低，收益高，易于维护',
       },
       integrationTests: {
         automationLevel: '80%',
-        rationale: '大部分可自动化，少量需要手工验证'
+        rationale: '大部分可自动化，少量需要手工验证',
       },
       e2eTests: {
         automationLevel: '60%',
-        rationale: '关键路径自动化，边缘场景手工测试'
+        rationale: '关键路径自动化，边缘场景手工测试',
       },
       exploratoryTests: {
         automationLevel: '0%',
-        rationale: '需要人工智能和创造性思维'
-      }
+        rationale: '需要人工智能和创造性思维',
+      },
     },
-    
+
     automationCriteria: [
       '重复执行的测试',
       '回归测试',
       '数据驱动的测试',
       '性能测试',
-      '大量数据的测试'
+      '大量数据的测试',
     ],
-    
+
     manualTestingCriteria: [
       '探索性测试',
       '可用性测试',
       '一次性测试',
       '复杂的用户体验测试',
-      '需要人工判断的测试'
-    ]
-  }
+      '需要人工判断的测试',
+    ],
+  },
 };
 ```
 
@@ -335,7 +315,7 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Rich',
     typescript: 'Good',
     maintenance: 'Active',
-    learningCurve: 'Low'
+    learningCurve: 'Low',
   },
   {
     name: 'Vitest',
@@ -345,7 +325,7 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Growing',
     typescript: 'Native',
     maintenance: 'Active',
-    learningCurve: 'Low'
+    learningCurve: 'Low',
   },
   {
     name: 'Mocha',
@@ -355,7 +335,7 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Rich',
     typescript: 'Good',
     maintenance: 'Stable',
-    learningCurve: 'Medium'
+    learningCurve: 'Medium',
   },
 
   // E2E测试框架
@@ -367,7 +347,7 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Rich',
     typescript: 'Good',
     maintenance: 'Active',
-    learningCurve: 'Low'
+    learningCurve: 'Low',
   },
   {
     name: 'Playwright',
@@ -377,7 +357,7 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Growing',
     typescript: 'Native',
     maintenance: 'Active',
-    learningCurve: 'Medium'
+    learningCurve: 'Medium',
   },
   {
     name: 'Puppeteer',
@@ -387,8 +367,8 @@ const testingFrameworksComparison: TestingFrameworkComparison[] = [
     ecosystem: 'Rich',
     typescript: 'Good',
     maintenance: 'Active',
-    learningCurve: 'High'
-  }
+    learningCurve: 'High',
+  },
 ];
 
 // 详细工具对比
@@ -402,20 +382,10 @@ const detailedToolComparison = {
         '强大的mock功能',
         '快照测试支持',
         '代码覆盖率内置',
-        '社区支持强大'
+        '社区支持强大',
       ],
-      cons: [
-        '启动速度较慢',
-        '配置复杂度高',
-        'ESM支持不完善',
-        '内存占用较大'
-      ],
-      bestFor: [
-        'React项目',
-        '大型项目',
-        '需要稳定性的项目',
-        '团队经验丰富'
-      ],
+      cons: ['启动速度较慢', '配置复杂度高', 'ESM支持不完善', '内存占用较大'],
+      bestFor: ['React项目', '大型项目', '需要稳定性的项目', '团队经验丰富'],
       configuration: `
         // jest.config.js
         module.exports = {
@@ -442,7 +412,7 @@ const detailedToolComparison = {
             '^.+\\.(ts|tsx)$': 'ts-jest'
           }
         };
-      `
+      `,
     },
 
     vitest: {
@@ -452,20 +422,15 @@ const detailedToolComparison = {
         '与Vite完美集成',
         'ESM原生支持',
         '热重载测试',
-        '现代化API设计'
+        '现代化API设计',
       ],
       cons: [
         '生态相对较新',
         '社区资源有限',
         '某些功能还在完善',
-        '企业采用度较低'
+        '企业采用度较低',
       ],
-      bestFor: [
-        'Vite项目',
-        '新项目',
-        '性能敏感项目',
-        '现代化技术栈'
-      ],
+      bestFor: ['Vite项目', '新项目', '性能敏感项目', '现代化技术栈'],
       configuration: `
         // vitest.config.ts
         import { defineConfig } from 'vitest/config';
@@ -494,8 +459,8 @@ const detailedToolComparison = {
             }
           }
         });
-      `
-    }
+      `,
+    },
   },
 
   // Cypress vs Playwright
@@ -507,20 +472,15 @@ const detailedToolComparison = {
         '丰富的断言库',
         '时间旅行调试',
         '自动等待机制',
-        '强大的社区插件'
+        '强大的社区插件',
       ],
       cons: [
         '只支持Chromium系浏览器',
         '不支持多标签页',
         'iframe支持有限',
-        '文件上传下载复杂'
+        '文件上传下载复杂',
       ],
-      bestFor: [
-        '单页应用测试',
-        '快速原型验证',
-        '开发阶段测试',
-        '团队协作测试'
-      ],
+      bestFor: ['单页应用测试', '快速原型验证', '开发阶段测试', '团队协作测试'],
       example: `
         // cypress/e2e/product-purchase.cy.ts
         describe('Product Purchase Flow', () => {
@@ -559,7 +519,7 @@ const detailedToolComparison = {
             cy.url().should('include', '/order-confirmation');
           });
         });
-      `
+      `,
     },
 
     playwright: {
@@ -569,20 +529,10 @@ const detailedToolComparison = {
         '强大的网络拦截',
         '移动设备模拟',
         '自动等待机制',
-        '原生TypeScript支持'
+        '原生TypeScript支持',
       ],
-      cons: [
-        '学习曲线较陡',
-        '调试体验一般',
-        '社区生态较新',
-        '配置相对复杂'
-      ],
-      bestFor: [
-        '跨浏览器测试',
-        '大规模E2E测试',
-        'CI/CD集成',
-        '企业级应用'
-      ],
+      cons: ['学习曲线较陡', '调试体验一般', '社区生态较新', '配置相对复杂'],
+      bestFor: ['跨浏览器测试', '大规模E2E测试', 'CI/CD集成', '企业级应用'],
       example: `
         // tests/product-purchase.spec.ts
         import { test, expect } from '@playwright/test';
@@ -628,8 +578,8 @@ const detailedToolComparison = {
             await expect(page).toHaveURL(/.*order-confirmation.*/);
           });
         });
-      `
-    }
+      `,
+    },
   },
 
   // React Testing Library vs Enzyme
@@ -641,13 +591,9 @@ const detailedToolComparison = {
         '专注于用户行为',
         '维护成本低',
         '与React版本无关',
-        '简单易学'
+        '简单易学',
       ],
-      cons: [
-        '无法测试组件内部状态',
-        '某些复杂场景测试困难',
-        '调试信息有限'
-      ],
+      cons: ['无法测试组件内部状态', '某些复杂场景测试困难', '调试信息有限'],
       example: `
         // ProductCard.test.tsx
         import { render, screen, fireEvent } from '@testing-library/react';
@@ -682,27 +628,22 @@ const detailedToolComparison = {
             expect(mockOnAddToCart).toHaveBeenCalledWith(mockProduct);
           });
         });
-      `
+      `,
     },
 
     enzyme: {
       philosophy: '提供完整的组件测试API，包括内部状态访问',
-      pros: [
-        '功能强大',
-        '可以测试组件内部状态',
-        '灵活的API',
-        '详细的调试信息'
-      ],
+      pros: ['功能强大', '可以测试组件内部状态', '灵活的API', '详细的调试信息'],
       cons: [
         '维护成本高',
         '与React版本强耦合',
         '鼓励测试实现细节',
         '学习曲线陡峭',
-        '已停止维护'
+        '已停止维护',
       ],
-      status: 'DEPRECATED - 不推荐在新项目中使用'
-    }
-  }
+      status: 'DEPRECATED - 不推荐在新项目中使用',
+    },
+  },
 };
 ```
 
@@ -768,7 +709,7 @@ const componentTestingBestPractices = {
           expect(defaultImage).toHaveAttribute('src', '/images/default-product.jpg');
         });
       });
-    `
+    `,
   },
 
   // 2. 测试用户交互
@@ -849,7 +790,7 @@ const componentTestingBestPractices = {
           expect(mockOnAddToCart).toHaveBeenCalledWith(mockProduct);
         });
       });
-    `
+    `,
   },
 
   // 3. 测试条件渲染
@@ -904,8 +845,8 @@ const componentTestingBestPractices = {
           })).toBeInTheDocument();
         });
       });
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -927,58 +868,43 @@ const testingPyramidExplanation = {
       proportion: '70%',
       characteristics: ['快速', '稳定', '成本低', '易维护'],
       purpose: '验证单个组件或函数的正确性',
-      examples: [
-        '纯函数测试',
-        '组件渲染测试',
-        'Hook逻辑测试',
-        '工具函数测试'
-      ]
+      examples: ['纯函数测试', '组件渲染测试', 'Hook逻辑测试', '工具函数测试'],
     },
 
     integrationTests: {
       proportion: '20%',
       characteristics: ['中等速度', '中等成本', '发现接口问题'],
       purpose: '验证模块间的交互和数据流',
-      examples: [
-        'API集成测试',
-        '组件交互测试',
-        '状态管理测试',
-        '路由测试'
-      ]
+      examples: ['API集成测试', '组件交互测试', '状态管理测试', '路由测试'],
     },
 
     e2eTests: {
       proportion: '10%',
       characteristics: ['慢速', '高成本', '最真实', '易碎'],
       purpose: '验证完整的用户流程',
-      examples: [
-        '用户注册流程',
-        '购买流程',
-        '支付流程',
-        '关键业务路径'
-      ]
-    }
+      examples: ['用户注册流程', '购买流程', '支付流程', '关键业务路径'],
+    },
   },
 
   benefits: [
     '快速反馈：大部分问题在单元测试阶段发现',
     '成本控制：避免过度依赖昂贵的E2E测试',
     '稳定性：减少测试的脆弱性和维护成本',
-    '覆盖率：确保代码的全面测试覆盖'
+    '覆盖率：确保代码的全面测试覆盖',
   ],
 
   antiPatterns: {
     iceCreamCone: {
       description: '倒置的测试金字塔，过度依赖E2E测试',
-      problems: ['反馈慢', '成本高', '维护困难', '调试复杂']
+      problems: ['反馈慢', '成本高', '维护困难', '调试复杂'],
     },
 
     testingTrophy: {
       description: '更重视集成测试的现代测试策略',
       rationale: '集成测试能更好地发现真实问题',
-      balance: '在单元测试和E2E测试之间找到平衡'
-    }
-  }
+      balance: '在单元测试和E2E测试之间找到平衡',
+    },
+  },
 };
 ```
 
@@ -994,13 +920,13 @@ const jestVsVitestComparison = {
     jest: {
       startup: '较慢（需要编译转换）',
       execution: '中等（成熟优化）',
-      memory: '较高（功能丰富）'
+      memory: '较高（功能丰富）',
     },
     vitest: {
       startup: '极快（原生ESM）',
       execution: '快速（现代架构）',
-      memory: '较低（轻量设计）'
-    }
+      memory: '较低（轻量设计）',
+    },
   },
 
   ecosystem: {
@@ -1008,14 +934,14 @@ const jestVsVitestComparison = {
       maturity: '非常成熟',
       plugins: '丰富的插件生态',
       community: '庞大的社区支持',
-      documentation: '完善的文档'
+      documentation: '完善的文档',
     },
     vitest: {
       maturity: '相对较新',
       plugins: '快速增长的生态',
       community: '活跃但较小',
-      documentation: '现代化文档'
-    }
+      documentation: '现代化文档',
+    },
   },
 
   features: {
@@ -1023,14 +949,14 @@ const jestVsVitestComparison = {
       snapshot: '内置快照测试',
       mocking: '强大的mock功能',
       coverage: '内置覆盖率报告',
-      watch: '文件监听模式'
+      watch: '文件监听模式',
     },
     vitest: {
       snapshot: '兼容Jest快照',
       mocking: '现代化mock API',
       coverage: '多种覆盖率提供者',
-      watch: '热重载测试'
-    }
+      watch: '热重载测试',
+    },
   },
 
   decisionMatrix: {
@@ -1039,7 +965,7 @@ const jestVsVitestComparison = {
       '需要稳定性保证',
       '团队熟悉Jest',
       '使用Create React App',
-      '需要丰富的插件生态'
+      '需要丰富的插件生态',
     ],
 
     chooseVitest: [
@@ -1047,9 +973,9 @@ const jestVsVitestComparison = {
       '新项目或重构项目',
       '性能要求高',
       '喜欢现代化工具',
-      'TypeScript原生支持需求'
-    ]
-  }
+      'TypeScript原生支持需求',
+    ],
+  },
 };
 ```
 
@@ -1071,7 +997,7 @@ const reactComponentTestingBestPractices = {
 
         // ✅ 正确：测试用户可见的行为
         expect(screen.getByText('Loading...')).toBeInTheDocument();
-      `
+      `,
     },
 
     accessibilityFirst: {
@@ -1084,8 +1010,8 @@ const reactComponentTestingBestPractices = {
         'getByDisplayValue() - 表单值',
         'getByAltText() - 图片',
         'getByTitle() - 标题属性',
-        'getByTestId() - 最后选择'
-      ]
+        'getByTestId() - 最后选择',
+      ],
     },
 
     isolationPrinciple: {
@@ -1094,9 +1020,9 @@ const reactComponentTestingBestPractices = {
         '使用beforeEach清理状态',
         '避免测试间的依赖',
         'mock外部依赖',
-        '使用测试数据工厂'
-      ]
-    }
+        '使用测试数据工厂',
+      ],
+    },
   },
 
   // 常见测试场景
@@ -1114,7 +1040,7 @@ const reactComponentTestingBestPractices = {
           rerender(<Button variant="primary">Click me</Button>);
           expect(screen.getByRole('button')).toHaveClass('btn-primary');
         });
-      `
+      `,
     },
 
     eventHandling: {
@@ -1130,7 +1056,7 @@ const reactComponentTestingBestPractices = {
 
           expect(handleClick).toHaveBeenCalledTimes(1);
         });
-      `
+      `,
     },
 
     asyncBehavior: {
@@ -1152,9 +1078,9 @@ const reactComponentTestingBestPractices = {
 
           expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
         });
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1172,14 +1098,14 @@ const mockingBestPractices = {
     '复杂的依赖',
     '不稳定的服务',
     '昂贵的操作',
-    '难以重现的场景'
+    '难以重现的场景',
   ],
 
   whenNotToMock: [
     '被测试的核心逻辑',
     '简单的工具函数',
     '稳定的内部模块',
-    '测试的主要路径'
+    '测试的主要路径',
   ],
 
   mockingStrategies: {
@@ -1196,7 +1122,7 @@ const mockingBestPractices = {
           .mockResolvedValueOnce({ data: 'first call' })
           .mockResolvedValueOnce({ data: 'second call' })
           .mockRejectedValueOnce(new Error('API Error'));
-      `
+      `,
     },
 
     moduleMocking: {
@@ -1211,7 +1137,7 @@ const mockingBestPractices = {
             data: { products: [] }
           });
         });
-      `
+      `,
     },
 
     partialMocking: {
@@ -1222,9 +1148,9 @@ const mockingBestPractices = {
           ...jest.requireActual('../utils/api'),
           fetchProducts: jest.fn()
         }));
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1237,6 +1163,7 @@ const mockingBestPractices = {
 **任务**: 为Mall-Frontend的ProductCard组件编写完整的测试套件。
 
 **要求**:
+
 - 测试所有props的处理
 - 测试用户交互行为
 - 测试条件渲染逻辑
@@ -1248,6 +1175,7 @@ const mockingBestPractices = {
 **任务**: 为产品搜索功能编写集成测试。
 
 **要求**:
+
 - 使用MSW模拟API响应
 - 测试成功和失败场景
 - 测试加载状态
@@ -1259,6 +1187,7 @@ const mockingBestPractices = {
 **任务**: 编写完整的购买流程E2E测试。
 
 **要求**:
+
 - 使用Cypress或Playwright
 - 覆盖从搜索到支付的完整流程
 - 包含错误场景测试
@@ -1308,7 +1237,12 @@ const mockingBestPractices = {
 
 ---
 
-*下一章我们将学习《CI/CD与自动化部署》，探索现代前端工程化的完整流程！* 🚀
+_下一章我们将学习《CI/CD与自动化部署》，探索现代前端工程化的完整流程！_ 🚀
+
 ```
+
 ```
+
+```
+
 ```

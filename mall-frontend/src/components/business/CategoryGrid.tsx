@@ -23,33 +23,33 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
   categories,
   onCategoryClick,
   loading = false,
-  columns = { xs: 2, sm: 3, md: 4, lg: 6, xl: 6 }
+  columns = { xs: 2, sm: 3, md: 4, lg: 6, xl: 6 },
 }) => {
   // 分类图标映射
   const getCategoryIcon = (categoryName: string) => {
     const iconMap: { [key: string]: string } = {
-      '电子产品': '📱',
-      '服装鞋帽': '👕',
-      '家居用品': '🏠',
-      '美妆护肤': '💄',
-      '运动户外': '⚽',
-      '图书音像': '📚',
-      '食品饮料': '🍎',
-      '母婴用品': '👶',
-      '汽车用品': '🚗',
-      '办公用品': '📝',
-      '数码配件': '🔌',
-      '家用电器': '🔌',
-      '手机通讯': '📞',
-      '电脑办公': '💻',
-      '家装建材': '🔨',
-      '珠宝首饰': '💎',
-      '钟表眼镜': '⌚',
-      '玩具乐器': '🎮',
-      '宠物用品': '🐕',
-      '医疗保健': '💊'
+      电子产品: '📱',
+      服装鞋帽: '👕',
+      家居用品: '🏠',
+      美妆护肤: '💄',
+      运动户外: '⚽',
+      图书音像: '📚',
+      食品饮料: '🍎',
+      母婴用品: '👶',
+      汽车用品: '🚗',
+      办公用品: '📝',
+      数码配件: '🔌',
+      家用电器: '🔌',
+      手机通讯: '📞',
+      电脑办公: '💻',
+      家装建材: '🔨',
+      珠宝首饰: '💎',
+      钟表眼镜: '⌚',
+      玩具乐器: '🎮',
+      宠物用品: '🐕',
+      医疗保健: '💊',
     };
-    
+
     return iconMap[categoryName] || '📦';
   };
 
@@ -60,8 +60,8 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
 
   return (
     <Row gutter={[16, 16]}>
-      {categories.map((category) => (
-        <Col 
+      {categories.map(category => (
+        <Col
           key={category.id}
           xs={columns.xs ? 24 / columns.xs : 12}
           sm={columns.sm ? 24 / columns.sm : 8}
@@ -77,38 +77,38 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
               borderRadius: 8,
               border: '1px solid #f0f0f0',
               transition: 'all 0.3s ease',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
-            bodyStyle={{ 
+            bodyStyle={{
               padding: '20px 16px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: 120
+              minHeight: 120,
             }}
             onClick={() => handleCategoryClick(category)}
           >
             {/* 分类图标 */}
-            <div 
-              style={{ 
-                fontSize: 32, 
+            <div
+              style={{
+                fontSize: 32,
                 marginBottom: 8,
-                transition: 'transform 0.3s ease'
+                transition: 'transform 0.3s ease',
               }}
-              className="category-icon"
+              className='category-icon'
             >
               {category.icon || getCategoryIcon(category.name)}
             </div>
 
             {/* 分类名称 */}
-            <Title 
-              level={5} 
-              style={{ 
-                margin: 0, 
+            <Title
+              level={5}
+              style={{
+                margin: 0,
                 marginBottom: 4,
                 fontSize: 14,
-                fontWeight: 500
+                fontWeight: 500,
               }}
             >
               {category.name}
@@ -116,11 +116,11 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
 
             {/* 商品数量 */}
             {category.product_count !== undefined && (
-              <Text 
-                type="secondary" 
-                style={{ 
+              <Text
+                type='secondary'
+                style={{
                   fontSize: 12,
-                  opacity: 0.8
+                  opacity: 0.8,
                 }}
               >
                 {category.product_count} 件商品
@@ -129,9 +129,9 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
 
             {/* 分类描述 */}
             {category.description && (
-              <Text 
-                type="secondary" 
-                style={{ 
+              <Text
+                type='secondary'
+                style={{
                   fontSize: 11,
                   marginTop: 4,
                   textAlign: 'center',
@@ -139,7 +139,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
                 }}
               >
                 {category.description}
@@ -153,7 +153,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
         :global(.ant-card:hover .category-icon) {
           transform: scale(1.1);
         }
-        
+
         :global(.ant-card:hover) {
           border-color: #1890ff;
           box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);

@@ -43,16 +43,23 @@ export const fetchCartAsync = createAsyncThunk(
 
 export const addToCartAsync = createAsyncThunk(
   'cart/addToCart',
-  async (data: {
-    product_id: number;
-    sku_id?: number;
-    quantity: number;
-  }, { rejectWithValue }) => {
+  async (
+    data: {
+      product_id: number;
+      sku_id?: number;
+      quantity: number;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       // 在开发环境使用模拟数据
       if (process.env.NODE_ENV === 'development') {
         const { mockCartAPI } = await import('@/data/mockCart');
-        return await mockCartAPI.addToCart(params.product_id, params.sku_id || 0, params.quantity);
+        return await mockCartAPI.addToCart(
+          data.product_id,
+          data.sku_id || 0,
+          data.quantity
+        );
       }
 
       // 生产环境使用真实API
@@ -66,11 +73,14 @@ export const addToCartAsync = createAsyncThunk(
 
 export const updateCartItemAsync = createAsyncThunk(
   'cart/updateCartItem',
-  async (data: {
-    id: number;
-    quantity: number;
-    selected?: boolean;
-  }, { rejectWithValue }) => {
+  async (
+    data: {
+      id: number;
+      quantity: number;
+      selected?: boolean;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       // 在开发环境使用模拟数据
       if (process.env.NODE_ENV === 'development') {
@@ -152,25 +162,29 @@ const cartSlice = createSlice({
     // 本地添加商品到购物车
     addItemLocal: (state, action: PayloadAction<CartItem>) => {
       const existingItem = state.items.find(
-        item => item.product_id === action.payload.product_id && 
-                item.sku_id === action.payload.sku_id
+        item =>
+          item.product_id === action.payload.product_id &&
+          item.sku_id === action.payload.sku_id
       );
-      
+
       if (existingItem) {
         existingItem.quantity += action.payload.quantity;
       } else {
         state.items.push(action.payload);
       }
-      
+
       cartSlice.caseReducers.calculateTotals(state);
     },
-    
+
     // 本地更新购物车商品
-    updateItemLocal: (state, action: PayloadAction<{
-      id: number;
-      quantity?: number;
-      selected?: boolean;
-    }>) => {
+    updateItemLocal: (
+      state,
+      action: PayloadAction<{
+        id: number;
+        quantity?: number;
+        selected?: boolean;
+      }>
+    ) => {
       const item = state.items.find(item => item.id === action.payload.id);
       if (item) {
         if (action.payload.quantity !== undefined) {
@@ -180,25 +194,28 @@ const cartSlice = createSlice({
           item.selected = action.payload.selected;
         }
       }
-      
+
       cartSlice.caseReducers.calculateTotals(state);
     },
-    
+
     // 本地删除购物车商品
     removeItemLocal: (state, action: PayloadAction<number>) => {
       state.items = state.items.filter(item => item.id !== action.payload);
       cartSlice.caseReducers.calculateTotals(state);
     },
-    
+
     // 本地清空购物车
-    clearCartLocal: (state) => {
+    clearCartLocal: state => {
       state.items = [];
       state.total_amount = '0.00';
       state.total_quantity = 0;
     },
-    
+
     // 切换单个商品选择状态
-    toggleSelectItem: (state, action: PayloadAction<{ item_id: number; selected: boolean }>) => {
+    toggleSelectItem: (
+      state,
+      action: PayloadAction<{ item_id: number; selected: boolean }>
+    ) => {
       const item = state.items.find(item => item.id === action.payload.item_id);
       if (item) {
         item.selected = action.payload.selected;
@@ -213,20 +230,23 @@ const cartSlice = createSlice({
       });
       cartSlice.caseReducers.calculateTotals(state);
     },
-    
+
     // 计算总计
-    calculateTotals: (state) => {
+    calculateTotals: state => {
       const selectedItems = state.items.filter(item => item.selected);
-      
-      state.total_quantity = selectedItems.reduce((total, item) => total + item.quantity, 0);
-      
+
+      state.total_quantity = selectedItems.reduce(
+        (total, item) => total + item.quantity,
+        0
+      );
+
       const totalAmount = selectedItems.reduce((total, item) => {
-        return total + (parseFloat(item.price) * item.quantity);
+        return total + parseFloat(item.price) * item.quantity;
       }, 0);
-      
+
       state.total_amount = totalAmount.toFixed(2);
     },
-    
+
     // 设置购物车数据
     setCartData: (state, action: PayloadAction<Cart>) => {
       state.items = action.payload.items;
@@ -234,10 +254,10 @@ const cartSlice = createSlice({
       state.total_quantity = action.payload.total_quantity;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // 获取购物车
     builder
-      .addCase(fetchCartAsync.pending, (state) => {
+      .addCase(fetchCartAsync.pending, state => {
         state.loading = true;
       })
       .addCase(fetchCartAsync.fulfilled, (state, action) => {
@@ -250,33 +270,34 @@ const cartSlice = createSlice({
         state.loading = false;
         message.error(action.payload as string);
       });
-    
+
     // 添加到购物车
     builder
-      .addCase(addToCartAsync.pending, (state) => {
+      .addCase(addToCartAsync.pending, state => {
         state.loading = true;
       })
       .addCase(addToCartAsync.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         const existingItem = state.items.find(
-          item => item.product_id === action.payload.product_id && 
-                  item.sku_id === action.payload.sku_id
+          item =>
+            item.product_id === action.payload.product_id &&
+            item.sku_id === action.payload.sku_id
         );
-        
+
         if (existingItem) {
           existingItem.quantity += action.payload.quantity;
         } else {
           state.items.push(action.payload);
         }
-        
+
         cartSlice.caseReducers.calculateTotals(state);
       })
       .addCase(addToCartAsync.rejected, (state, action) => {
         state.loading = false;
         message.error(action.payload as string);
       });
-    
+
     // 更新购物车商品
     builder
       .addCase(updateCartItemAsync.fulfilled, (state, action) => {
@@ -289,7 +310,7 @@ const cartSlice = createSlice({
       .addCase(updateCartItemAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 删除购物车商品
     builder
       .addCase(removeCartItemAsync.fulfilled, (state, action) => {
@@ -299,10 +320,10 @@ const cartSlice = createSlice({
       .addCase(removeCartItemAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 清空购物车
     builder
-      .addCase(clearCartAsync.fulfilled, (state) => {
+      .addCase(clearCartAsync.fulfilled, state => {
         state.items = [];
         state.total_amount = '0.00';
         state.total_quantity = 0;
@@ -310,10 +331,10 @@ const cartSlice = createSlice({
       .addCase(clearCartAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 同步购物车
     builder
-      .addCase(syncCartAsync.pending, (state) => {
+      .addCase(syncCartAsync.pending, state => {
         state.syncing = true;
       })
       .addCase(syncCartAsync.fulfilled, (state, action) => {
@@ -344,14 +365,15 @@ export const {
 // 选择器
 export const selectCart = (state: { cart: CartState }) => state.cart;
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
-export const selectSelectedCartItems = (state: { cart: CartState }) => 
+export const selectSelectedCartItems = (state: { cart: CartState }) =>
   state.cart.items.filter(item => item.selected);
 export const selectCartTotal = (state: { cart: CartState }) => ({
   amount: state.cart.total_amount,
   quantity: state.cart.total_quantity,
 });
-export const selectCartLoading = (state: { cart: CartState }) => state.cart.loading;
-export const selectCartItemCount = (state: { cart: CartState }) => 
+export const selectCartLoading = (state: { cart: CartState }) =>
+  state.cart.loading;
+export const selectCartItemCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((total, item) => total + item.quantity, 0);
 
 // 导出reducer

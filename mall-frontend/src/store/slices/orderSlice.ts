@@ -9,14 +9,14 @@ interface OrderState {
   orders: Order[];
   total: number;
   loading: boolean;
-  
+
   // 当前订单详情
   currentOrder: Order | null;
   orderLoading: boolean;
-  
+
   // 创建订单
   creating: boolean;
-  
+
   // 搜索和筛选
   searchParams: {
     status?: string;
@@ -32,12 +32,12 @@ const initialState: OrderState = {
   orders: [],
   total: 0,
   loading: false,
-  
+
   currentOrder: null,
   orderLoading: false,
-  
+
   creating: false,
-  
+
   searchParams: {
     page: 1,
     page_size: 10,
@@ -47,11 +47,14 @@ const initialState: OrderState = {
 // 异步actions
 export const fetchOrdersAsync = createAsyncThunk(
   'order/fetchOrders',
-  async (params: PaginationParams & {
-    status?: string;
-    start_date?: string;
-    end_date?: string;
-  }, { rejectWithValue }) => {
+  async (
+    params: PaginationParams & {
+      status?: string;
+      start_date?: string;
+      end_date?: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await orderAPI.getOrders(params);
       return response.data;
@@ -75,16 +78,19 @@ export const fetchOrderDetailAsync = createAsyncThunk(
 
 export const createOrderAsync = createAsyncThunk(
   'order/createOrder',
-  async (orderData: {
-    items: {
-      product_id: number;
-      sku_id?: number;
-      quantity: number;
-      price: string;
-    }[];
-    shipping_address: Address;
-    remark?: string;
-  }, { rejectWithValue }) => {
+  async (
+    orderData: {
+      items: {
+        product_id: number;
+        sku_id?: number;
+        quantity: number;
+        price: string;
+      }[];
+      shipping_address: Address;
+      remark?: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await orderAPI.createOrder(orderData);
       return response.data;
@@ -96,7 +102,10 @@ export const createOrderAsync = createAsyncThunk(
 
 export const updateOrderStatusAsync = createAsyncThunk(
   'order/updateOrderStatus',
-  async ({ id, status, remark }: { id: number; status: string; remark?: string }, { rejectWithValue }) => {
+  async (
+    { id, status, remark }: { id: number; status: string; remark?: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await orderAPI.updateOrderStatus(id, status, remark);
       return response.data;
@@ -108,7 +117,10 @@ export const updateOrderStatusAsync = createAsyncThunk(
 
 export const cancelOrderAsync = createAsyncThunk(
   'order/cancelOrder',
-  async ({ id, reason }: { id: number; reason?: string }, { rejectWithValue }) => {
+  async (
+    { id, reason }: { id: number; reason?: string },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await orderAPI.cancelOrder(id, reason);
       return response.data;
@@ -124,39 +136,45 @@ const orderSlice = createSlice({
   initialState,
   reducers: {
     // 设置搜索参数
-    setSearchParams: (state, action: PayloadAction<Partial<OrderState['searchParams']>>) => {
+    setSearchParams: (
+      state,
+      action: PayloadAction<Partial<OrderState['searchParams']>>
+    ) => {
       state.searchParams = { ...state.searchParams, ...action.payload };
     },
-    
+
     // 重置搜索参数
-    resetSearchParams: (state) => {
+    resetSearchParams: state => {
       state.searchParams = {
         page: 1,
         page_size: 10,
       };
     },
-    
+
     // 清除当前订单
-    clearCurrentOrder: (state) => {
+    clearCurrentOrder: state => {
       state.currentOrder = null;
     },
-    
+
     // 更新订单状态（本地更新）
-    updateOrderStatusLocal: (state, action: PayloadAction<{ id: number; status: string }>) => {
+    updateOrderStatusLocal: (
+      state,
+      action: PayloadAction<{ id: number; status: string }>
+    ) => {
       const order = state.orders.find(o => o.id === action.payload.id);
       if (order) {
         order.status = action.payload.status as any;
       }
-      
+
       if (state.currentOrder && state.currentOrder.id === action.payload.id) {
         state.currentOrder.status = action.payload.status as any;
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // 获取订单列表
     builder
-      .addCase(fetchOrdersAsync.pending, (state) => {
+      .addCase(fetchOrdersAsync.pending, state => {
         state.loading = true;
       })
       .addCase(fetchOrdersAsync.fulfilled, (state, action) => {
@@ -168,10 +186,10 @@ const orderSlice = createSlice({
         state.loading = false;
         message.error(action.payload as string);
       });
-    
+
     // 获取订单详情
     builder
-      .addCase(fetchOrderDetailAsync.pending, (state) => {
+      .addCase(fetchOrderDetailAsync.pending, state => {
         state.orderLoading = true;
       })
       .addCase(fetchOrderDetailAsync.fulfilled, (state, action) => {
@@ -183,10 +201,10 @@ const orderSlice = createSlice({
         state.currentOrder = null;
         message.error(action.payload as string);
       });
-    
+
     // 创建订单
     builder
-      .addCase(createOrderAsync.pending, (state) => {
+      .addCase(createOrderAsync.pending, state => {
         state.creating = true;
       })
       .addCase(createOrderAsync.fulfilled, (state, action) => {
@@ -199,7 +217,7 @@ const orderSlice = createSlice({
         state.creating = false;
         message.error(action.payload as string);
       });
-    
+
     // 更新订单状态
     builder
       .addCase(updateOrderStatusAsync.fulfilled, (state, action) => {
@@ -207,7 +225,7 @@ const orderSlice = createSlice({
         if (index !== -1) {
           state.orders[index] = action.payload;
         }
-        
+
         if (state.currentOrder && state.currentOrder.id === action.payload.id) {
           state.currentOrder = action.payload;
         }
@@ -215,7 +233,7 @@ const orderSlice = createSlice({
       .addCase(updateOrderStatusAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 取消订单
     builder
       .addCase(cancelOrderAsync.fulfilled, (state, action) => {
@@ -223,7 +241,7 @@ const orderSlice = createSlice({
         if (index !== -1) {
           state.orders[index] = action.payload;
         }
-        
+
         if (state.currentOrder && state.currentOrder.id === action.payload.id) {
           state.currentOrder = action.payload;
         }
@@ -244,13 +262,20 @@ export const {
 
 // 选择器
 export const selectOrder = (state: { order: OrderState }) => state.order;
-export const selectOrders = (state: { order: OrderState }) => state.order.orders;
-export const selectCurrentOrder = (state: { order: OrderState }) => state.order.currentOrder;
-export const selectOrderLoading = (state: { order: OrderState }) => state.order.loading;
-export const selectOrderDetailLoading = (state: { order: OrderState }) => state.order.orderLoading;
-export const selectOrderCreating = (state: { order: OrderState }) => state.order.creating;
-export const selectOrderSearchParams = (state: { order: OrderState }) => state.order.searchParams;
-export const selectOrderTotal = (state: { order: OrderState }) => state.order.total;
+export const selectOrders = (state: { order: OrderState }) =>
+  state.order.orders;
+export const selectCurrentOrder = (state: { order: OrderState }) =>
+  state.order.currentOrder;
+export const selectOrderLoading = (state: { order: OrderState }) =>
+  state.order.loading;
+export const selectOrderDetailLoading = (state: { order: OrderState }) =>
+  state.order.orderLoading;
+export const selectOrderCreating = (state: { order: OrderState }) =>
+  state.order.creating;
+export const selectOrderSearchParams = (state: { order: OrderState }) =>
+  state.order.searchParams;
+export const selectOrderTotal = (state: { order: OrderState }) =>
+  state.order.total;
 
 // 导出reducer
 export default orderSlice.reducer;

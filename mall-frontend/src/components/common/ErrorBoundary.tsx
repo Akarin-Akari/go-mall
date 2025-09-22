@@ -50,36 +50,40 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{ 
-          padding: '50px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '400px'
-        }}>
+        <div
+          style={{
+            padding: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+          }}
+        >
           <Result
-            status="error"
-            title="页面出现错误"
-            subTitle="抱歉，页面遇到了一些问题。请尝试刷新页面或返回首页。"
+            status='error'
+            title='页面出现错误'
+            subTitle='抱歉，页面遇到了一些问题。请尝试刷新页面或返回首页。'
             extra={[
-              <Button type="primary" key="reload" onClick={this.handleReload}>
+              <Button type='primary' key='reload' onClick={this.handleReload}>
                 刷新页面
               </Button>,
-              <Button key="home" onClick={this.handleGoHome}>
+              <Button key='home' onClick={this.handleGoHome}>
                 返回首页
               </Button>,
             ]}
           >
             {process.env.NODE_ENV === 'development' && (
-              <div style={{ 
-                textAlign: 'left', 
-                marginTop: 20,
-                padding: 16,
-                backgroundColor: '#f5f5f5',
-                borderRadius: 4,
-                fontSize: 12,
-                fontFamily: 'monospace'
-              }}>
+              <div
+                style={{
+                  textAlign: 'left',
+                  marginTop: 20,
+                  padding: 16,
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: 4,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                }}
+              >
                 <details>
                   <summary style={{ cursor: 'pointer', marginBottom: 8 }}>
                     错误详情 (开发模式)

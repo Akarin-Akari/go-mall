@@ -12,7 +12,7 @@ import (
 	"mall-go/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -139,8 +139,11 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	// TODO: 从JWT中获取用户ID
-	userID := uint(1) // 临时硬编码
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
 
 	var order model.Order
 	if err := h.db.Preload("User").Preload("OrderItems.Product").Where("id = ? AND user_id = ?", id, userID).First(&order).Error; err != nil {
@@ -174,8 +177,11 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	// TODO: 从JWT中获取用户ID
-	userID := uint(1) // 临时硬编码
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
 
 	// 使用订单服务创建订单
 	order, err := h.orderService.CreateOrder(userID, &req)
@@ -216,9 +222,13 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	// TODO: 从JWT中获取用户ID和角色
-	userID := uint(1)  // 临时硬编码
-	userRole := "user" // 临时硬编码
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+
+	isAdmin := h.isAdmin(c)
 
 	var order model.Order
 	if err := h.db.First(&order, id).Error; err != nil {
@@ -231,7 +241,7 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 	}
 
 	// 检查权限（只有订单所有者或管理员可以更新状态）
-	if order.UserID != userID && userRole != "admin" {
+	if order.UserID != userID && !isAdmin {
 		response.Forbidden(c, "无权限更新此订单")
 		return
 	}
@@ -261,7 +271,7 @@ func (h *OrderHandler) getUserID(c *gin.Context) uint {
 	if uid, exists := c.Get("user_id"); exists {
 		return uid.(uint)
 	}
-	return 1 // 临时硬编码，实际应该从JWT获取
+	return 0 // 返回0表示未认证用户
 }
 
 // isAdmin 检查是否为管理员
@@ -424,4 +434,479 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 	h.cacheService.InvalidateOrderStatsCache()
 
 	response.Success(c, "取消订单成功", nil)
+}
+
+// GetOrderByNo 根据订单号获取订单
+func (h *OrderHandler) GetOrderByNo(c *gin.Context) {
+	orderNo := c.Param("orderNo")
+	if orderNo == "" {
+		response.Error(c, http.StatusBadRequest, "订单号不能为空")
+		return
+	}
+
+	userID := h.getUserID(c)
+
+	var order model.Order
+	if err := h.db.Preload("OrderItems.Product").Where("order_no = ? AND user_id = ?", orderNo, userID).First(&order).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.Error(c, http.StatusNotFound, "订单不存在")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "查询订单失败")
+		return
+	}
+
+	// 构建响应数据
+	orderResponse := &model.OrderResponse{
+		Order:      &order,
+		StatusText: order.GetStatusText(),
+		CanCancel:  order.CanCancel(),
+		CanPay:     order.CanPay(),
+		CanShip:    order.CanShip(),
+		CanReceive: order.CanReceive(),
+		CanRefund:  order.CanRefund(),
+	}
+
+	response.Success(c, "获取订单成功", orderResponse)
+}
+
+// CreatePayment 创建支付
+func (h *OrderHandler) CreatePayment(c *gin.Context) {
+	var req struct {
+		OrderID       uint   `json:"order_id" binding:"required"`
+		PaymentMethod string `json:"payment_method" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+
+	// TODO: 集成支付服务
+	response.Success(c, "支付功能开发中", gin.H{
+		"order_id":       req.OrderID,
+		"payment_method": req.PaymentMethod,
+		"user_id":        userID,
+		"message":        "支付功能待实现",
+	})
+}
+
+// PaymentNotify 支付回调
+func (h *OrderHandler) PaymentNotify(c *gin.Context) {
+	// TODO: 实现支付回调逻辑
+	response.Success(c, "支付回调功能开发中", gin.H{
+		"message": "支付回调功能待实现",
+	})
+}
+
+// GetShippingInfo 获取物流信息
+func (h *OrderHandler) GetShippingInfo(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	userID := h.getUserID(c)
+
+	var order model.Order
+	if err := h.db.Where("id = ? AND user_id = ?", orderID, userID).First(&order).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.Error(c, http.StatusNotFound, "订单不存在")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "查询订单失败")
+		return
+	}
+
+	// TODO: 获取实际物流信息
+	response.Success(c, "获取物流信息成功", gin.H{
+		"order_id":  orderID,
+		"status":    order.Status,
+		"message":   "物流查询功能待实现",
+		"logistics": []string{},
+	})
+}
+
+// ConfirmReceipt 确认收货
+func (h *OrderHandler) ConfirmReceipt(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	userID := h.getUserID(c)
+
+	// 更新订单状态为已收货
+	err = h.statusService.UpdateOrderStatus(uint(orderID), model.OrderStatusDelivered,
+		userID, model.OperatorTypeUser, "用户确认收货", "")
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 清除缓存
+	h.cacheService.InvalidateOrderCache(uint(orderID))
+	h.cacheService.InvalidateUserOrdersCache(userID)
+	h.cacheService.InvalidateOrderStatsCache()
+
+	response.Success(c, "确认收货成功", nil)
+}
+
+// CreateAfterSale 创建售后申请
+func (h *OrderHandler) CreateAfterSale(c *gin.Context) {
+	var req struct {
+		OrderID     uint   `json:"order_id" binding:"required"`
+		Type        string `json:"type" binding:"required"` // refund/return
+		Reason      string `json:"reason" binding:"required"`
+		Description string `json:"description"`
+		Amount      string `json:"amount"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	userID := h.getUserID(c)
+	if userID == 0 {
+		response.Error(c, http.StatusUnauthorized, "用户未登录")
+		return
+	}
+
+	// TODO: 实现售后申请逻辑
+	response.Success(c, "售后申请创建成功", gin.H{
+		"order_id":    req.OrderID,
+		"type":        req.Type,
+		"reason":      req.Reason,
+		"description": req.Description,
+		"user_id":     userID,
+		"message":     "售后功能待实现",
+	})
+}
+
+// GetOrderStatistics 获取订单统计
+func (h *OrderHandler) GetOrderStatistics(c *gin.Context) {
+	// TODO: 实现订单统计逻辑
+	response.Success(c, "获取订单统计成功", gin.H{
+		"total_orders":     0,
+		"pending_orders":   0,
+		"paid_orders":      0,
+		"shipped_orders":   0,
+		"delivered_orders": 0,
+		"cancelled_orders": 0,
+		"message":          "订单统计功能待实现",
+	})
+}
+
+// CreateShipment 创建发货
+func (h *OrderHandler) CreateShipment(c *gin.Context) {
+	orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "订单ID格式错误")
+		return
+	}
+
+	var req struct {
+		TrackingNumber  string `json:"tracking_number" binding:"required"`
+		ShippingMethod  string `json:"shipping_method" binding:"required"`
+		ShippingCompany string `json:"shipping_company" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	operatorID := h.getUserID(c)
+
+	// 更新订单状态为已发货
+	err = h.statusService.UpdateOrderStatus(uint(orderID), model.OrderStatusShipped,
+		operatorID, model.OperatorTypeAdmin, "管理员发货", req.TrackingNumber)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// TODO: 保存物流信息到数据库
+
+	response.Success(c, "发货成功", gin.H{
+		"order_id":         orderID,
+		"tracking_number":  req.TrackingNumber,
+		"shipping_method":  req.ShippingMethod,
+		"shipping_company": req.ShippingCompany,
+	})
+}
+
+// HandleAfterSale 处理售后申请
+func (h *OrderHandler) HandleAfterSale(c *gin.Context) {
+	afterSaleID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "售后申请ID格式错误")
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"` // approved/rejected
+		Remark string `json:"remark"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	operatorID := h.getUserID(c)
+
+	// TODO: 实现售后申请处理逻辑
+	response.Success(c, "售后申请处理成功", gin.H{
+		"aftersale_id": afterSaleID,
+		"status":       req.Status,
+		"remark":       req.Remark,
+		"operator_id":  operatorID,
+		"message":      "售后处理功能待实现",
+	})
+}
+
+// GetAfterSaleList 获取售后申请列表
+func (h *OrderHandler) GetAfterSaleList(c *gin.Context) {
+	var req struct {
+		Page     int    `form:"page"`
+		PageSize int    `form:"page_size"`
+		Status   string `form:"status"`
+	}
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	response.Success(c, "获取售后申请列表成功", gin.H{
+		"list":      []interface{}{},
+		"total":     0,
+		"page":      req.Page,
+		"page_size": req.PageSize,
+		"message":   "售后列表功能待实现",
+	})
+}
+
+// GetAfterSaleDetail 获取售后申请详情
+func (h *OrderHandler) GetAfterSaleDetail(c *gin.Context) {
+	afterSaleID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "售后申请ID格式错误")
+		return
+	}
+
+	response.Success(c, "获取售后申请详情成功", gin.H{
+		"aftersale_id": afterSaleID,
+		"message":      "售后详情功能待实现",
+	})
+}
+
+// GetMerchantOrderList 获取商家订单列表
+func (h *OrderHandler) GetMerchantOrderList(c *gin.Context) {
+	var req model.OrderListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	merchantID := h.getUserID(c)
+
+	response.Success(c, "获取商家订单列表成功", gin.H{
+		"orders":      []interface{}{},
+		"total":       0,
+		"page":        req.Page,
+		"page_size":   req.PageSize,
+		"merchant_id": merchantID,
+		"message":     "商家订单列表功能待实现",
+	})
+}
+
+// GetMerchantAfterSaleList 获取商家售后申请列表
+func (h *OrderHandler) GetMerchantAfterSaleList(c *gin.Context) {
+	var req struct {
+		Page     int    `form:"page"`
+		PageSize int    `form:"page_size"`
+		Status   string `form:"status"`
+	}
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "请求参数错误: "+err.Error())
+		return
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	merchantID := h.getUserID(c)
+
+	response.Success(c, "获取商家售后申请列表成功", gin.H{
+		"list":        []interface{}{},
+		"total":       0,
+		"page":        req.Page,
+		"page_size":   req.PageSize,
+		"merchant_id": merchantID,
+		"message":     "商家售后列表功能待实现",
+	})
+}
+
+// Webhook相关方法
+// AlipayNotify 支付宝回调
+func (h *OrderHandler) AlipayNotify(c *gin.Context) {
+	response.Success(c, "支付宝回调处理成功", gin.H{
+		"message": "支付宝回调功能待实现",
+	})
+}
+
+// WechatNotify 微信支付回调
+func (h *OrderHandler) WechatNotify(c *gin.Context) {
+	response.Success(c, "微信支付回调处理成功", gin.H{
+		"message": "微信支付回调功能待实现",
+	})
+}
+
+// TrackShipment 物流跟踪
+func (h *OrderHandler) TrackShipment(c *gin.Context) {
+	trackingNumber := c.Param("trackingNumber")
+	if trackingNumber == "" {
+		response.Error(c, http.StatusBadRequest, "物流单号不能为空")
+		return
+	}
+
+	response.Success(c, "物流跟踪查询成功", gin.H{
+		"tracking_number": trackingNumber,
+		"status":          "运输中",
+		"events":          []interface{}{},
+		"message":         "物流跟踪功能待实现",
+	})
+}
+
+// GetShippingCompanies 获取物流公司列表
+func (h *OrderHandler) GetShippingCompanies(c *gin.Context) {
+	companies := []gin.H{
+		{"code": "SF", "name": "顺丰速运", "enabled": true},
+		{"code": "YTO", "name": "圆通快递", "enabled": true},
+		{"code": "ZTO", "name": "中通快递", "enabled": true},
+		{"code": "STO", "name": "申通快递", "enabled": true},
+		{"code": "YD", "name": "韵达快递", "enabled": true},
+	}
+
+	response.Success(c, "获取物流公司列表成功", gin.H{
+		"companies": companies,
+		"message":   "物流公司列表",
+	})
+}
+
+// Webhook处理方法
+// AlipayWebhook 支付宝Webhook
+func (h *OrderHandler) AlipayWebhook(c *gin.Context) {
+	response.Success(c, "支付宝Webhook处理成功", gin.H{
+		"message": "支付宝Webhook功能待实现",
+	})
+}
+
+// WechatWebhook 微信支付Webhook
+func (h *OrderHandler) WechatWebhook(c *gin.Context) {
+	response.Success(c, "微信支付Webhook处理成功", gin.H{
+		"message": "微信支付Webhook功能待实现",
+	})
+}
+
+// StripeWebhook Stripe Webhook
+func (h *OrderHandler) StripeWebhook(c *gin.Context) {
+	response.Success(c, "Stripe Webhook处理成功", gin.H{
+		"message": "Stripe Webhook功能待实现",
+	})
+}
+
+// PaypalWebhook PayPal Webhook
+func (h *OrderHandler) PaypalWebhook(c *gin.Context) {
+	response.Success(c, "PayPal Webhook处理成功", gin.H{
+		"message": "PayPal Webhook功能待实现",
+	})
+}
+
+// 物流Webhook方法
+// SFWebhook 顺丰Webhook
+func (h *OrderHandler) SFWebhook(c *gin.Context) {
+	response.Success(c, "顺丰Webhook处理成功", gin.H{
+		"message": "顺丰Webhook功能待实现",
+	})
+}
+
+// YTWebhook 圆通Webhook
+func (h *OrderHandler) YTWebhook(c *gin.Context) {
+	response.Success(c, "圆通Webhook处理成功", gin.H{
+		"message": "圆通Webhook功能待实现",
+	})
+}
+
+// ZTWebhook 中通Webhook
+func (h *OrderHandler) ZTWebhook(c *gin.Context) {
+	response.Success(c, "中通Webhook处理成功", gin.H{
+		"message": "中通Webhook功能待实现",
+	})
+}
+
+// STWebhook 申通Webhook
+func (h *OrderHandler) STWebhook(c *gin.Context) {
+	response.Success(c, "申通Webhook处理成功", gin.H{
+		"message": "申通Webhook功能待实现",
+	})
+}
+
+// YDWebhook 韵达Webhook
+func (h *OrderHandler) YDWebhook(c *gin.Context) {
+	response.Success(c, "韵达Webhook处理成功", gin.H{
+		"message": "韵达Webhook功能待实现",
+	})
+}
+
+// 服务Webhook方法
+// SMSWebhook 短信服务Webhook
+func (h *OrderHandler) SMSWebhook(c *gin.Context) {
+	response.Success(c, "短信服务Webhook处理成功", gin.H{
+		"message": "短信服务Webhook功能待实现",
+	})
+}
+
+// EmailWebhook 邮件服务Webhook
+func (h *OrderHandler) EmailWebhook(c *gin.Context) {
+	response.Success(c, "邮件服务Webhook处理成功", gin.H{
+		"message": "邮件服务Webhook功能待实现",
+	})
+}
+
+// PushWebhook 推送服务Webhook
+func (h *OrderHandler) PushWebhook(c *gin.Context) {
+	response.Success(c, "推送服务Webhook处理成功", gin.H{
+		"message": "推送服务Webhook功能待实现",
+	})
 }

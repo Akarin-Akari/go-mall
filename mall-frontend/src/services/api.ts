@@ -21,11 +21,15 @@ import {
 // 认证相关API
 export const authAPI = {
   // 用户登录
-  login: (data: LoginRequest): Promise<ApiResponse<{
-    user: User;
-    token: string;
-    refresh_token: string;
-  }>> => {
+  login: (
+    data: LoginRequest
+  ): Promise<
+    ApiResponse<{
+      user: User;
+      token: string;
+      refresh_token: string;
+    }>
+  > => {
     return http.post(API_ENDPOINTS.AUTH.LOGIN, data, {
       skipAuth: true,
       showSuccessMessage: true,
@@ -34,11 +38,15 @@ export const authAPI = {
   },
 
   // 用户注册
-  register: (data: RegisterRequest): Promise<ApiResponse<{
-    user: User;
-    token: string;
-    refresh_token: string;
-  }>> => {
+  register: (
+    data: RegisterRequest
+  ): Promise<
+    ApiResponse<{
+      user: User;
+      token: string;
+      refresh_token: string;
+    }>
+  > => {
     return http.post(API_ENDPOINTS.AUTH.REGISTER, data, {
       skipAuth: true,
       showSuccessMessage: true,
@@ -48,10 +56,14 @@ export const authAPI = {
 
   // 用户登出
   logout: (): Promise<ApiResponse<null>> => {
-    return http.post(API_ENDPOINTS.AUTH.LOGOUT, {}, {
-      showSuccessMessage: true,
-      successMessage: '登出成功',
-    });
+    return http.post(
+      API_ENDPOINTS.AUTH.LOGOUT,
+      {},
+      {
+        showSuccessMessage: true,
+        successMessage: '登出成功',
+      }
+    );
   },
 
   // 获取用户信息
@@ -60,33 +72,43 @@ export const authAPI = {
   },
 
   // 刷新token
-  refreshToken: (refreshToken: string): Promise<ApiResponse<{
-    token: string;
-    refresh_token: string;
-  }>> => {
-    return http.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
-      refresh_token: refreshToken,
-    }, {
-      skipAuth: true,
-    });
+  refreshToken: (
+    refreshToken: string
+  ): Promise<
+    ApiResponse<{
+      token: string;
+      refresh_token: string;
+    }>
+  > => {
+    return http.post(
+      API_ENDPOINTS.AUTH.REFRESH_TOKEN,
+      {
+        refresh_token: refreshToken,
+      },
+      {
+        skipAuth: true,
+      }
+    );
   },
 };
 
 // 用户管理API
 export const userAPI = {
   // 获取用户列表
-  getUsers: (params: PaginationParams): Promise<ApiResponse<PageResult<User>>> => {
+  getUsers: (
+    params: PaginationParams
+  ): Promise<ApiResponse<PageResult<User>>> => {
     return http.get(API_ENDPOINTS.USERS.LIST, { params });
   },
 
   // 获取用户详情
   getUserDetail: (id: number): Promise<ApiResponse<User>> => {
-    return http.get(API_ENDPOINTS.USERS.DETAIL(id));
+    return http.get(`${API_ENDPOINTS.USERS.DETAIL}/${id}`);
   },
 
   // 更新用户信息
   updateUser: (id: number, data: Partial<User>): Promise<ApiResponse<User>> => {
-    return http.put(API_ENDPOINTS.USERS.UPDATE(id), data, {
+    return http.put(`${API_ENDPOINTS.USERS.UPDATE}/${id}`, data, {
       showSuccessMessage: true,
       successMessage: '用户信息更新成功',
     });
@@ -104,12 +126,14 @@ export const userAPI = {
 // 商品相关API
 export const productAPI = {
   // 获取商品列表
-  getProducts: (params: PaginationParams & {
-    category_id?: number;
-    status?: string;
-    min_price?: number;
-    max_price?: number;
-  }): Promise<ApiResponse<PageResult<Product>>> => {
+  getProducts: (
+    params: PaginationParams & {
+      category_id?: number;
+      status?: string;
+      min_price?: number;
+      max_price?: number;
+    }
+  ): Promise<ApiResponse<PageResult<Product>>> => {
     return http.get(API_ENDPOINTS.PRODUCTS.LIST, { params });
   },
 
@@ -119,7 +143,9 @@ export const productAPI = {
   },
 
   // 创建商品
-  createProduct: (data: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Product>> => {
+  createProduct: (
+    data: Omit<Product, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<ApiResponse<Product>> => {
     return http.post(API_ENDPOINTS.PRODUCTS.CREATE, data, {
       showSuccessMessage: true,
       successMessage: '商品创建成功',
@@ -127,7 +153,10 @@ export const productAPI = {
   },
 
   // 更新商品
-  updateProduct: (id: number, data: Partial<Product>): Promise<ApiResponse<Product>> => {
+  updateProduct: (
+    id: number,
+    data: Partial<Product>
+  ): Promise<ApiResponse<Product>> => {
     return http.put(API_ENDPOINTS.PRODUCTS.UPDATE(id), data, {
       showSuccessMessage: true,
       successMessage: '商品更新成功',
@@ -202,11 +231,13 @@ export const cartAPI = {
 // 订单相关API
 export const orderAPI = {
   // 获取订单列表
-  getOrders: (params: PaginationParams & {
-    status?: string;
-    start_date?: string;
-    end_date?: string;
-  }): Promise<ApiResponse<PageResult<Order>>> => {
+  getOrders: (
+    params: PaginationParams & {
+      status?: string;
+      start_date?: string;
+      end_date?: string;
+    }
+  ): Promise<ApiResponse<PageResult<Order>>> => {
     return http.get(API_ENDPOINTS.ORDERS.LIST, { params });
   },
 
@@ -233,41 +264,57 @@ export const orderAPI = {
   },
 
   // 更新订单状态
-  updateOrderStatus: (id: number, status: string, remark?: string): Promise<ApiResponse<Order>> => {
-    return http.put(API_ENDPOINTS.ORDERS.UPDATE_STATUS(id), {
-      status,
-      remark,
-    }, {
-      showSuccessMessage: true,
-      successMessage: '订单状态更新成功',
-    });
+  updateOrderStatus: (
+    id: number,
+    status: string,
+    remark?: string
+  ): Promise<ApiResponse<Order>> => {
+    return http.put(
+      API_ENDPOINTS.ORDERS.UPDATE_STATUS(id),
+      {
+        status,
+        remark,
+      },
+      {
+        showSuccessMessage: true,
+        successMessage: '订单状态更新成功',
+      }
+    );
   },
 
   // 取消订单
   cancelOrder: (id: number, reason?: string): Promise<ApiResponse<Order>> => {
-    return http.put(API_ENDPOINTS.ORDERS.CANCEL(id), {
-      reason,
-    }, {
-      showSuccessMessage: true,
-      successMessage: '订单已取消',
-    });
+    return http.put(
+      API_ENDPOINTS.ORDERS.CANCEL(id),
+      {
+        reason,
+      },
+      {
+        showSuccessMessage: true,
+        successMessage: '订单已取消',
+      }
+    );
   },
 };
 
 // 支付相关API
 export const paymentAPI = {
   // 创建支付
-  createPayment: (data: PaymentRequest): Promise<ApiResponse<{
-    payment_id: number;
-    payment_url?: string;
-    qr_code?: string;
-  }>> => {
+  createPayment: (
+    data: PaymentRequest
+  ): Promise<
+    ApiResponse<{
+      payment_id: number;
+      payment_url?: string;
+      qr_code?: string;
+    }>
+  > => {
     return http.post(API_ENDPOINTS.PAYMENT.CREATE, data);
   },
 
   // 查询支付状态
   queryPayment: (id: number): Promise<ApiResponse<Payment>> => {
-    return http.get(API_ENDPOINTS.PAYMENT.QUERY(id));
+    return http.get(API_ENDPOINTS.PAYMENT.DETAIL(id));
   },
 
   // 申请退款
@@ -275,10 +322,12 @@ export const paymentAPI = {
     payment_id: number;
     amount: string;
     reason: string;
-  }): Promise<ApiResponse<{
-    refund_id: number;
-    status: string;
-  }>> => {
+  }): Promise<
+    ApiResponse<{
+      refund_id: number;
+      status: string;
+    }>
+  > => {
     return http.post(API_ENDPOINTS.PAYMENT.REFUND, data, {
       showSuccessMessage: true,
       successMessage: '退款申请已提交',
@@ -302,7 +351,10 @@ export const addressAPI = {
   },
 
   // 更新地址
-  updateAddress: (id: number, data: Partial<Address>): Promise<ApiResponse<Address>> => {
+  updateAddress: (
+    id: number,
+    data: Partial<Address>
+  ): Promise<ApiResponse<Address>> => {
     return http.put(API_ENDPOINTS.ADDRESS.UPDATE(id), data, {
       showSuccessMessage: true,
       successMessage: '地址更新成功',
@@ -319,30 +371,42 @@ export const addressAPI = {
 
   // 设置默认地址
   setDefaultAddress: (id: number): Promise<ApiResponse<Address>> => {
-    return http.put(API_ENDPOINTS.ADDRESS.SET_DEFAULT(id), {}, {
-      showSuccessMessage: true,
-      successMessage: '默认地址设置成功',
-    });
+    return http.put(
+      API_ENDPOINTS.ADDRESS.SET_DEFAULT(id),
+      {},
+      {
+        showSuccessMessage: true,
+        successMessage: '默认地址设置成功',
+      }
+    );
   },
 };
 
 // 文件上传API
 export const uploadAPI = {
   // 上传图片
-  uploadImage: (file: FormData): Promise<ApiResponse<{
-    url: string;
-    filename: string;
-    size: number;
-  }>> => {
+  uploadImage: (
+    file: FormData
+  ): Promise<
+    ApiResponse<{
+      url: string;
+      filename: string;
+      size: number;
+    }>
+  > => {
     return http.upload(API_ENDPOINTS.UPLOAD.IMAGE, file);
   },
 
   // 上传文件
-  uploadFile: (file: FormData): Promise<ApiResponse<{
-    url: string;
-    filename: string;
-    size: number;
-  }>> => {
+  uploadFile: (
+    file: FormData
+  ): Promise<
+    ApiResponse<{
+      url: string;
+      filename: string;
+      size: number;
+    }>
+  > => {
     return http.upload(API_ENDPOINTS.UPLOAD.FILE, file);
   },
 
@@ -355,14 +419,16 @@ export const uploadAPI = {
 // 统计相关API（管理后台使用）
 export const statisticsAPI = {
   // 获取概览统计
-  getOverview: (): Promise<ApiResponse<{
-    total_users: number;
-    total_products: number;
-    total_orders: number;
-    total_revenue: string;
-    today_orders: number;
-    today_revenue: string;
-  }>> => {
+  getOverview: (): Promise<
+    ApiResponse<{
+      total_users: number;
+      total_products: number;
+      total_orders: number;
+      total_revenue: string;
+      today_orders: number;
+      today_revenue: string;
+    }>
+  > => {
     return http.get('/api/v1/statistics/overview');
   },
 
@@ -371,10 +437,12 @@ export const statisticsAPI = {
     start_date: string;
     end_date: string;
     type: 'daily' | 'weekly' | 'monthly';
-  }): Promise<ApiResponse<{
-    labels: string[];
-    data: number[];
-  }>> => {
+  }): Promise<
+    ApiResponse<{
+      labels: string[];
+      data: number[];
+    }>
+  > => {
     return http.get('/api/v1/statistics/sales', { params });
   },
 
@@ -383,12 +451,16 @@ export const statisticsAPI = {
     start_date: string;
     end_date: string;
     limit?: number;
-  }): Promise<ApiResponse<{
-    product_id: number;
-    product_name: string;
-    sales_count: number;
-    sales_amount: string;
-  }[]>> => {
+  }): Promise<
+    ApiResponse<
+      {
+        product_id: number;
+        product_name: string;
+        sales_count: number;
+        sales_amount: string;
+      }[]
+    >
+  > => {
     return http.get('/api/v1/statistics/products', { params });
   },
 };

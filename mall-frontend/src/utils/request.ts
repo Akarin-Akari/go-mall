@@ -1,22 +1,82 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+} from 'axios';
 import { message } from 'antd';
-import { errorHandler } from './index';
+import {
+  errorHandler,
+  ErrorType,
+  ErrorLevel,
+  handleBusinessError,
+} from './simpleErrorHandler';
 import { ApiResponse } from '@/types';
-import { HTTP_STATUS, BUSINESS_CODE, STORAGE_KEYS } from '@/constants';
-import Cookies from 'js-cookie';
+import { HTTP_STATUS, BUSINESS_CODE, ROUTES } from '@/constants';
+import { secureTokenManager } from './secureTokenManager';
 
-// 本地Token管理 (避免循环依赖)
+// 安全Token获取 (避免循环依赖)
 const getToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   try {
-    return localStorage.getItem(STORAGE_KEYS.TOKEN) || Cookies.get(STORAGE_KEYS.TOKEN) || null;
+    return secureTokenManager.getAccessToken();
   } catch {
     return null;
   }
 };
 
+// Token刷新状态管理
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: any) => void;
+  reject: (reason: any) => void;
+}> = [];
+
+// 处理队列中的请求
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
+// 刷新Token
+const refreshToken = async (): Promise<string | null> => {
+  try {
+    const refreshTokenValue = secureTokenManager.getRefreshToken();
+    if (!refreshTokenValue) {
+      throw new Error('No refresh token available');
+    }
+
+    // 调用刷新Token API
+    const response = await axios.post('/api/v1/auth/refresh', {
+      refresh_token: refreshTokenValue,
+    });
+
+    const { token, refresh_token } = response.data.data;
+
+    // 保存新的Token
+    secureTokenManager.setAccessToken(token);
+    if (refresh_token) {
+      secureTokenManager.setRefreshToken(refresh_token);
+    }
+
+    return token;
+  } catch (error) {
+    // 刷新失败，清除所有Token
+    secureTokenManager.clearTokens();
+    throw error;
+  }
+};
+
 // 请求配置接口
-interface RequestConfig extends AxiosRequestConfig {
+interface RequestConfig extends InternalAxiosRequestConfig {
   skipAuth?: boolean;
   skipErrorHandler?: boolean;
   showLoading?: boolean;
@@ -27,7 +87,7 @@ interface RequestConfig extends AxiosRequestConfig {
 // 创建axios实例
 const createAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081',
     timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000'),
     headers: {
       'Content-Type': 'application/json',
@@ -36,9 +96,10 @@ const createAxiosInstance = (): AxiosInstance => {
 
   // 请求拦截器
   instance.interceptors.request.use(
-    (config: any) => {
+    (config: InternalAxiosRequestConfig) => {
+      const customConfig = config as RequestConfig;
       // 添加认证token
-      if (!config.skipAuth) {
+      if (!customConfig.skipAuth) {
         const token = getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -54,7 +115,7 @@ const createAxiosInstance = (): AxiosInstance => {
       }
 
       // 显示加载状态
-      if (config.showLoading) {
+      if (customConfig.showLoading) {
         // 可以在这里显示全局loading
         console.log('Loading...');
       }
@@ -79,7 +140,7 @@ const createAxiosInstance = (): AxiosInstance => {
 
       // 检查业务状态码
       const { code, message: msg, data } = response.data;
-      
+
       if (code === BUSINESS_CODE.SUCCESS) {
         // 显示成功消息
         if (customConfig.showSuccessMessage) {
@@ -88,21 +149,32 @@ const createAxiosInstance = (): AxiosInstance => {
         return response;
       } else {
         // 业务错误处理
-        const errorMessage = errorHandler.handleBusinessError(code, msg);
-        
+        const errorMessage = handleBusinessError(code, msg);
+
+        // 使用统一错误处理
+        errorHandler.handleError(new Error(errorMessage), {
+          type: ErrorType.BUSINESS,
+          level: ErrorLevel.WARN,
+          context: {
+            businessCode: code,
+            url: response.config?.url,
+            method: response.config?.method,
+          },
+        });
+
         if (!customConfig.skipErrorHandler) {
           message.error(errorMessage);
         }
-        
+
         // 特殊错误码处理
         if (code === BUSINESS_CODE.UNAUTHORIZED) {
-          handleUnauthorized();
+          return handleTokenExpired(error.config);
         }
-        
+
         return Promise.reject(new Error(errorMessage));
       }
     },
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
       const { config, response } = error;
       const customConfig = config as RequestConfig;
 
@@ -111,15 +183,27 @@ const createAxiosInstance = (): AxiosInstance => {
         console.log('Loading finished');
       }
 
-      // 网络错误处理
+      // 网络错误处理 - 生成错误消息
+      const errorMessage = getNetworkErrorMessage(error);
+
+      // 使用统一错误处理
+      errorHandler.handleError(error, {
+        type: ErrorType.NETWORK,
+        level: ErrorLevel.ERROR,
+        context: {
+          status: response?.status,
+          url: error.config?.url,
+          method: error.config?.method,
+        },
+      });
+
       if (!customConfig?.skipErrorHandler) {
-        const errorMessage = errorHandler.handleNetworkError(error);
         message.error(errorMessage);
       }
 
       // 特殊状态码处理
       if (response?.status === HTTP_STATUS.UNAUTHORIZED) {
-        handleUnauthorized();
+        return handleTokenExpired(error.config);
       }
 
       return Promise.reject(error);
@@ -129,19 +213,41 @@ const createAxiosInstance = (): AxiosInstance => {
   return instance;
 };
 
+// 获取网络错误消息
+const getNetworkErrorMessage = (error: AxiosError): string => {
+  if (error.code === 'ECONNABORTED') {
+    return '请求超时，请稍后重试';
+  }
+  if (error.message === 'Network Error') {
+    return '网络连接失败，请检查网络设置';
+  }
+  if (error.response?.status) {
+    const status = error.response.status;
+    const statusMessages: Record<number, string> = {
+      400: '请求参数错误',
+      401: '未授权访问',
+      403: '权限不足',
+      404: '请求的资源不存在',
+      500: '服务器内部错误',
+      502: '网关错误',
+      503: '服务不可用',
+    };
+    return statusMessages[status] || `请求失败 (${status})`;
+  }
+  return error.message || '请求失败';
+};
+
 // 处理未授权错误
 const handleUnauthorized = () => {
   // 清理token
   if (typeof window !== 'undefined') {
     try {
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-      Cookies.remove(STORAGE_KEYS.TOKEN);
+      secureTokenManager.clearTokens();
     } catch {
       // 忽略清理错误
     }
   }
-  
+
   // 跳转到登录页面
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname;
@@ -151,62 +257,131 @@ const handleUnauthorized = () => {
   }
 };
 
+// 处理Token过期
+const handleTokenExpired = async (originalRequest: any): Promise<any> => {
+  if (originalRequest._retry) {
+    // 已经重试过，直接跳转到登录页
+    handleUnauthorized();
+    return Promise.reject(new Error('Token refresh failed'));
+  }
+
+  if (isRefreshing) {
+    // 正在刷新Token，将请求加入队列
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then(token => {
+      originalRequest.headers['Authorization'] = `Bearer ${token}`;
+      return axios(originalRequest);
+    }).catch(err => {
+      return Promise.reject(err);
+    });
+  }
+
+  originalRequest._retry = true;
+  isRefreshing = true;
+
+  try {
+    const newToken = await refreshToken();
+    processQueue(null, newToken);
+
+    // 重新发送原始请求
+    originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+    return axios(originalRequest);
+  } catch (error) {
+    processQueue(error, null);
+    handleUnauthorized();
+    return Promise.reject(error);
+  } finally {
+    isRefreshing = false;
+  }
+};
+
 // 创建请求实例
 const request = createAxiosInstance();
 
 // 请求方法封装
 export const http = {
   // GET请求
-  get: <T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> => {
+  get: <T = unknown>(
+    url: string,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
     return request.get(url, config).then(res => res.data);
   },
 
   // POST请求
-  post: <T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> => {
+  post: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
     return request.post(url, data, config).then(res => res.data);
   },
 
   // PUT请求
-  put: <T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> => {
+  put: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
     return request.put(url, data, config).then(res => res.data);
   },
 
   // DELETE请求
-  delete: <T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> => {
+  delete: <T = unknown>(
+    url: string,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
     return request.delete(url, config).then(res => res.data);
   },
 
   // PATCH请求
-  patch: <T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> => {
+  patch: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
     return request.patch(url, data, config).then(res => res.data);
   },
 
   // 文件上传
-  upload: <T = any>(url: string, formData: FormData, config?: RequestConfig): Promise<ApiResponse<T>> => {
-    return request.post(url, formData, {
-      ...config,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then(res => res.data);
+  upload: <T = unknown>(
+    url: string,
+    formData: FormData,
+    config?: RequestConfig
+  ): Promise<ApiResponse<T>> => {
+    return request
+      .post(url, formData, {
+        ...config,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then(res => res.data);
   },
 
   // 下载文件
-  download: (url: string, filename?: string, config?: RequestConfig): Promise<void> => {
-    return request.get(url, {
-      ...config,
-      responseType: 'blob',
-    }).then(response => {
-      const blob = new Blob([response.data]);
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename || 'download';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    });
+  download: (
+    url: string,
+    filename?: string,
+    config?: RequestConfig
+  ): Promise<void> => {
+    return request
+      .get(url, {
+        ...config,
+        responseType: 'blob',
+      })
+      .then(response => {
+        const blob = new Blob([response.data]);
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      });
   },
 };
 
@@ -232,14 +407,14 @@ export class RequestCancelManager {
   cancel(key: string): void {
     const cancel = this.cancelTokens.get(key);
     if (cancel) {
-      cancel('Request canceled');
+      cancel();
       this.cancelTokens.delete(key);
     }
   }
 
   // 取消所有请求
   cancelAll(): void {
-    this.cancelTokens.forEach(cancel => cancel('All requests canceled'));
+    this.cancelTokens.forEach(cancel => cancel());
     this.cancelTokens.clear();
   }
 }
@@ -260,7 +435,7 @@ export const retryRequest = async <T>(
       return await requestFn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (i === maxRetries) {
         throw lastError;
       }
@@ -290,7 +465,10 @@ export const concurrentRequest = async <T>(
 
     if (executing.length >= limit) {
       await Promise.race(executing);
-      executing.splice(executing.findIndex(p => p === promise), 1);
+      executing.splice(
+        executing.findIndex(p => p === promise),
+        1
+      );
     }
   }
 
@@ -300,7 +478,8 @@ export const concurrentRequest = async <T>(
 
 // 请求缓存管理
 class RequestCache {
-  private cache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
+  private cache: Map<string, { data: any; timestamp: number; ttl: number }> =
+    new Map();
 
   // 生成缓存key
   private generateKey(url: string, params?: any): string {
@@ -372,10 +551,10 @@ export const cachedGet = async <T = any>(
 
   // 发起请求
   const response = await http.get<T>(url, { ...config, params });
-  
+
   // 缓存响应
   requestCache.set(url, response, ttl, params);
-  
+
   return response;
 };
 

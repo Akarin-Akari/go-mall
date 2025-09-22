@@ -1,6 +1,6 @@
 # 第4章：Next.js框架基础与SSR/SSG应用 🚀
 
-> *"Next.js不仅仅是一个React框架，它是现代Web开发的完整解决方案！"* 🎯
+> _"Next.js不仅仅是一个React框架，它是现代Web开发的完整解决方案！"_ 🎯
 
 ## 📚 本章导览
 
@@ -64,6 +64,7 @@ const TraditionalReactApp = () => {
 ```
 
 **主要问题**：
+
 1. **SEO困难** - 搜索引擎看到的是空白页面
 2. **首屏性能差** - 需要等待JS加载和执行
 3. **路由复杂** - 需要手动配置React Router
@@ -227,16 +228,16 @@ export async function generateMetadata({ params }: Props) {
 
 ### 对比分析
 
-| 特性 | Pages Router | App Router |
-|------|-------------|------------|
-| **文件位置** | `pages/` | `app/` |
-| **数据获取** | `getServerSideProps` | `async/await` |
-| **布局** | `_app.tsx` + `_document.tsx` | `layout.tsx` |
-| **元数据** | `Head` 组件 | `generateMetadata` |
-| **错误处理** | `_error.tsx` | `error.tsx` |
-| **加载状态** | 手动实现 | `loading.tsx` |
-| **嵌套布局** | 复杂 | 原生支持 |
-| **流式渲染** | 不支持 | 支持 |
+| 特性         | Pages Router                 | App Router         |
+| ------------ | ---------------------------- | ------------------ |
+| **文件位置** | `pages/`                     | `app/`             |
+| **数据获取** | `getServerSideProps`         | `async/await`      |
+| **布局**     | `_app.tsx` + `_document.tsx` | `layout.tsx`       |
+| **元数据**   | `Head` 组件                  | `generateMetadata` |
+| **错误处理** | `_error.tsx`                 | `error.tsx`        |
+| **加载状态** | 手动实现                     | `loading.tsx`      |
+| **嵌套布局** | 复杂                         | 原生支持           |
+| **流式渲染** | 不支持                       | 支持               |
 
 ### 为什么选择App Router？
 
@@ -281,7 +282,8 @@ mall-frontend/
 ### 根布局分析
 
 <augment_code_snippet path="mall-frontend/src/app/layout.tsx" mode="EXCERPT">
-````typescript
+
+```typescript
 import type { Metadata } from "next";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import AppProviders from '@/components/providers/AppProviders';
@@ -312,7 +314,8 @@ export default function RootLayout({
     </html>
   );
 }
-````
+```
+
 </augment_code_snippet>
 
 **设计亮点分析**：
@@ -325,7 +328,8 @@ export default function RootLayout({
 ### 首页实现分析
 
 <augment_code_snippet path="mall-frontend/src/app/page.tsx" mode="EXCERPT">
-````typescript
+
+```typescript
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -353,7 +357,8 @@ export default function Home() {
     </MainLayout>
   );
 }
-````
+```
+
 </augment_code_snippet>
 
 **关键特性**：
@@ -366,7 +371,8 @@ export default function Home() {
 ### 动态路由实现
 
 <augment_code_snippet path="mall-frontend/src/app/products/[id]/page.tsx" mode="EXCERPT">
-````typescript
+
+```typescript
 'use client';
 
 interface Props {
@@ -403,7 +409,8 @@ const ProductDetailPage: React.FC = () => {
     </MainLayout>
   );
 };
-````
+```
+
 </augment_code_snippet>
 
 **动态路由特点**：
@@ -420,8 +427,9 @@ const ProductDetailPage: React.FC = () => {
 让我们深入分析Mall-Frontend的Next.js配置：
 
 <augment_code_snippet path="mall-frontend/next.config.ts" mode="EXCERPT">
-````typescript
-import type { NextConfig } from "next";
+
+```typescript
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // API代理配置
@@ -449,10 +457,10 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
               "connect-src 'self' http://localhost:8080 ws://localhost:3000",
-            ].join('; ')
+            ].join('; '),
           },
-        ]
-      }
+        ],
+      },
     ];
   },
 
@@ -482,7 +490,8 @@ const nextConfig: NextConfig = {
   // 输出配置
   output: 'standalone',
 };
-````
+```
+
 </augment_code_snippet>
 
 ### 配置详解
@@ -501,11 +510,13 @@ async rewrites() {
 ```
 
 **作用**：
+
 - 解决跨域问题
 - 统一API入口
 - 开发环境代理到Go后端
 
 **与传统方案对比**：
+
 ```typescript
 // 传统方式：需要配置webpack dev server
 module.exports = {
@@ -545,6 +556,7 @@ async headers() {
 ```
 
 **安全策略**：
+
 - **CSP** - 防止XSS攻击
 - **X-Frame-Options** - 防止点击劫持
 - **X-Content-Type-Options** - 防止MIME类型嗅探
@@ -560,6 +572,7 @@ images: {
 ```
 
 **优化特性**：
+
 - 自动格式转换（WebP、AVIF）
 - 响应式图片
 - 懒加载
@@ -581,6 +594,7 @@ experimental: {
 ```
 
 **Turbopack优势**：
+
 - 比Webpack快700倍的构建速度
 - 增量编译
 - 更好的缓存策略
@@ -659,12 +673,14 @@ async function fetchProducts(params: {
 ```
 
 **SSR优势**：
+
 - ✅ SEO友好 - 搜索引擎能看到完整内容
 - ✅ 首屏快速 - 服务端渲染完整HTML
 - ✅ 实时数据 - 每次请求都获取最新数据
 - ✅ 社交分享 - 完整的meta标签
 
 **与传统SPA对比**：
+
 ```typescript
 // 传统SPA方式
 const ProductsPage = () => {
@@ -763,6 +779,7 @@ async function fetchPost(slug: string) {
 ```
 
 **SSG优势**：
+
 - ⚡ 极快加载 - 预构建的静态HTML
 - 💰 成本低 - CDN缓存，服务器压力小
 - 🔒 安全性高 - 没有服务端运行时
@@ -838,6 +855,7 @@ async function fetchProduct(id: string) {
 ```
 
 **ISR工作原理**：
+
 1. **首次访问** - 返回静态页面（如果已生成）
 2. **后台重新生成** - 到达revalidate时间后，后台重新获取数据
 3. **更新缓存** - 新页面生成后替换旧缓存
@@ -917,14 +935,14 @@ export default function OptimizedDashboard() {
 
 ### 数据获取策略选择指南
 
-| 场景 | 推荐策略 | 原因 |
-|------|----------|------|
-| 商品列表页 | SSR | 需要SEO，数据实时性要求高 |
-| 商品详情页 | ISR | 平衡SEO和性能，内容相对稳定 |
-| 用户仪表板 | CSR | 个人数据，需要认证 |
-| 博客文章 | SSG | 内容静态，性能要求高 |
-| 搜索结果 | SSR | 需要SEO，查询参数动态 |
-| 购物车 | CSR | 用户交互频繁，实时更新 |
+| 场景       | 推荐策略 | 原因                        |
+| ---------- | -------- | --------------------------- |
+| 商品列表页 | SSR      | 需要SEO，数据实时性要求高   |
+| 商品详情页 | ISR      | 平衡SEO和性能，内容相对稳定 |
+| 用户仪表板 | CSR      | 个人数据，需要认证          |
+| 博客文章   | SSG      | 内容静态，性能要求高        |
+| 搜索结果   | SSR      | 需要SEO，查询参数动态       |
+| 购物车     | CSR      | 用户交互频繁，实时更新      |
 
 ---
 
@@ -1185,7 +1203,9 @@ async function proxyRequest(
     const headers = new Headers();
     request.headers.forEach((value, key) => {
       // 过滤掉一些不需要的头
-      if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
+      if (
+        !['host', 'connection', 'content-length'].includes(key.toLowerCase())
+      ) {
         headers.set(key, value);
       }
     });
@@ -1207,7 +1227,8 @@ async function proxyRequest(
       status: response.status,
       statusText: response.statusText,
       headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+        'Content-Type':
+          response.headers.get('Content-Type') || 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -1215,10 +1236,7 @@ async function proxyRequest(
     });
   } catch (error) {
     console.error('Proxy error:', error);
-    return Response.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 ```
@@ -1292,7 +1310,9 @@ export interface AuthenticatedRequest extends NextRequest {
   };
 }
 
-export function withAuth(handler: (req: AuthenticatedRequest) => Promise<Response>) {
+export function withAuth(
+  handler: (req: AuthenticatedRequest) => Promise<Response>
+) {
   return async (request: NextRequest) => {
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
@@ -1341,7 +1361,9 @@ export function middleware(request: NextRequest) {
 
   // 需要认证的路径
   const protectedPaths = ['/dashboard', '/orders', '/profile', '/checkout'];
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  const isProtectedPath = protectedPaths.some(path =>
+    pathname.startsWith(path)
+  );
 
   if (isProtectedPath) {
     const token = request.cookies.get('auth-token')?.value;
@@ -1413,9 +1435,7 @@ function getLocale(request: NextRequest): string {
   // 3. 检查Accept-Language头
   const acceptLanguage = request.headers.get('Accept-Language');
   if (acceptLanguage) {
-    const browserLocale = acceptLanguage
-      .split(',')[0]
-      .split('-')[0];
+    const browserLocale = acceptLanguage.split(',')[0].split('-')[0];
 
     const matchedLocale = locales.find(locale =>
       locale.startsWith(browserLocale)
@@ -1611,17 +1631,20 @@ export async function generateMetadata({
   }
 
   const price = product.discount_price || product.price;
-  const images = product.images?.map(img => ({
-    url: img,
-    width: 800,
-    height: 600,
-    alt: product.name,
-  })) || [];
+  const images =
+    product.images?.map(img => ({
+      url: img,
+      width: 800,
+      height: 600,
+      alt: product.name,
+    })) || [];
 
   return {
     title: product.name,
     description: product.description,
-    keywords: [product.name, product.category_name, '商城', '购物'].filter(Boolean),
+    keywords: [product.name, product.category_name, '商城', '购物'].filter(
+      Boolean
+    ),
     openGraph: {
       title: product.name,
       description: product.description,
@@ -1846,14 +1869,14 @@ npm install --save-dev @next/bundle-analyzer
 
 ### 开发体验对比
 
-| 特性 | 传统React SPA | Next.js |
-|------|---------------|---------|
-| **项目初始化** | 复杂配置 | 零配置启动 |
-| **路由配置** | 手动配置React Router | 文件系统自动路由 |
-| **代码分割** | 手动配置 | 自动代码分割 |
-| **SEO优化** | 需要额外工具 | 内置SSR/SSG |
-| **性能优化** | 手动配置 | 内置优化 |
-| **部署** | 需要配置服务器 | 一键部署 |
+| 特性           | 传统React SPA        | Next.js          |
+| -------------- | -------------------- | ---------------- |
+| **项目初始化** | 复杂配置             | 零配置启动       |
+| **路由配置**   | 手动配置React Router | 文件系统自动路由 |
+| **代码分割**   | 手动配置             | 自动代码分割     |
+| **SEO优化**    | 需要额外工具         | 内置SSR/SSG      |
+| **性能优化**   | 手动配置             | 内置优化         |
+| **部署**       | 需要配置服务器       | 一键部署         |
 
 ### 性能对比
 
@@ -1893,33 +1916,36 @@ export default async function NextJSApp() {
 <!-- 传统SPA的HTML -->
 <!DOCTYPE html>
 <html>
-<head>
-  <title>React App</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="/static/js/bundle.js"></script>
-</body>
+  <head>
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/static/js/bundle.js"></script>
+  </body>
 </html>
 
 <!-- Next.js的HTML -->
 <!DOCTYPE html>
 <html>
-<head>
-  <title>iPhone 15 Pro - Mall商城</title>
-  <meta name="description" content="最新iPhone 15 Pro，A17 Pro芯片，钛金属设计">
-  <meta property="og:title" content="iPhone 15 Pro">
-  <meta property="og:description" content="最新iPhone 15 Pro，A17 Pro芯片">
-  <meta property="og:image" content="/iphone-15-pro.jpg">
-</head>
-<body>
-  <div id="__next">
-    <h1>iPhone 15 Pro</h1>
-    <p>最新iPhone 15 Pro，A17 Pro芯片，钛金属设计</p>
-    <!-- 完整的HTML内容 -->
-  </div>
-  <script src="/_next/static/chunks/pages/products/[id].js"></script>
-</body>
+  <head>
+    <title>iPhone 15 Pro - Mall商城</title>
+    <meta
+      name="description"
+      content="最新iPhone 15 Pro，A17 Pro芯片，钛金属设计"
+    />
+    <meta property="og:title" content="iPhone 15 Pro" />
+    <meta property="og:description" content="最新iPhone 15 Pro，A17 Pro芯片" />
+    <meta property="og:image" content="/iphone-15-pro.jpg" />
+  </head>
+  <body>
+    <div id="__next">
+      <h1>iPhone 15 Pro</h1>
+      <p>最新iPhone 15 Pro，A17 Pro芯片，钛金属设计</p>
+      <!-- 完整的HTML内容 -->
+    </div>
+    <script src="/_next/static/chunks/pages/products/[id].js"></script>
+  </body>
 </html>
 ```
 
@@ -1957,6 +1983,7 @@ vercel --prod
 5. **全栈能力** - API Routes支持后端开发
 
 **解决的核心问题**：
+
 - SEO困难 → SSR/SSG解决
 - 首屏性能差 → 服务端渲染解决
 - 配置复杂 → 零配置解决
@@ -2077,6 +2104,7 @@ const products = await fetch('/api/products', {
 **题目**: 使用Next.js App Router构建一个商品搜索页面，支持SSR和动态路由
 
 **要求**:
+
 1. 支持搜索关键词、分类筛选、价格排序
 2. URL参数同步，支持分享和书签
 3. SEO友好的元数据生成
@@ -2247,6 +2275,7 @@ async function searchProducts(params: {
 **题目**: 构建一个功能完整的购物车页面，支持客户端交互和服务端渲染
 
 **要求**:
+
 1. 支持商品数量修改、删除
 2. 实时计算总价
 3. 优化用户体验（乐观更新）
@@ -2505,5 +2534,8 @@ Next.js为我们提供了构建现代Web应用的完整解决方案，让开发�
 
 ---
 
-*下一章我们将学习《状态管理与数据流设计》，探索复杂应用的状态管理最佳实践！* 🚀
+_下一章我们将学习《状态管理与数据流设计》，探索复杂应用的状态管理最佳实践！_ 🚀
+
+```
+
 ```

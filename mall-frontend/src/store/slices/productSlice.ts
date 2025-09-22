@@ -9,15 +9,15 @@ interface ProductState {
   products: Product[];
   total: number;
   loading: boolean;
-  
+
   // 当前商品详情
   currentProduct: Product | null;
   productLoading: boolean;
-  
+
   // 分类列表
   categories: Category[];
   categoriesLoading: boolean;
-  
+
   // 搜索和筛选
   searchParams: {
     keyword?: string;
@@ -35,13 +35,13 @@ const initialState: ProductState = {
   products: [],
   total: 0,
   loading: false,
-  
+
   currentProduct: null,
   productLoading: false,
-  
+
   categories: [],
   categoriesLoading: false,
-  
+
   searchParams: {
     page: 1,
     page_size: 10,
@@ -51,14 +51,17 @@ const initialState: ProductState = {
 // 异步actions
 export const fetchProductsAsync = createAsyncThunk(
   'product/fetchProducts',
-  async (params: PaginationParams & {
-    category_id?: number;
-    status?: string;
-    min_price?: number;
-    max_price?: number;
-    sort_by?: string;
-    min_rating?: number;
-  }, { rejectWithValue }) => {
+  async (
+    params: PaginationParams & {
+      category_id?: number;
+      status?: string;
+      min_price?: number;
+      max_price?: number;
+      sort_by?: string;
+      min_rating?: number;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       // 在开发环境使用模拟数据
       if (process.env.NODE_ENV === 'development') {
@@ -138,7 +141,10 @@ export const fetchCategoriesAsync = createAsyncThunk(
 
 export const createProductAsync = createAsyncThunk(
   'product/createProduct',
-  async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>, { rejectWithValue }) => {
+  async (
+    productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>,
+    { rejectWithValue }
+  ) => {
     try {
       const response = await productAPI.createProduct(productData);
       return response.data;
@@ -150,7 +156,10 @@ export const createProductAsync = createAsyncThunk(
 
 export const updateProductAsync = createAsyncThunk(
   'product/updateProduct',
-  async ({ id, data }: { id: number; data: Partial<Product> }, { rejectWithValue }) => {
+  async (
+    { id, data }: { id: number; data: Partial<Product> },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await productAPI.updateProduct(id, data);
       return response.data;
@@ -178,41 +187,50 @@ const productSlice = createSlice({
   initialState,
   reducers: {
     // 设置搜索参数
-    setSearchParams: (state, action: PayloadAction<Partial<ProductState['searchParams']>>) => {
+    setSearchParams: (
+      state,
+      action: PayloadAction<Partial<ProductState['searchParams']>>
+    ) => {
       state.searchParams = { ...state.searchParams, ...action.payload };
     },
-    
+
     // 重置搜索参数
-    resetSearchParams: (state) => {
+    resetSearchParams: state => {
       state.searchParams = {
         page: 1,
         page_size: 10,
       };
     },
-    
+
     // 清除当前商品
-    clearCurrentProduct: (state) => {
+    clearCurrentProduct: state => {
       state.currentProduct = null;
     },
-    
+
     // 更新商品库存（用于购买后更新）
-    updateProductStock: (state, action: PayloadAction<{ id: number; stock: number; sold_count: number }>) => {
+    updateProductStock: (
+      state,
+      action: PayloadAction<{ id: number; stock: number; sold_count: number }>
+    ) => {
       const product = state.products.find(p => p.id === action.payload.id);
       if (product) {
         product.stock = action.payload.stock;
         product.sold_count = action.payload.sold_count;
       }
-      
-      if (state.currentProduct && state.currentProduct.id === action.payload.id) {
+
+      if (
+        state.currentProduct &&
+        state.currentProduct.id === action.payload.id
+      ) {
         state.currentProduct.stock = action.payload.stock;
         state.currentProduct.sold_count = action.payload.sold_count;
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // 获取商品列表
     builder
-      .addCase(fetchProductsAsync.pending, (state) => {
+      .addCase(fetchProductsAsync.pending, state => {
         state.loading = true;
       })
       .addCase(fetchProductsAsync.fulfilled, (state, action) => {
@@ -224,10 +242,10 @@ const productSlice = createSlice({
         state.loading = false;
         message.error(action.payload as string);
       });
-    
+
     // 获取商品详情
     builder
-      .addCase(fetchProductDetailAsync.pending, (state) => {
+      .addCase(fetchProductDetailAsync.pending, state => {
         state.productLoading = true;
       })
       .addCase(fetchProductDetailAsync.fulfilled, (state, action) => {
@@ -239,10 +257,10 @@ const productSlice = createSlice({
         state.currentProduct = null;
         message.error(action.payload as string);
       });
-    
+
     // 获取分类列表
     builder
-      .addCase(fetchCategoriesAsync.pending, (state) => {
+      .addCase(fetchCategoriesAsync.pending, state => {
         state.categoriesLoading = true;
       })
       .addCase(fetchCategoriesAsync.fulfilled, (state, action) => {
@@ -253,7 +271,7 @@ const productSlice = createSlice({
         state.categoriesLoading = false;
         message.error(action.payload as string);
       });
-    
+
     // 创建商品
     builder
       .addCase(createProductAsync.fulfilled, (state, action) => {
@@ -263,7 +281,7 @@ const productSlice = createSlice({
       .addCase(createProductAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 更新商品
     builder
       .addCase(updateProductAsync.fulfilled, (state, action) => {
@@ -271,22 +289,28 @@ const productSlice = createSlice({
         if (index !== -1) {
           state.products[index] = action.payload;
         }
-        
-        if (state.currentProduct && state.currentProduct.id === action.payload.id) {
+
+        if (
+          state.currentProduct &&
+          state.currentProduct.id === action.payload.id
+        ) {
           state.currentProduct = action.payload;
         }
       })
       .addCase(updateProductAsync.rejected, (state, action) => {
         message.error(action.payload as string);
       });
-    
+
     // 删除商品
     builder
       .addCase(deleteProductAsync.fulfilled, (state, action) => {
         state.products = state.products.filter(p => p.id !== action.payload);
         state.total -= 1;
-        
-        if (state.currentProduct && state.currentProduct.id === action.payload) {
+
+        if (
+          state.currentProduct &&
+          state.currentProduct.id === action.payload
+        ) {
           state.currentProduct = null;
         }
       })
@@ -305,14 +329,22 @@ export const {
 } = productSlice.actions;
 
 // 选择器
-export const selectProduct = (state: { product: ProductState }) => state.product;
-export const selectProducts = (state: { product: ProductState }) => state.product.products;
-export const selectCurrentProduct = (state: { product: ProductState }) => state.product.currentProduct;
-export const selectCategories = (state: { product: ProductState }) => state.product.categories;
-export const selectProductLoading = (state: { product: ProductState }) => state.product.loading;
-export const selectProductDetailLoading = (state: { product: ProductState }) => state.product.productLoading;
-export const selectSearchParams = (state: { product: ProductState }) => state.product.searchParams;
-export const selectProductTotal = (state: { product: ProductState }) => state.product.total;
+export const selectProduct = (state: { product: ProductState }) =>
+  state.product;
+export const selectProducts = (state: { product: ProductState }) =>
+  state.product.products;
+export const selectCurrentProduct = (state: { product: ProductState }) =>
+  state.product.currentProduct;
+export const selectCategories = (state: { product: ProductState }) =>
+  state.product.categories;
+export const selectProductLoading = (state: { product: ProductState }) =>
+  state.product.loading;
+export const selectProductDetailLoading = (state: { product: ProductState }) =>
+  state.product.productLoading;
+export const selectSearchParams = (state: { product: ProductState }) =>
+  state.product.searchParams;
+export const selectProductTotal = (state: { product: ProductState }) =>
+  state.product.total;
 
 // 导出reducer
 export default productSlice.reducer;

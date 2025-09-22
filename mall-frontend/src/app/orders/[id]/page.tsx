@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Typography, 
-  Button, 
-  Space, 
-  Tag, 
+import {
+  Row,
+  Col,
+  Card,
+  Typography,
+  Button,
+  Space,
+  Tag,
   Divider,
   Spin,
   message,
@@ -17,9 +17,9 @@ import {
   Descriptions,
   Timeline,
   Breadcrumb,
-  Alert
+  Alert,
 } from 'antd';
-import { 
+import {
   ArrowLeftOutlined,
   ShoppingCartOutlined,
   ClockCircleOutlined,
@@ -31,17 +31,17 @@ import {
   ShopOutlined,
   CopyOutlined,
   PhoneOutlined,
-  EnvironmentOutlined
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import { useRouter, useParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   fetchOrderDetailAsync,
   cancelOrderAsync,
-  selectOrder
+  selectOrder,
 } from '@/store/slices/orderSlice';
 import MainLayout from '@/components/layout/MainLayout';
-import { Order, OrderStatus } from '@/types';
+import { Order } from '@/types';
 import { ROUTES } from '@/constants';
 import { formatPrice, formatDateTime } from '@/utils';
 
@@ -50,53 +50,53 @@ const { Step } = Steps;
 
 // 订单状态配置
 const ORDER_STATUS_CONFIG = {
-  pending: { 
-    label: '待支付', 
-    color: 'orange', 
+  pending: {
+    label: '待支付',
+    color: 'orange',
     icon: <ClockCircleOutlined />,
-    step: 0
+    step: 0,
   },
-  paid: { 
-    label: '已支付', 
-    color: 'blue', 
+  paid: {
+    label: '已支付',
+    color: 'blue',
     icon: <PayCircleOutlined />,
-    step: 1
+    step: 1,
   },
-  shipped: { 
-    label: '已发货', 
-    color: 'cyan', 
+  shipped: {
+    label: '已发货',
+    color: 'cyan',
     icon: <TruckOutlined />,
-    step: 2
+    step: 2,
   },
-  delivered: { 
-    label: '已送达', 
-    color: 'green', 
+  delivered: {
+    label: '已送达',
+    color: 'green',
     icon: <CheckCircleOutlined />,
-    step: 3
+    step: 3,
   },
-  completed: { 
-    label: '已完成', 
-    color: 'green', 
+  completed: {
+    label: '已完成',
+    color: 'green',
     icon: <CheckCircleOutlined />,
-    step: 4
+    step: 4,
   },
-  cancelled: { 
-    label: '已取消', 
-    color: 'red', 
+  cancelled: {
+    label: '已取消',
+    color: 'red',
     icon: <CloseCircleOutlined />,
-    step: -1
+    step: -1,
   },
-  refunded: { 
-    label: '已退款', 
-    color: 'purple', 
+  refunded: {
+    label: '已退款',
+    color: 'purple',
     icon: <CloseCircleOutlined />,
-    step: -1
-  }
+    step: -1,
+  },
 };
 
 const OrderDetailPage: React.FC = () => {
   const [cancelling, setCancelling] = useState(false);
-  
+
   const router = useRouter();
   const params = useParams();
   const dispatch = useAppDispatch();
@@ -117,10 +117,12 @@ const OrderDetailPage: React.FC = () => {
 
     try {
       setCancelling(true);
-      await dispatch(cancelOrderAsync({ 
-        id: currentOrder.id, 
-        reason: '用户主动取消' 
-      }));
+      await dispatch(
+        cancelOrderAsync({
+          id: currentOrder.id,
+          reason: '用户主动取消',
+        })
+      );
       message.success('订单已取消');
       // 重新加载订单详情
       dispatch(fetchOrderDetailAsync(orderId));
@@ -162,7 +164,7 @@ const OrderDetailPage: React.FC = () => {
         <Alert
           message={config.label}
           description={`订单已于 ${formatDateTime(currentOrder.updated_at)} ${config.label}`}
-          type="warning"
+          type='warning'
           showIcon
           icon={config.icon}
           style={{ marginBottom: 24 }}
@@ -171,12 +173,15 @@ const OrderDetailPage: React.FC = () => {
     }
 
     return (
-      <Card title="订单状态" style={{ marginBottom: 24 }}>
-        <Steps current={currentStep} status={currentStep === 4 ? 'finish' : 'process'}>
-          <Step title="提交订单" description="订单已提交" />
-          <Step title="支付订单" description="完成支付" />
-          <Step title="商家发货" description="等待收货" />
-          <Step title="确认收货" description="订单完成" />
+      <Card title='订单状态' style={{ marginBottom: 24 }}>
+        <Steps
+          current={currentStep}
+          status={currentStep === 4 ? 'finish' : 'process'}
+        >
+          <Step title='提交订单' description='订单已提交' />
+          <Step title='支付订单' description='完成支付' />
+          <Step title='商家发货' description='等待收货' />
+          <Step title='确认收货' description='订单完成' />
         </Steps>
       </Card>
     );
@@ -187,13 +192,13 @@ const OrderDetailPage: React.FC = () => {
     if (!currentOrder?.items) return null;
 
     return (
-      <Card title="商品信息" style={{ marginBottom: 24 }}>
+      <Card title='商品信息' style={{ marginBottom: 24 }}>
         {currentOrder.items.map((item, index) => (
           <div key={index}>
-            <Row gutter={16} align="middle">
+            <Row gutter={16} align='middle'>
               <Col span={3}>
                 <Image
-                  src={item.product_image || '/images/placeholder-product.jpg'}
+                  src={item.image || '/images/placeholder-product.jpg'}
                   alt={item.product_name}
                   width={80}
                   height={80}
@@ -207,7 +212,7 @@ const OrderDetailPage: React.FC = () => {
                     {item.product_name}
                   </Title>
                   {item.sku_name && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type='secondary' style={{ fontSize: 12 }}>
                       规格: {item.sku_name}
                     </Text>
                   )}
@@ -220,27 +225,25 @@ const OrderDetailPage: React.FC = () => {
                 <Text>×{item.quantity}</Text>
               </Col>
               <Col span={3}>
-                <Text strong>¥{formatPrice((parseFloat(item.price) * item.quantity).toString())}</Text>
+                <Text strong>
+                  ¥
+                  {formatPrice(
+                    (parseFloat(item.price) * item.quantity).toString()
+                  )}
+                </Text>
               </Col>
             </Row>
             {index < currentOrder.items.length - 1 && <Divider />}
           </div>
         ))}
-        
+
         <Divider />
-        
-        <Row justify="end">
+
+        <Row justify='end'>
           <Col>
-            <Space direction="vertical" align="end">
-              <Text>商品总价: ¥{formatPrice(currentOrder.subtotal || currentOrder.total_amount)}</Text>
-              {currentOrder.shipping_fee && parseFloat(currentOrder.shipping_fee) > 0 && (
-                <Text>运费: ¥{formatPrice(currentOrder.shipping_fee)}</Text>
-              )}
-              {currentOrder.discount_amount && parseFloat(currentOrder.discount_amount) > 0 && (
-                <Text style={{ color: '#52c41a' }}>
-                  优惠: -¥{formatPrice(currentOrder.discount_amount)}
-                </Text>
-              )}
+            <Space direction='vertical' align='end'>
+              <Text>商品总价: ¥{formatPrice(currentOrder.total_amount)}</Text>
+
               <Title level={4} style={{ margin: 0, color: '#ff4d4f' }}>
                 实付款: ¥{formatPrice(currentOrder.total_amount)}
               </Title>
@@ -258,14 +261,14 @@ const OrderDetailPage: React.FC = () => {
     return (
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
-          <Card title="订单信息" size="small">
-            <Descriptions column={1} size="small">
-              <Descriptions.Item label="订单号">
+          <Card title='订单信息' size='small'>
+            <Descriptions column={1} size='small'>
+              <Descriptions.Item label='订单号'>
                 <Space>
                   <Text code>{currentOrder.order_no}</Text>
-                  <Button 
-                    type="link" 
-                    size="small" 
+                  <Button
+                    type='link'
+                    size='small'
                     icon={<CopyOutlined />}
                     onClick={handleCopyOrderNo}
                   >
@@ -273,53 +276,47 @@ const OrderDetailPage: React.FC = () => {
                   </Button>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="订单状态">
+              <Descriptions.Item label='订单状态'>
                 <Tag color={ORDER_STATUS_CONFIG[currentOrder.status].color}>
                   {ORDER_STATUS_CONFIG[currentOrder.status].label}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="下单时间">
+              <Descriptions.Item label='下单时间'>
                 {formatDateTime(currentOrder.created_at)}
               </Descriptions.Item>
-              <Descriptions.Item label="支付方式">
-                {currentOrder.payment_method || '在线支付'}
-              </Descriptions.Item>
-              {currentOrder.buyer_message && (
-                <Descriptions.Item label="买家留言">
-                  {currentOrder.buyer_message}
-                </Descriptions.Item>
-              )}
+              <Descriptions.Item label='支付方式'>在线支付</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
-        
+
         <Col xs={24} lg={12}>
-          <Card title="收货信息" size="small">
-            <Descriptions column={1} size="small">
-              <Descriptions.Item label="收货人">
+          <Card title='收货信息' size='small'>
+            <Descriptions column={1} size='small'>
+              <Descriptions.Item label='收货人'>
                 <Space>
-                  <Text>{currentOrder.receiver_name}</Text>
-                  <Button 
-                    type="link" 
-                    size="small" 
+                  <Text>{currentOrder.shipping_address.name}</Text>
+                  <Button
+                    type='link'
+                    size='small'
                     icon={<PhoneOutlined />}
-                    href={`tel:${currentOrder.receiver_phone}`}
+                    href={`tel:${currentOrder.shipping_address.phone}`}
                   >
-                    {currentOrder.receiver_phone}
+                    {currentOrder.shipping_address.phone}
                   </Button>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="收货地址">
+              <Descriptions.Item label='收货地址'>
                 <Space>
                   <EnvironmentOutlined />
                   <Text>
-                    {currentOrder.province} {currentOrder.city} {currentOrder.district} {currentOrder.receiver_address}
+                    {currentOrder.shipping_address.province}{' '}
+                    {currentOrder.shipping_address.city}{' '}
+                    {currentOrder.shipping_address.district}{' '}
+                    {currentOrder.shipping_address.detail}
                   </Text>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="配送方式">
-                {currentOrder.shipping_method === 'standard' ? '标准配送' : '快速配送'}
-              </Descriptions.Item>
+              <Descriptions.Item label='配送方式'>标准配送</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
@@ -337,9 +334,9 @@ const OrderDetailPage: React.FC = () => {
       case 'pending':
         actions.push(
           <Button
-            key="pay"
-            type="primary"
-            size="large"
+            key='pay'
+            type='primary'
+            size='large'
             icon={<PayCircleOutlined />}
             onClick={handlePayOrder}
           >
@@ -348,9 +345,9 @@ const OrderDetailPage: React.FC = () => {
         );
         actions.push(
           <Button
-            key="cancel"
+            key='cancel'
             danger
-            size="large"
+            size='large'
             icon={<CloseCircleOutlined />}
             loading={cancelling}
             onClick={handleCancelOrder}
@@ -359,13 +356,13 @@ const OrderDetailPage: React.FC = () => {
           </Button>
         );
         break;
-      
+
       case 'delivered':
         actions.push(
           <Button
-            key="confirm"
-            type="primary"
-            size="large"
+            key='confirm'
+            type='primary'
+            size='large'
             icon={<CheckCircleOutlined />}
           >
             确认收货
@@ -379,9 +376,7 @@ const OrderDetailPage: React.FC = () => {
     return (
       <Card style={{ marginTop: 24 }}>
         <div style={{ textAlign: 'center' }}>
-          <Space size="large">
-            {actions}
-          </Space>
+          <Space size='large'>{actions}</Space>
         </div>
       </Card>
     );
@@ -390,13 +385,15 @@ const OrderDetailPage: React.FC = () => {
   if (orderLoading) {
     return (
       <MainLayout>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: 400 
-        }}>
-          <Spin size="large" />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: 400,
+          }}
+        >
+          <Spin size='large' />
         </div>
       </MainLayout>
     );
@@ -407,7 +404,7 @@ const OrderDetailPage: React.FC = () => {
       <MainLayout>
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <Title level={3}>订单不存在</Title>
-          <Button type="primary" onClick={() => router.push(ROUTES.ORDERS)}>
+          <Button type='primary' onClick={() => router.push(ROUTES.ORDERS)}>
             返回订单列表
           </Button>
         </div>
@@ -433,10 +430,7 @@ const OrderDetailPage: React.FC = () => {
 
         {/* 返回按钮 */}
         <div style={{ marginBottom: 16 }}>
-          <Button 
-            icon={<ArrowLeftOutlined />} 
-            onClick={handleGoBack}
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={handleGoBack}>
             返回
           </Button>
         </div>

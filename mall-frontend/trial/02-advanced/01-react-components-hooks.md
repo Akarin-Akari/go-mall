@@ -5,6 +5,7 @@
 ## 🎯 学习目标
 
 通过本章学习，你将掌握：
+
 - React组件的TypeScript类型定义
 - 函数组件与类组件的最佳实践
 - Hooks的深度应用和自定义Hooks
@@ -104,12 +105,12 @@ interface ButtonProps {
 const props = withDefaults(defineProps<ButtonProps>(), {
   disabled: false,
   variant: 'primary',
-  size: 'medium'
+  size: 'medium',
 });
 
 // 事件定义
 const emit = defineEmits<{
-  click: []
+  click: [];
 }>();
 
 const onClick = () => {
@@ -145,7 +146,7 @@ interface ButtonProps {
       <ng-content></ng-content>
     </button>
   `,
-  styleUrls: ['./button.component.css']
+  styleUrls: ['./button.component.css'],
 })
 export class ButtonComponent implements ButtonProps {
   @Input() disabled: boolean = false;
@@ -257,14 +258,14 @@ class CustomButton extends StatelessWidget {
 
 **💡 组件系统对比：**
 
-| 特性 | React + TS | Vue 3 + TS | Angular | Svelte | Flutter |
-|------|------------|-------------|---------|--------|---------|
-| **组件定义** | 函数/类 | SFC/Composition | 装饰器类 | 单文件 | Widget类 |
-| **Props类型** | 接口定义 | `defineProps<T>()` | `@Input()` | `export let` | 构造参数 |
-| **事件处理** | 回调函数 | `defineEmits<T>()` | `@Output()` | `createEventDispatcher` | 回调函数 |
-| **插槽/内容** | `children` | `<slot>` | `<ng-content>` | `<slot>` | `child` |
-| **样式隔离** | CSS Modules | `scoped` | ViewEncapsulation | 自动隔离 | Widget样式 |
-| **类型安全** | 编译时 | 编译时 | 编译时 | 编译时 | 编译时 |
+| 特性          | React + TS  | Vue 3 + TS         | Angular           | Svelte                  | Flutter    |
+| ------------- | ----------- | ------------------ | ----------------- | ----------------------- | ---------- |
+| **组件定义**  | 函数/类     | SFC/Composition    | 装饰器类          | 单文件                  | Widget类   |
+| **Props类型** | 接口定义    | `defineProps<T>()` | `@Input()`        | `export let`            | 构造参数   |
+| **事件处理**  | 回调函数    | `defineEmits<T>()` | `@Output()`       | `createEventDispatcher` | 回调函数   |
+| **插槽/内容** | `children`  | `<slot>`           | `<ng-content>`    | `<slot>`                | `child`    |
+| **样式隔离**  | CSS Modules | `scoped`           | ViewEncapsulation | 自动隔离                | Widget样式 |
+| **类型安全**  | 编译时      | 编译时             | 编译时            | 编译时                  | 编译时     |
 
 ### 类组件的TypeScript定义
 
@@ -289,7 +290,7 @@ class Counter extends Component<CounterProps, CounterState> {
       isLoading: false,
     };
   }
-  
+
   handleIncrement = (): void => {
     this.setState(
       (prevState) => ({ count: prevState.count + 1 }),
@@ -299,14 +300,14 @@ class Counter extends Component<CounterProps, CounterState> {
       }
     );
   };
-  
+
   handleDecrement = (): void => {
     this.setState((prevState) => ({ count: prevState.count - 1 }));
   };
-  
+
   render(): ReactNode {
     const { count, isLoading } = this.state;
-    
+
     return (
       <div className="counter">
         <button onClick={this.handleDecrement} disabled={isLoading}>
@@ -395,11 +396,11 @@ function List<T>({ items, renderItem, keyExtractor, loading, emptyText }: ListPr
   if (loading) {
     return <div className="loading">加载中...</div>;
   }
-  
+
   if (items.length === 0) {
     return <div className="empty">{emptyText || '暂无数据'}</div>;
   }
-  
+
   return (
     <div className="list">
       {items.map((item, index) => (
@@ -425,7 +426,7 @@ function List<T>({ items, renderItem, keyExtractor, loading, emptyText }: ListPr
 
 ```typescript
 // 条件Props：根据某个属性决定其他属性是否必需
-type ButtonProps = 
+type ButtonProps =
   | {
       variant: 'link';
       href: string;
@@ -453,7 +454,7 @@ const ConditionalButton: FC<ConditionalButtonProps> = (props) => {
       </a>
     );
   }
-  
+
   return (
     <button
       className={`btn btn-${props.variant || 'primary'}`}
@@ -499,7 +500,7 @@ interface InputProps {
 const Input = forwardRef<InputRef, InputProps>(({ placeholder, defaultValue, onChange }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue || '');
-  
+
   // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
     focus: () => inputRef.current?.focus(),
@@ -510,13 +511,13 @@ const Input = forwardRef<InputRef, InputProps>(({ placeholder, defaultValue, onC
       onChange?.(newValue);
     },
   }));
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setValue(newValue);
     onChange?.(newValue);
   };
-  
+
   return (
     <input
       ref={inputRef}
@@ -530,16 +531,16 @@ const Input = forwardRef<InputRef, InputProps>(({ placeholder, defaultValue, onC
 // 父组件中使用
 const ParentComponent: FC = () => {
   const inputRef = useRef<InputRef>(null);
-  
+
   const handleFocus = () => {
     inputRef.current?.focus();
   };
-  
+
   const handleGetValue = () => {
     const value = inputRef.current?.getValue();
     console.log('当前值:', value);
   };
-  
+
   return (
     <div>
       <Input ref={inputRef} placeholder="请输入内容" />
@@ -592,9 +593,9 @@ const addUser = useCallback((user: User) => {
 
 // 更新用户
 const updateUser = useCallback((userId: number, updates: Partial<User>) => {
-  setUsers(prev => prev.map(user => 
-    user.id === userId ? { ...user, ...updates } : user
-  ));
+  setUsers(prev =>
+    prev.map(user => (user.id === userId ? { ...user, ...updates } : user))
+  );
 }, []);
 
 // 删除用户
@@ -619,7 +620,7 @@ import { useEffect, useRef, DependencyList } from 'react';
 useEffect(() => {
   // 副作用逻辑
   console.log('组件挂载或更新');
-  
+
   // 清理函数
   return () => {
     console.log('组件卸载或依赖变化');
@@ -629,12 +630,12 @@ useEffect(() => {
 // 2. 数据获取的useEffect
 useEffect(() => {
   let isCancelled = false;
-  
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
       const response = await api.getUsers();
-      
+
       if (!isCancelled) {
         setUsers(response.data);
       }
@@ -648,9 +649,9 @@ useEffect(() => {
       }
     }
   };
-  
+
   fetchData();
-  
+
   return () => {
     isCancelled = true;
   };
@@ -664,9 +665,9 @@ useEffect(() => {
       height: window.innerHeight,
     });
   };
-  
+
   window.addEventListener('resize', handleResize);
-  
+
   return () => {
     window.removeEventListener('resize', handleResize);
   };
@@ -677,7 +678,7 @@ useEffect(() => {
   const timer = setInterval(() => {
     setCurrentTime(new Date());
   }, 1000);
-  
+
   return () => {
     clearInterval(timer);
   };
@@ -700,16 +701,16 @@ const ProductList: FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<keyof Product>('name');
-  
+
   // useCallback：缓存函数
   const handleSearch = useCallback((term: string) => {
     setSearchTerm(term);
   }, []);
-  
+
   const handleSort = useCallback((field: keyof Product) => {
     setSortBy(field);
   }, []);
-  
+
   const handleAddProduct = useCallback((product: Omit<Product, 'id'>) => {
     const newProduct: Product = {
       ...product,
@@ -717,7 +718,7 @@ const ProductList: FC = () => {
     };
     setProducts(prev => [...prev, newProduct]);
   }, []);
-  
+
   // useMemo：缓存计算结果
   const filteredProducts = useMemo(() => {
     return products.filter(product =>
@@ -725,28 +726,28 @@ const ProductList: FC = () => {
       product.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [products, searchTerm]);
-  
+
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
       const aValue = a[sortBy];
       const bValue = b[sortBy];
-      
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return aValue.localeCompare(bValue);
       }
-      
+
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         return aValue - bValue;
       }
-      
+
       return 0;
     });
   }, [filteredProducts, sortBy]);
-  
+
   const totalValue = useMemo(() => {
     return sortedProducts.reduce((sum, product) => sum + product.price, 0);
   }, [sortedProducts]);
-  
+
   return (
     <div>
       <SearchInput onSearch={handleSearch} />
@@ -797,7 +798,7 @@ const todoReducer: Reducer<TodoState, TodoAction> = (state, action) => {
           },
         ],
       };
-      
+
     case 'TOGGLE_TODO':
       return {
         ...state,
@@ -807,31 +808,31 @@ const todoReducer: Reducer<TodoState, TodoAction> = (state, action) => {
             : todo
         ),
       };
-      
+
     case 'DELETE_TODO':
       return {
         ...state,
         todos: state.todos.filter(todo => todo.id !== action.payload.id),
       };
-      
+
     case 'SET_FILTER':
       return {
         ...state,
         filter: action.payload.filter,
       };
-      
+
     case 'SET_LOADING':
       return {
         ...state,
         isLoading: action.payload.isLoading,
       };
-      
+
     case 'SET_ERROR':
       return {
         ...state,
         error: action.payload.error,
       };
-      
+
     case 'LOAD_TODOS_SUCCESS':
       return {
         ...state,
@@ -839,7 +840,7 @@ const todoReducer: Reducer<TodoState, TodoAction> = (state, action) => {
         isLoading: false,
         error: null,
       };
-      
+
     default:
       return state;
   }
@@ -856,23 +857,23 @@ const initialState: TodoState = {
 // 使用useReducer
 const TodoApp: FC = () => {
   const [state, dispatch] = useReducer(todoReducer, initialState);
-  
+
   const addTodo = useCallback((text: string) => {
     dispatch({ type: 'ADD_TODO', payload: { text } });
   }, []);
-  
+
   const toggleTodo = useCallback((id: number) => {
     dispatch({ type: 'TOGGLE_TODO', payload: { id } });
   }, []);
-  
+
   const deleteTodo = useCallback((id: number) => {
     dispatch({ type: 'DELETE_TODO', payload: { id } });
   }, []);
-  
+
   const setFilter = useCallback((filter: TodoState['filter']) => {
     dispatch({ type: 'SET_FILTER', payload: { filter } });
   }, []);
-  
+
   // 过滤后的todos
   const filteredTodos = useMemo(() => {
     switch (state.filter) {
@@ -884,7 +885,7 @@ const TodoApp: FC = () => {
         return state.todos;
     }
   }, [state.todos, state.filter]);
-  
+
   return (
     <div className="todo-app">
       <TodoInput onAdd={addTodo} />
@@ -907,7 +908,7 @@ const TodoApp: FC = () => {
 
 ### 数据获取Hook
 
-```typescript
+````typescript
 import { useState, useEffect, useCallback } from 'react';
 
 // 通用数据获取Hook
@@ -931,16 +932,16 @@ function useApi<T>(
   options: UseApiOptions<T> = {}
 ): UseApiReturn<T> {
   const { initialData = null, immediate = true, onSuccess, onError } = options;
-  
+
   const [data, setData] = useState<T | null>(initialData);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   const execute = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await apiFunction();
       setData(result);
       onSuccess?.(result);
@@ -952,19 +953,19 @@ function useApi<T>(
       setLoading(false);
     }
   }, [apiFunction, onSuccess, onError]);
-  
+
   const reset = useCallback(() => {
     setData(initialData);
     setLoading(false);
     setError(null);
   }, [initialData]);
-  
+
   useEffect(() => {
     if (immediate) {
       execute();
     }
   }, [execute, immediate]);
-  
+
   return { data, loading, error, execute, reset };
 }
 
@@ -986,11 +987,11 @@ const UserProfile: FC<{ userId: number }> = ({ userId }) => {
       },
     }
   );
-  
+
   if (loading) return <div>加载中...</div>;
   if (error) return <div>错误: {error.message}</div>;
   if (!user) return <div>用户不存在</div>;
-  
+
   return (
     <div>
       <h1>{user.username}</h1>
@@ -1687,11 +1688,11 @@ const App: FC = () => {
     </ThemeProvider>
   );
 };
-```
+````
 
 ### 事件总线通信
 
-```typescript
+````typescript
 // 事件总线类型定义
 interface EventBusEvents {
   'user:login': { user: User };
@@ -1901,7 +1902,7 @@ const ProductList: FC<ProductListProps> = ({ products, selectedIds, onSelectProd
     </div>
   );
 };
-```
+````
 
 ### 虚拟滚动优化
 
@@ -2025,7 +2026,7 @@ const LargeUserList: FC = () => {
 
 ### 懒加载组件
 
-```typescript
+`````typescript
 import { lazy, Suspense, ComponentType } from 'react';
 
 // 懒加载组件
@@ -2230,7 +2231,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
       setAddingToCart(false);
     }
   }, [onAddToCart, product]);
-````
+`````
+
 </augment_code_snippet>
 
 ### 组件设计的最佳实践分析
@@ -2267,7 +2269,7 @@ interface ComponentProps {
 
 ```typescript
 // 组件内部状态管理
-const ProductCard: FC<ProductCardProps> = (props) => {
+const ProductCard: FC<ProductCardProps> = props => {
   // UI状态
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -2277,24 +2279,27 @@ const ProductCard: FC<ProductCardProps> = (props) => {
   const [addingToCart, setAddingToCart] = useState(false);
 
   // 使用useCallback优化事件处理函数
-  const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation(); // 防止事件冒泡
+  const handleAddToCart = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation(); // 防止事件冒泡
 
-    if (!onAddToCart) return;
+      if (!onAddToCart) return;
 
-    try {
-      setAddingToCart(true);
-      await onAddToCart(product);
-      // 成功反馈
-      message.success('已添加到购物车');
-    } catch (error) {
-      // 错误处理
-      message.error('添加失败，请重试');
-    } finally {
-      // 状态重置
-      setAddingToCart(false);
-    }
-  }, [onAddToCart, product]);
+      try {
+        setAddingToCart(true);
+        await onAddToCart(product);
+        // 成功反馈
+        message.success('已添加到购物车');
+      } catch (error) {
+        // 错误处理
+        message.error('添加失败，请重试');
+      } finally {
+        // 状态重置
+        setAddingToCart(false);
+      }
+    },
+    [onAddToCart, product]
+  );
 
   // 其他事件处理函数...
 };
@@ -2669,7 +2674,7 @@ const ShoppingCart: FC = () => {
 
 ### 表单组件设计
 
-```typescript
+````typescript
 // 通用表单字段组件
 interface FormFieldProps {
   label: string;
@@ -2982,7 +2987,7 @@ const Button = memo<ButtonProps>(({
     </button>
   );
 });
-```
+````
 
 ### 2. Hooks使用最佳实践
 
@@ -3202,6 +3207,7 @@ const VirtualizedList: FC<{ items: any[] }> = ({ items }) => {
 **题目**: 设计一个功能完整的数据表格组件，支持排序、筛选、分页等功能
 
 **要求**:
+
 1. 支持自定义列配置
 2. 内置排序和筛选功能
 3. 支持分页和虚拟滚动
@@ -3718,6 +3724,8 @@ React + TypeScript的组合为我们提供了强大的类型安全保障和优�
 
 ---
 
-*下一章我们将学习《Next.js框架应用与SSR/SSG》，探索现代React应用的服务端渲染技术！* 🚀
+_下一章我们将学习《Next.js框架应用与SSR/SSG》，探索现代React应用的服务端渲染技术！_ 🚀
+
 ```
+
 ```

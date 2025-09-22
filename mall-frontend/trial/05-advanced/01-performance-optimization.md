@@ -1,6 +1,6 @@
 # 第1章：前端性能优化策略 ⚡
 
-> *"性能不是功能，而是用户体验的基础！"* 🚀
+> _"性能不是功能，而是用户体验的基础！"_ 🚀
 
 ## 📚 本章导览
 
@@ -82,10 +82,10 @@ interface CoreWebVitals {
       '优化服务器响应时间',
       '消除阻塞渲染的资源',
       '优化CSS和JavaScript',
-      '使用CDN加速资源加载'
+      '使用CDN加速资源加载',
     ];
   };
-  
+
   // 首次输入延迟 (First Input Delay)
   FID: {
     description: '用户首次与页面交互到浏览器响应的时间';
@@ -96,10 +96,10 @@ interface CoreWebVitals {
       '减少JavaScript执行时间',
       '拆分长任务',
       '使用Web Workers',
-      '优化第三方代码'
+      '优化第三方代码',
     ];
   };
-  
+
   // 累积布局偏移 (Cumulative Layout Shift)
   CLS: {
     description: '页面生命周期内所有意外布局偏移的累积分数';
@@ -110,7 +110,7 @@ interface CoreWebVitals {
       '为图像和视频设置尺寸属性',
       '避免在现有内容上方插入内容',
       '使用transform动画而非改变布局的属性',
-      '预留广告和嵌入内容的空间'
+      '预留广告和嵌入内容的空间',
     ];
   };
 }
@@ -123,14 +123,14 @@ interface AdditionalMetrics {
     goodThreshold: '≤ 1.8秒';
     measurement: 'Performance API';
   };
-  
+
   // 首次有意义绘制 (First Meaningful Paint)
   FMP: {
     description: '页面主要内容对用户可见的时间';
     deprecated: true;
     replacedBy: 'LCP';
   };
-  
+
   // 可交互时间 (Time to Interactive)
   TTI: {
     description: '页面完全可交互的时间';
@@ -138,22 +138,17 @@ interface AdditionalMetrics {
     factors: [
       '页面显示有用内容',
       '事件处理程序已注册',
-      '页面在50ms内响应用户交互'
+      '页面在50ms内响应用户交互',
     ];
   };
-  
+
   // 首字节时间 (Time to First Byte)
   TTFB: {
     description: '从请求开始到接收到第一个字节的时间';
     goodThreshold: '≤ 600毫秒';
-    optimization: [
-      '优化服务器配置',
-      '使用CDN',
-      '减少重定向',
-      '启用HTTP/2'
-    ];
+    optimization: ['优化服务器配置', '使用CDN', '减少重定向', '启用HTTP/2'];
   };
-  
+
   // 速度指数 (Speed Index)
   SI: {
     description: '页面内容可见填充的速度';
@@ -166,30 +161,38 @@ interface AdditionalMetrics {
 class PerformanceMonitor {
   private observer: PerformanceObserver | null = null;
   private metrics: Map<string, number> = new Map();
-  
+
   constructor() {
     this.initializeObserver();
     this.measureCoreWebVitals();
   }
-  
+
   // 初始化性能观察器
   private initializeObserver(): void {
     if ('PerformanceObserver' in window) {
-      this.observer = new PerformanceObserver((list) => {
+      this.observer = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           this.processPerformanceEntry(entry);
         }
       });
-      
+
       // 观察各种性能指标
       try {
-        this.observer.observe({ entryTypes: ['navigation', 'paint', 'largest-contentful-paint', 'first-input', 'layout-shift'] });
+        this.observer.observe({
+          entryTypes: [
+            'navigation',
+            'paint',
+            'largest-contentful-paint',
+            'first-input',
+            'layout-shift',
+          ],
+        });
       } catch (error) {
         console.warn('Performance Observer not fully supported:', error);
       }
     }
   }
-  
+
   // 处理性能条目
   private processPerformanceEntry(entry: PerformanceEntry): void {
     switch (entry.entryType) {
@@ -210,46 +213,47 @@ class PerformanceMonitor {
         break;
     }
   }
-  
+
   // 处理导航性能
   private handleNavigationEntry(entry: PerformanceNavigationTiming): void {
     const ttfb = entry.responseStart - entry.requestStart;
-    const domContentLoaded = entry.domContentLoadedEventEnd - entry.navigationStart;
+    const domContentLoaded =
+      entry.domContentLoadedEventEnd - entry.navigationStart;
     const loadComplete = entry.loadEventEnd - entry.navigationStart;
-    
+
     this.metrics.set('TTFB', ttfb);
     this.metrics.set('DOMContentLoaded', domContentLoaded);
     this.metrics.set('LoadComplete', loadComplete);
-    
+
     this.reportMetric('TTFB', ttfb);
     this.reportMetric('DOMContentLoaded', domContentLoaded);
     this.reportMetric('LoadComplete', loadComplete);
   }
-  
+
   // 处理绘制性能
   private handlePaintEntry(entry: PerformancePaintTiming): void {
     const value = entry.startTime;
     this.metrics.set(entry.name, value);
-    
+
     if (entry.name === 'first-contentful-paint') {
       this.reportMetric('FCP', value);
     }
   }
-  
+
   // 处理LCP
   private handleLCPEntry(entry: any): void {
     const lcp = entry.startTime;
     this.metrics.set('LCP', lcp);
     this.reportMetric('LCP', lcp);
   }
-  
+
   // 处理FID
   private handleFIDEntry(entry: any): void {
     const fid = entry.processingStart - entry.startTime;
     this.metrics.set('FID', fid);
     this.reportMetric('FID', fid);
   }
-  
+
   // 处理CLS
   private handleCLSEntry(entry: any): void {
     if (!entry.hadRecentInput) {
@@ -259,42 +263,44 @@ class PerformanceMonitor {
       this.reportMetric('CLS', newCLS);
     }
   }
-  
+
   // 测量Core Web Vitals
   private measureCoreWebVitals(): void {
     // 使用web-vitals库进行精确测量
     if (typeof window !== 'undefined') {
-      import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-        getCLS(this.onCLS.bind(this));
-        getFID(this.onFID.bind(this));
-        getFCP(this.onFCP.bind(this));
-        getLCP(this.onLCP.bind(this));
-        getTTFB(this.onTTFB.bind(this));
-      });
+      import('web-vitals').then(
+        ({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+          getCLS(this.onCLS.bind(this));
+          getFID(this.onFID.bind(this));
+          getFCP(this.onFCP.bind(this));
+          getLCP(this.onLCP.bind(this));
+          getTTFB(this.onTTFB.bind(this));
+        }
+      );
     }
   }
-  
+
   // Core Web Vitals回调函数
   private onCLS(metric: any): void {
     this.reportMetric('CLS', metric.value);
   }
-  
+
   private onFID(metric: any): void {
     this.reportMetric('FID', metric.value);
   }
-  
+
   private onFCP(metric: any): void {
     this.reportMetric('FCP', metric.value);
   }
-  
+
   private onLCP(metric: any): void {
     this.reportMetric('LCP', metric.value);
   }
-  
+
   private onTTFB(metric: any): void {
     this.reportMetric('TTFB', metric.value);
   }
-  
+
   // 上报性能指标
   private reportMetric(name: string, value: number): void {
     // 发送到分析服务
@@ -305,11 +311,11 @@ class PerformanceMonitor {
         non_interaction: true,
       });
     }
-    
+
     // 发送到自定义分析服务
     this.sendToAnalytics(name, value);
   }
-  
+
   // 发送到分析服务
   private sendToAnalytics(name: string, value: number): void {
     fetch('/api/analytics/performance', {
@@ -328,12 +334,12 @@ class PerformanceMonitor {
       console.warn('Failed to send performance metric:', error);
     });
   }
-  
+
   // 获取所有指标
   public getMetrics(): Map<string, number> {
     return new Map(this.metrics);
   }
-  
+
   // 销毁监控器
   public destroy(): void {
     if (this.observer) {
@@ -379,7 +385,7 @@ const loadingOptimization = {
         <link rel="preload" href="/css/non-critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/css/non-critical.css"></noscript>
       `,
-      tools: ['Critical', 'Critters', 'PurgeCSS']
+      tools: ['Critical', 'Critters', 'PurgeCSS'],
     },
 
     // 资源预加载
@@ -397,7 +403,7 @@ const loadingOptimization = {
 
             <!-- 预加载关键脚本 -->
             <link rel="preload" href="/js/critical.js" as="script">
-          `
+          `,
         },
 
         prefetch: {
@@ -409,7 +415,7 @@ const loadingOptimization = {
 
             <!-- 预获取API数据 -->
             <link rel="prefetch" href="/api/products/trending">
-          `
+          `,
         },
 
         preconnect: {
@@ -421,10 +427,10 @@ const loadingOptimization = {
             <!-- 预连接到字体服务 -->
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          `
-        }
-      }
-    }
+          `,
+        },
+      },
+    },
   },
 
   // 2. 代码分割策略
@@ -461,7 +467,7 @@ const loadingOptimization = {
             </Routes>
           </Suspense>
         );
-      `
+      `,
     },
 
     // 组件级分割
@@ -495,7 +501,7 @@ const loadingOptimization = {
             </div>
           );
         };
-      `
+      `,
     },
 
     // 第三方库分割
@@ -540,8 +546,8 @@ const loadingOptimization = {
             },
           },
         };
-      `
-    }
+      `,
+    },
   },
 
   // 3. 懒加载实现
@@ -609,7 +615,7 @@ const loadingOptimization = {
             {...props}
           />
         );
-      `
+      `,
     },
 
     // 内容懒加载
@@ -658,8 +664,8 @@ const loadingOptimization = {
             </div>
           );
         };
-      `
-    }
+      `,
+    },
   },
 
   // 4. Service Worker缓存
@@ -740,8 +746,8 @@ const loadingOptimization = {
           );
         }
       });
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -808,7 +814,7 @@ const reactPerformanceOptimization = {
             </div>
           );
         };
-      `
+      `,
     },
 
     // useCallback优化
@@ -865,7 +871,7 @@ const reactPerformanceOptimization = {
             </div>
           );
         };
-      `
+      `,
     },
 
     // 状态优化
@@ -961,8 +967,8 @@ const reactPerformanceOptimization = {
             dispatch
           };
         };
-      `
-    }
+      `,
+    },
   },
 
   // 2. 列表优化
@@ -1061,7 +1067,7 @@ const reactPerformanceOptimization = {
             </div>
           );
         };
-      `
+      `,
     },
 
     // 分页和无限滚动
@@ -1142,9 +1148,9 @@ const reactPerformanceOptimization = {
             </div>
           );
         };
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1170,7 +1176,7 @@ const performanceOptimizationStrategies = {
       '启用浏览器缓存',
       '代码分割和懒加载',
       '关键资源优先加载',
-      '预加载和预获取'
+      '预加载和预获取',
     ],
 
     techniques: {
@@ -1180,8 +1186,8 @@ const performanceOptimizationStrategies = {
           'Tree Shaking移除无用代码',
           'Code Splitting按需加载',
           'Vendor Splitting分离第三方库',
-          'Dynamic Import动态导入'
-        ]
+          'Dynamic Import动态导入',
+        ],
       },
 
       resourceOptimization: {
@@ -1190,8 +1196,8 @@ const performanceOptimizationStrategies = {
           '图片压缩和格式优化',
           'CSS和JS压缩混淆',
           'Gzip/Brotli压缩',
-          '字体优化和子集化'
-        ]
+          '字体优化和子集化',
+        ],
       },
 
       cacheOptimization: {
@@ -1200,10 +1206,10 @@ const performanceOptimizationStrategies = {
           'HTTP缓存策略',
           'Service Worker缓存',
           'CDN缓存',
-          '浏览器缓存'
-        ]
-      }
-    }
+          '浏览器缓存',
+        ],
+      },
+    },
   },
 
   // 运行时性能优化
@@ -1215,7 +1221,7 @@ const performanceOptimizationStrategies = {
       '防抖和节流',
       '内存泄漏防护',
       '长任务拆分',
-      'Web Workers使用'
+      'Web Workers使用',
     ],
 
     reactOptimization: {
@@ -1226,9 +1232,9 @@ const performanceOptimizationStrategies = {
         'useCallback缓存函数引用',
         '状态提升和下沉',
         '组件懒加载',
-        'Context优化'
-      ]
-    }
+        'Context优化',
+      ],
+    },
   },
 
   // 感知性能优化
@@ -1239,9 +1245,9 @@ const performanceOptimizationStrategies = {
       '优化动画性能',
       '减少布局偏移',
       '优化字体加载',
-      '预加载关键资源'
-    ]
-  }
+      '预加载关键资源',
+    ],
+  },
 };
 ```
 
@@ -1262,7 +1268,7 @@ const coreWebVitalsOptimization = {
       '优化CSS加载',
       '预加载关键资源',
       '使用CDN',
-      '压缩图片和文本'
+      '压缩图片和文本',
     ],
 
     implementation: `
@@ -1278,7 +1284,7 @@ const coreWebVitalsOptimization = {
       // 异步加载非关键CSS
       <link rel="preload" href="/css/non-critical.css" as="style"
             onload="this.onload=null;this.rel='stylesheet'">
-    `
+    `,
   },
 
   // FID优化
@@ -1290,7 +1296,7 @@ const coreWebVitalsOptimization = {
       '移除无用代码',
       '使用Web Workers',
       '优化第三方脚本',
-      '延迟非关键JavaScript'
+      '延迟非关键JavaScript',
     ],
 
     implementation: `
@@ -1328,7 +1334,7 @@ const coreWebVitalsOptimization = {
       worker.onmessage = (e) => {
         updateUI(e.data);
       };
-    `
+    `,
   },
 
   // CLS优化
@@ -1340,7 +1346,7 @@ const coreWebVitalsOptimization = {
       '避免在现有内容上方插入内容',
       '使用transform动画',
       '优化字体加载',
-      '避免无尺寸元素'
+      '避免无尺寸元素',
     ],
 
     implementation: `
@@ -1366,8 +1372,8 @@ const coreWebVitalsOptimization = {
       .slide-in.active {
         transform: translateX(0);
       }
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -1380,6 +1386,7 @@ const coreWebVitalsOptimization = {
 **任务**: 为Mall-Frontend构建完整的性能监控系统。
 
 **要求**:
+
 - 监控Core Web Vitals指标
 - 实现Real User Monitoring
 - 构建性能数据分析面板
@@ -1390,6 +1397,7 @@ const coreWebVitalsOptimization = {
 **任务**: 优化Mall-Frontend的加载性能。
 
 **要求**:
+
 - 实现代码分割和懒加载
 - 优化图片和字体加载
 - 配置Service Worker缓存
@@ -1400,6 +1408,7 @@ const coreWebVitalsOptimization = {
 **任务**: 优化Mall-Frontend的运行时性能。
 
 **要求**:
+
 - 实现虚拟滚动
 - 优化React组件性能
 - 处理内存泄漏问题
@@ -1448,5 +1457,8 @@ const coreWebVitalsOptimization = {
 
 ---
 
-*下一章我们将学习《测试策略与质量保证》，探索现代前端应用的测试体系！* 🚀
+_下一章我们将学习《测试策略与质量保证》，探索现代前端应用的测试体系！_ 🚀
+
+```
+
 ```

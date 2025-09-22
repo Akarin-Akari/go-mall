@@ -1,19 +1,19 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { 
-  Image, 
-  Card, 
-  Button, 
-  Space, 
-  Modal, 
+import {
+  Image,
+  Card,
+  Button,
+  Space,
+  Modal,
   Spin,
   message,
-  Tooltip
+  Tooltip,
 } from 'antd';
-import { 
-  LeftOutlined, 
-  RightOutlined, 
+import {
+  LeftOutlined,
+  RightOutlined,
   ExpandOutlined,
   ZoomInOutlined,
   ZoomOutOutlined,
@@ -21,7 +21,7 @@ import {
   RotateRightOutlined,
   DownloadOutlined,
   FullscreenOutlined,
-  FullscreenExitOutlined
+  FullscreenExitOutlined,
 } from '@ant-design/icons';
 
 interface ProductImageGalleryProps {
@@ -45,7 +45,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
-  
+
   const mainImageRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
 
@@ -60,12 +60,15 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   }, []);
 
   // 切换主图
-  const handleImageChange = useCallback((index: number) => {
-    if (index >= 0 && index < images.length) {
-      setCurrentIndex(index);
-      setImageLoading(prev => ({ ...prev, [index]: true }));
-    }
-  }, [images.length]);
+  const handleImageChange = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < images.length) {
+        setCurrentIndex(index);
+        setImageLoading(prev => ({ ...prev, [index]: true }));
+      }
+    },
+    [images.length]
+  );
 
   // 上一张图片
   const handlePrevImage = useCallback(() => {
@@ -80,12 +83,15 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   }, [currentIndex, images.length, handleImageChange]);
 
   // 打开预览
-  const handlePreview = useCallback((index?: number) => {
-    setPreviewIndex(index ?? currentIndex);
-    setPreviewVisible(true);
-    setZoom(1);
-    setRotation(0);
-  }, [currentIndex]);
+  const handlePreview = useCallback(
+    (index?: number) => {
+      setPreviewIndex(index ?? currentIndex);
+      setPreviewVisible(true);
+      setZoom(1);
+      setRotation(0);
+    },
+    [currentIndex]
+  );
 
   // 关闭预览
   const handlePreviewClose = useCallback(() => {
@@ -95,13 +101,16 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   }, []);
 
   // 预览中切换图片
-  const handlePreviewChange = useCallback((index: number) => {
-    if (index >= 0 && index < images.length) {
-      setPreviewIndex(index);
-      setZoom(1);
-      setRotation(0);
-    }
-  }, [images.length]);
+  const handlePreviewChange = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < images.length) {
+        setPreviewIndex(index);
+        setZoom(1);
+        setRotation(0);
+      }
+    },
+    [images.length]
+  );
 
   // 预览中的上一张
   const handlePreviewPrev = useCallback(() => {
@@ -210,18 +219,27 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [previewVisible, handlePreviewPrev, handlePreviewNext, handlePreviewClose, handleZoomIn, handleZoomOut]);
+  }, [
+    previewVisible,
+    handlePreviewPrev,
+    handlePreviewNext,
+    handlePreviewClose,
+    handleZoomIn,
+    handleZoomOut,
+  ]);
 
   if (!images || images.length === 0) {
     return (
       <Card className={className} style={style}>
-        <div style={{ 
-          height: 400, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          backgroundColor: '#f5f5f5'
-        }}>
+        <div
+          style={{
+            height: 400,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f5f5f5',
+          }}
+        >
           <span style={{ color: '#999' }}>暂无图片</span>
         </div>
       </Card>
@@ -231,44 +249,50 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   return (
     <div className={className} style={style}>
       {/* 主图区域 */}
-      <Card 
+      <Card
         style={{ marginBottom: 16 }}
         bodyStyle={{ padding: 0, position: 'relative' }}
       >
-        <div 
+        <div
           ref={mainImageRef}
-          style={{ 
-            position: 'relative', 
-            height: 400, 
+          style={{
+            position: 'relative',
+            height: 400,
             overflow: 'hidden',
             backgroundColor: '#f5f5f5',
-            cursor: 'zoom-in'
+            cursor: 'zoom-in',
           }}
           onClick={() => handlePreview()}
         >
           <Image
-            src={imageError[currentIndex] ? '/images/product-placeholder.svg' : images[currentIndex]}
+            src={
+              imageError[currentIndex]
+                ? '/images/product-placeholder.svg'
+                : images[currentIndex]
+            }
             alt={`${productName} - 图片 ${currentIndex + 1}`}
-            style={{ 
-              width: '100%', 
-              height: '100%', 
+            style={{
+              width: '100%',
+              height: '100%',
               objectFit: 'contain',
-              transition: 'transform 0.3s ease'
+              transition: 'transform 0.3s ease',
             }}
             preview={false}
-            loading="lazy"
+            loading='lazy'
             onLoad={() => handleImageLoad(currentIndex)}
             onError={() => handleImageError(currentIndex)}
             placeholder={
-              <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: '#f5f5f5'
-              }}>
-                <Spin size="large" />
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#f5f5f5',
+                }}
+              >
+                <Spin size='large' />
               </div>
             }
           />
@@ -277,9 +301,9 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           {images.length > 1 && (
             <>
               <Button
-                type="text"
+                type='text'
                 icon={<LeftOutlined />}
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   handlePrevImage();
                 }}
@@ -300,9 +324,9 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                 }}
               />
               <Button
-                type="text"
+                type='text'
                 icon={<RightOutlined />}
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   handleNextImage();
                 }}
@@ -326,11 +350,11 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           )}
 
           {/* 放大按钮 */}
-          <Tooltip title="点击查看大图">
+          <Tooltip title='点击查看大图'>
             <Button
-              type="text"
+              type='text'
               icon={<ExpandOutlined />}
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handlePreview();
               }}
@@ -353,14 +377,16 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
           {/* 图片指示器 */}
           {images.length > 1 && (
-            <div style={{
-              position: 'absolute',
-              bottom: 16,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: 8,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: 8,
+              }}
+            >
               {images.map((_, index) => (
                 <div
                   key={index}
@@ -368,11 +394,14 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: index === currentIndex ? 'white' : 'rgba(255, 255, 255, 0.5)',
+                    backgroundColor:
+                      index === currentIndex
+                        ? 'white'
+                        : 'rgba(255, 255, 255, 0.5)',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                   }}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleImageChange(index);
                   }}
@@ -385,11 +414,11 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
       {/* 缩略图区域 */}
       {images.length > 1 && (
-        <div 
+        <div
           ref={thumbnailsRef}
-          style={{ 
-            display: 'flex', 
-            gap: 8, 
+          style={{
+            display: 'flex',
+            gap: 8,
             overflowX: 'auto',
             paddingBottom: 8,
             scrollbarWidth: 'thin',
@@ -401,7 +430,10 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               style={{
                 minWidth: 80,
                 height: 80,
-                border: index === currentIndex ? '2px solid #1890ff' : '2px solid transparent',
+                border:
+                  index === currentIndex
+                    ? '2px solid #1890ff'
+                    : '2px solid transparent',
                 borderRadius: 8,
                 overflow: 'hidden',
                 cursor: 'pointer',
@@ -411,15 +443,17 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               onClick={() => handleImageChange(index)}
             >
               <Image
-                src={imageError[index] ? '/images/product-placeholder.svg' : image}
+                src={
+                  imageError[index] ? '/images/product-placeholder.svg' : image
+                }
                 alt={`${productName} - 缩略图 ${index + 1}`}
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
                 }}
                 preview={false}
-                loading="lazy"
+                loading='lazy'
                 onLoad={() => handleImageLoad(index)}
                 onError={() => handleImageError(index)}
               />
@@ -433,31 +467,37 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         open={previewVisible}
         onCancel={handlePreviewClose}
         footer={null}
-        width="90vw"
+        width='90vw'
         style={{ top: 20 }}
         styles={{
-          body: { 
-            padding: 0, 
-            height: '80vh', 
-            display: 'flex', 
-            alignItems: 'center', 
+          body: {
+            padding: 0,
+            height: '80vh',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#000'
-          }
+            backgroundColor: '#000',
+          },
         }}
         destroyOnClose
       >
-        <div style={{ 
-          position: 'relative', 
-          width: '100%', 
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           {/* 预览图片 */}
           <img
-            src={imageError[previewIndex] ? '/images/product-placeholder.svg' : images[previewIndex]}
+            src={
+              imageError[previewIndex]
+                ? '/images/product-placeholder.svg'
+                : images[previewIndex]
+            }
             alt={`${productName} - 预览 ${previewIndex + 1}`}
             style={{
               maxWidth: '100%',
@@ -469,60 +509,86 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           />
 
           {/* 预览控制按钮 */}
-          <div style={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            display: 'flex',
-            gap: 8,
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              display: 'flex',
+              gap: 8,
+            }}
+          >
             <Space>
-              <Tooltip title="放大">
-                <Button 
-                  type="text" 
-                  icon={<ZoomInOutlined />} 
+              <Tooltip title='放大'>
+                <Button
+                  type='text'
+                  icon={<ZoomInOutlined />}
                   onClick={handleZoomIn}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
-              <Tooltip title="缩小">
-                <Button 
-                  type="text" 
-                  icon={<ZoomOutOutlined />} 
+              <Tooltip title='缩小'>
+                <Button
+                  type='text'
+                  icon={<ZoomOutOutlined />}
                   onClick={handleZoomOut}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
-              <Tooltip title="向左旋转">
-                <Button 
-                  type="text" 
-                  icon={<RotateLeftOutlined />} 
+              <Tooltip title='向左旋转'>
+                <Button
+                  type='text'
+                  icon={<RotateLeftOutlined />}
                   onClick={handleRotateLeft}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
-              <Tooltip title="向右旋转">
-                <Button 
-                  type="text" 
-                  icon={<RotateRightOutlined />} 
+              <Tooltip title='向右旋转'>
+                <Button
+                  type='text'
+                  icon={<RotateRightOutlined />}
                   onClick={handleRotateRight}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
-              <Tooltip title="下载图片">
-                <Button 
-                  type="text" 
-                  icon={<DownloadOutlined />} 
+              <Tooltip title='下载图片'>
+                <Button
+                  type='text'
+                  icon={<DownloadOutlined />}
                   onClick={handleDownload}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
-              <Tooltip title={isFullscreen ? "退出全屏" : "全屏"}>
-                <Button 
-                  type="text" 
-                  icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} 
+              <Tooltip title={isFullscreen ? '退出全屏' : '全屏'}>
+                <Button
+                  type='text'
+                  icon={
+                    isFullscreen ? (
+                      <FullscreenExitOutlined />
+                    ) : (
+                      <FullscreenOutlined />
+                    )
+                  }
                   onClick={handleFullscreen}
-                  style={{ color: 'white', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  }}
                 />
               </Tooltip>
             </Space>
@@ -532,7 +598,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           {images.length > 1 && (
             <>
               <Button
-                type="text"
+                type='text'
                 icon={<LeftOutlined />}
                 onClick={handlePreviewPrev}
                 style={{
@@ -552,7 +618,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                 }}
               />
               <Button
-                type="text"
+                type='text'
                 icon={<RightOutlined />}
                 onClick={handlePreviewNext}
                 style={{
@@ -576,24 +642,29 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
           {/* 预览缩略图导航 */}
           {images.length > 1 && (
-            <div style={{
-              position: 'absolute',
-              bottom: 20,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: 8,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              padding: '8px 16px',
-              borderRadius: 20,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 20,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: 8,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                padding: '8px 16px',
+                borderRadius: 20,
+              }}
+            >
               {images.map((image, index) => (
                 <div
                   key={index}
                   style={{
                     width: 40,
                     height: 40,
-                    border: index === previewIndex ? '2px solid #1890ff' : '2px solid transparent',
+                    border:
+                      index === previewIndex
+                        ? '2px solid #1890ff'
+                        : '2px solid transparent',
                     borderRadius: 4,
                     overflow: 'hidden',
                     cursor: 'pointer',
@@ -602,12 +673,16 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                   onClick={() => handlePreviewChange(index)}
                 >
                   <img
-                    src={imageError[index] ? '/images/product-placeholder.svg' : image}
+                    src={
+                      imageError[index]
+                        ? '/images/product-placeholder.svg'
+                        : image
+                    }
                     alt={`缩略图 ${index + 1}`}
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover' 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
                     }}
                   />
                 </div>
@@ -616,16 +691,18 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           )}
 
           {/* 图片信息 */}
-          <div style={{
-            position: 'absolute',
-            bottom: 20,
-            left: 20,
-            color: 'white',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            padding: '8px 12px',
-            borderRadius: 4,
-            fontSize: 14,
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 20,
+              left: 20,
+              color: 'white',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              padding: '8px 12px',
+              borderRadius: 4,
+              fontSize: 14,
+            }}
+          >
             {previewIndex + 1} / {images.length}
           </div>
         </div>

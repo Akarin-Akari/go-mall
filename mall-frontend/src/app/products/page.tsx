@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Input, 
-  Select, 
-  Button, 
-  Space, 
-  Spin, 
-  Empty, 
+import {
+  Row,
+  Col,
+  Card,
+  Input,
+  Select,
+  Button,
+  Space,
+  Spin,
+  Empty,
   Breadcrumb,
   Affix,
   Drawer,
@@ -20,7 +20,7 @@ import {
   Rate,
   Typography,
   Divider,
-  message
+  message,
 } from 'antd';
 import {
   SearchOutlined,
@@ -31,7 +31,7 @@ import {
   SortDescendingOutlined,
   HomeOutlined,
   ShopOutlined,
-  ClearOutlined
+  ClearOutlined,
 } from '@ant-design/icons';
 import { Pagination, Tag } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -83,12 +83,19 @@ const ProductsPage: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [customPriceRange, setCustomPriceRange] = useState<[number, number]>([0, 1000]);
-  
+  const [customPriceRange, setCustomPriceRange] = useState<[number, number]>([
+    0, 1000,
+  ]);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const { products, total, loading, searchParams: storeSearchParams } = useAppSelector(selectProduct);
+  const {
+    products,
+    total,
+    loading,
+    searchParams: storeSearchParams,
+  } = useAppSelector(selectProduct);
 
   // 从URL参数初始化状态
   useEffect(() => {
@@ -101,7 +108,7 @@ const ProductsPage: React.FC = () => {
     setSearchKeyword(keyword);
     setSortBy(sort);
     setPageSize(size);
-    
+
     if (category) {
       setSelectedCategories([parseInt(category)]);
     }
@@ -117,13 +124,18 @@ const ProductsPage: React.FC = () => {
   }, [searchParams]);
 
   // 加载商品数据
-  const loadProducts = useCallback((params: any) => {
-    dispatch(fetchProductsAsync({
-      page: 1,
-      page_size: 24,
-      ...params,
-    }));
-  }, [dispatch]);
+  const loadProducts = useCallback(
+    (params: any) => {
+      dispatch(
+        fetchProductsAsync({
+          page: 1,
+          page_size: 24,
+          ...params,
+        })
+      );
+    },
+    [dispatch]
+  );
 
   // 防抖搜索
   const debouncedSearch = useCallback(
@@ -134,71 +146,94 @@ const ProductsPage: React.FC = () => {
   );
 
   // 更新URL和加载数据
-  const updateUrlAndLoad = useCallback((params: any) => {
-    const url = new URL(window.location.href);
-    
-    // 更新URL参数
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        url.searchParams.set(key, String(value));
-      } else {
-        url.searchParams.delete(key);
-      }
-    });
-    
-    // 更新浏览器URL
-    window.history.pushState({}, '', url.toString());
-    
-    // 加载数据
-    loadProducts({
-      keyword: searchKeyword,
-      category_id: selectedCategories[0],
-      sort_by: sortBy,
-      page_size: pageSize,
-      min_price: priceRange?.[0],
-      max_price: priceRange?.[1],
-      min_rating: selectedRating,
-      ...params,
-    });
-  }, [searchKeyword, selectedCategories, sortBy, pageSize, priceRange, selectedRating, loadProducts]);
+  const updateUrlAndLoad = useCallback(
+    (params: any) => {
+      const url = new URL(window.location.href);
+
+      // 更新URL参数
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, String(value));
+        } else {
+          url.searchParams.delete(key);
+        }
+      });
+
+      // 更新浏览器URL
+      window.history.pushState({}, '', url.toString());
+
+      // 加载数据
+      loadProducts({
+        keyword: searchKeyword,
+        category_id: selectedCategories[0],
+        sort_by: sortBy,
+        page_size: pageSize,
+        min_price: priceRange?.[0],
+        max_price: priceRange?.[1],
+        min_rating: selectedRating,
+        ...params,
+      });
+    },
+    [
+      searchKeyword,
+      selectedCategories,
+      sortBy,
+      pageSize,
+      priceRange,
+      selectedRating,
+      loadProducts,
+    ]
+  );
 
   // 处理搜索
-  const handleSearch = useCallback((value: string) => {
-    setSearchKeyword(value);
-    debouncedSearch(value);
-  }, [debouncedSearch]);
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearchKeyword(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
   // 处理排序变化
-  const handleSortChange = useCallback((value: string) => {
-    setSortBy(value);
-    updateUrlAndLoad({ sort: value, page: 1 });
-  }, [updateUrlAndLoad]);
+  const handleSortChange = useCallback(
+    (value: string) => {
+      setSortBy(value);
+      updateUrlAndLoad({ sort: value, page: 1 });
+    },
+    [updateUrlAndLoad]
+  );
 
   // 处理分类筛选
-  const handleCategoryChange = useCallback((categoryId: number, checked: boolean) => {
-    let newCategories: number[];
-    if (checked) {
-      newCategories = [...selectedCategories, categoryId];
-    } else {
-      newCategories = selectedCategories.filter(id => id !== categoryId);
-    }
-    
-    setSelectedCategories(newCategories);
-    updateUrlAndLoad({ 
-      category: newCategories[0] || undefined, 
-      page: 1 
-    });
-  }, [selectedCategories, updateUrlAndLoad]);
+  const handleCategoryChange = useCallback(
+    (categoryId: number, checked: boolean) => {
+      let newCategories: number[];
+      if (checked) {
+        newCategories = [...selectedCategories, categoryId];
+      } else {
+        newCategories = selectedCategories.filter(id => id !== categoryId);
+      }
+
+      setSelectedCategories(newCategories);
+      updateUrlAndLoad({
+        category: newCategories[0] || undefined,
+        page: 1,
+      });
+    },
+    [selectedCategories, updateUrlAndLoad]
+  );
 
   // 处理价格筛选
-  const handlePriceRangeChange = useCallback((range: [number, number] | null) => {
-    setPriceRange(range);
-    updateUrlAndLoad({ 
-      min_price: range?.[0], 
-      max_price: range?.[1], 
-      page: 1 
-    });
-  }, [updateUrlAndLoad]);
+  const handlePriceRangeChange = useCallback(
+    (range: [number, number] | null) => {
+      setPriceRange(range);
+      updateUrlAndLoad({
+        min_price: range?.[0],
+        max_price: range?.[1],
+        page: 1,
+      });
+    },
+    [updateUrlAndLoad]
+  );
 
   // 清除所有筛选
   const handleClearFilters = useCallback(() => {
@@ -234,8 +269,8 @@ const ProductsPage: React.FC = () => {
 
   // 渲染筛选面板
   const renderFilterPanel = () => (
-    <Card title="商品筛选" size="small">
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <Card title='商品筛选' size='small'>
+      <Space direction='vertical' style={{ width: '100%' }} size='large'>
         {/* 分类筛选 */}
         <div>
           <Title level={5}>商品分类</Title>
@@ -251,7 +286,7 @@ const ProductsPage: React.FC = () => {
               <Tag.CheckableTag
                 key={category.id}
                 checked={selectedCategories.includes(category.id)}
-                onChange={(checked) => handleCategoryChange(category.id, checked)}
+                onChange={checked => handleCategoryChange(category.id, checked)}
               >
                 {category.name}
               </Tag.CheckableTag>
@@ -262,25 +297,28 @@ const ProductsPage: React.FC = () => {
         {/* 价格筛选 */}
         <div>
           <Title level={5}>价格区间</Title>
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction='vertical' style={{ width: '100%' }}>
             {PRICE_RANGES.map((range, index) => (
               <Checkbox
                 key={index}
                 checked={
-                  range.value === null 
+                  range.value === null
                     ? priceRange === null
-                    : priceRange?.[0] === range.value[0] && priceRange?.[1] === range.value[1]
+                    : priceRange?.[0] === range.value[0] &&
+                      priceRange?.[1] === range.value[1]
                 }
-                onChange={(e) => {
+                onChange={e => {
                   if (e.target.checked) {
-                    handlePriceRangeChange(range.value as [number, number] | null);
+                    handlePriceRangeChange(
+                      range.value as [number, number] | null
+                    );
                   }
                 }}
               >
                 {range.label}
               </Checkbox>
             ))}
-            
+
             <div style={{ marginTop: 16 }}>
               <Text>自定义价格区间：</Text>
               <Slider
@@ -288,11 +326,22 @@ const ProductsPage: React.FC = () => {
                 min={0}
                 max={1000}
                 value={customPriceRange}
-                onChange={setCustomPriceRange}
-                onAfterChange={(value) => handlePriceRangeChange(value as [number, number])}
-                tooltip={{ formatter: (value) => `¥${value}` }}
+                onChange={value =>
+                  setCustomPriceRange(value as [number, number])
+                }
+                onAfterChange={value =>
+                  handlePriceRangeChange(value as [number, number])
+                }
+                tooltip={{ formatter: value => `¥${value}` }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#999' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 12,
+                  color: '#999',
+                }}
+              >
                 <span>¥{customPriceRange[0]}</span>
                 <span>¥{customPriceRange[1]}</span>
               </div>
@@ -303,34 +352,28 @@ const ProductsPage: React.FC = () => {
         {/* 评分筛选 */}
         <div>
           <Title level={5}>用户评分</Title>
-          <Space direction="vertical">
+          <Space direction='vertical'>
             {[5, 4, 3, 2, 1].map(rating => (
               <Checkbox
                 key={rating}
                 checked={selectedRating === rating}
-                onChange={(e) => {
+                onChange={e => {
                   setSelectedRating(e.target.checked ? rating : null);
-                  updateUrlAndLoad({ 
-                    min_rating: e.target.checked ? rating : undefined, 
-                    page: 1 
+                  updateUrlAndLoad({
+                    min_rating: e.target.checked ? rating : undefined,
+                    page: 1,
                   });
                 }}
               >
                 <Rate disabled value={rating} style={{ fontSize: 14 }} />
-                <Text style={{ marginLeft: 8 }}>
-                  {rating}星及以上
-                </Text>
+                <Text style={{ marginLeft: 8 }}>{rating}星及以上</Text>
               </Checkbox>
             ))}
           </Space>
         </div>
 
         {/* 清除筛选 */}
-        <Button 
-          block 
-          icon={<ClearOutlined />} 
-          onClick={handleClearFilters}
-        >
+        <Button block icon={<ClearOutlined />} onClick={handleClearFilters}>
           清除筛选
         </Button>
       </Space>
@@ -355,48 +398,46 @@ const ProductsPage: React.FC = () => {
         <Row gutter={[24, 24]}>
           {/* 左侧筛选面板 */}
           <Col xs={0} sm={0} md={6} lg={5} xl={4}>
-            <Affix offsetTop={80}>
-              {renderFilterPanel()}
-            </Affix>
+            <Affix offsetTop={80}>{renderFilterPanel()}</Affix>
           </Col>
 
           {/* 右侧商品列表 */}
           <Col xs={24} sm={24} md={18} lg={19} xl={20}>
             {/* 搜索和工具栏 */}
             <Card style={{ marginBottom: 16 }}>
-              <Row gutter={[16, 16]} align="middle">
+              <Row gutter={[16, 16]} align='middle'>
                 <Col xs={24} sm={12} md={8}>
                   <Search
-                    placeholder="搜索商品名称、品牌、型号..."
+                    placeholder='搜索商品名称、品牌、型号...'
                     value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onChange={e => setSearchKeyword(e.target.value)}
                     onSearch={handleSearch}
                     enterButton={<SearchOutlined />}
-                    size="large"
+                    size='large'
                   />
                 </Col>
-                
+
                 <Col xs={24} sm={12} md={16}>
-                  <Row gutter={[8, 8]} justify="space-between" align="middle">
+                  <Row gutter={[8, 8]} justify='space-between' align='middle'>
                     <Col>
                       <Space>
-                        <Text type="secondary">
+                        <Text type='secondary'>
                           共找到 <Text strong>{total}</Text> 件商品
                         </Text>
                       </Space>
                     </Col>
-                    
+
                     <Col>
                       <Space>
                         {/* 移动端筛选按钮 */}
                         <Button
                           icon={<FilterOutlined />}
                           onClick={() => setFilterVisible(true)}
-                          className="md:hidden"
+                          className='md:hidden'
                         >
                           筛选
                         </Button>
-                        
+
                         {/* 视图切换 */}
                         <Button.Group>
                           <Button
@@ -410,7 +451,7 @@ const ProductsPage: React.FC = () => {
                             onClick={() => setViewMode('list')}
                           />
                         </Button.Group>
-                        
+
                         {/* 排序选择 */}
                         <Select
                           value={sortBy}
@@ -424,11 +465,11 @@ const ProductsPage: React.FC = () => {
                             </Option>
                           ))}
                         </Select>
-                        
+
                         {/* 每页显示数量 */}
                         <Select
                           value={pageSize}
-                          onChange={(value) => {
+                          onChange={value => {
                             setPageSize(value);
                             updateUrlAndLoad({ size: value, page: 1 });
                           }}
@@ -472,13 +513,15 @@ const ProductsPage: React.FC = () => {
                   </Row>
 
                   {/* 分页组件 */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 32,
-                    padding: '24px 0'
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginTop: 32,
+                      padding: '24px 0',
+                    }}
+                  >
                     <Pagination
                       current={storeSearchParams.page}
                       total={total}
@@ -496,7 +539,7 @@ const ProductsPage: React.FC = () => {
                         setPageSize(size);
                         updateUrlAndLoad({ page: 1, size });
                       }}
-                      size="default"
+                      size='default'
                       style={{ textAlign: 'center' }}
                     />
                   </div>
@@ -504,10 +547,10 @@ const ProductsPage: React.FC = () => {
               ) : (
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="暂无商品"
+                  description='暂无商品'
                   style={{ margin: '60px 0' }}
                 >
-                  <Button type="primary" onClick={handleClearFilters}>
+                  <Button type='primary' onClick={handleClearFilters}>
                     清除筛选条件
                   </Button>
                 </Empty>
@@ -518,8 +561,8 @@ const ProductsPage: React.FC = () => {
 
         {/* 移动端筛选抽屉 */}
         <Drawer
-          title="商品筛选"
-          placement="left"
+          title='商品筛选'
+          placement='left'
           onClose={() => setFilterVisible(false)}
           open={filterVisible}
           width={300}

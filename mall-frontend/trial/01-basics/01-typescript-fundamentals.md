@@ -5,6 +5,7 @@
 ## 🎯 学习目标
 
 通过本章学习，你将掌握：
+
 - TypeScript的核心概念和优势
 - 基础类型系统的使用方法
 - 接口定义和对象类型
@@ -35,13 +36,13 @@ TypeScript是Microsoft开发的JavaScript超集，为JavaScript添加了**静态
 ```typescript
 // JavaScript - 运行时才发现错误
 function greet(name) {
-    return "Hello, " + name.toUpperCase();
+  return 'Hello, ' + name.toUpperCase();
 }
 greet(123); // 运行时错误：123.toUpperCase is not a function
 
 // TypeScript - 编译时发现错误
 function greet(name: string): string {
-    return "Hello, " + name.toUpperCase();
+  return 'Hello, ' + name.toUpperCase();
 }
 greet(123); // 编译错误：Argument of type 'number' is not assignable to parameter of type 'string'
 ```
@@ -93,6 +94,7 @@ public class Greeter
 ```
 
 **💡 对比总结：**
+
 - **TypeScript**: 渐进式类型，JavaScript超集，编译时检查
 - **Java**: 强类型，编译时检查，冗长但安全
 - **Python**: 动态类型，运行时检查，类型提示可选
@@ -109,7 +111,8 @@ public class Greeter
 ### Mall-Frontend中的TypeScript配置
 
 <augment_code_snippet path="mall-frontend/tsconfig.json" mode="EXCERPT">
-````json
+
+```json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -135,7 +138,8 @@ public class Greeter
     }
   }
 }
-````
+```
+
 </augment_code_snippet>
 
 ---
@@ -148,23 +152,23 @@ TypeScript支持JavaScript的所有原始类型，并提供类型注解：
 
 ```typescript
 // 基础类型
-let userName: string = "张三";
+let userName: string = '张三';
 let userAge: number = 25;
 let isActive: boolean = true;
 let userScore: number = 98.5;
 
 // 数组类型
-let tags: string[] = ["前端", "TypeScript", "React"];
+let tags: string[] = ['前端', 'TypeScript', 'React'];
 let scores: Array<number> = [95, 87, 92];
 
 // 元组类型 - 固定长度和类型的数组
-let userInfo: [string, number, boolean] = ["李四", 30, true];
+let userInfo: [string, number, boolean] = ['李四', 30, true];
 
 // 枚举类型
 enum UserRole {
-    ADMIN = "admin",
-    USER = "user",
-    GUEST = "guest"
+  ADMIN = 'admin',
+  USER = 'user',
+  GUEST = 'guest',
 }
 
 let currentRole: UserRole = UserRole.ADMIN;
@@ -229,23 +233,23 @@ current_role: UserRole = UserRole.ADMIN
 
 ```javascript
 // JavaScript - 动态类型，无类型检查
-let userName = "张三";
+let userName = '张三';
 let userAge = 25;
 let isActive = true;
 let userScore = 98.5;
 
 // 数组类型
-let tags = ["前端", "TypeScript", "React"];
+let tags = ['前端', 'TypeScript', 'React'];
 let scores = [95, 87, 92];
 
 // 对象模拟元组
-let userInfo = ["李四", 30, true];
+let userInfo = ['李四', 30, true];
 
 // 对象模拟枚举
 const UserRole = {
-    ADMIN: "admin",
-    USER: "user",
-    GUEST: "guest"
+  ADMIN: 'admin',
+  USER: 'user',
+  GUEST: 'guest',
 };
 
 let currentRole = UserRole.ADMIN;
@@ -253,27 +257,27 @@ let currentRole = UserRole.ADMIN;
 
 **💡 类型系统对比：**
 
-| 特性 | TypeScript | Java | Python | JavaScript |
-|------|------------|------|--------|------------|
-| **类型检查** | 编译时 | 编译时 | 运行时 | 无 |
-| **类型声明** | 可选 | 必须 | 可选 | 无 |
-| **数组类型** | `T[]` 或 `Array<T>` | `T[]` 或 `List<T>` | `List[T]` | 动态 |
-| **元组支持** | 原生支持 | 无（需第三方） | 原生支持 | 无（数组模拟） |
-| **枚举支持** | 原生支持 | 原生支持 | 原生支持 | 无（对象模拟） |
+| 特性         | TypeScript          | Java               | Python    | JavaScript     |
+| ------------ | ------------------- | ------------------ | --------- | -------------- |
+| **类型检查** | 编译时              | 编译时             | 运行时    | 无             |
+| **类型声明** | 可选                | 必须               | 可选      | 无             |
+| **数组类型** | `T[]` 或 `Array<T>` | `T[]` 或 `List<T>` | `List[T]` | 动态           |
+| **元组支持** | 原生支持            | 无（需第三方）     | 原生支持  | 无（数组模拟） |
+| **枚举支持** | 原生支持            | 原生支持           | 原生支持  | 无（对象模拟） |
 
 ### 对象类型
 
 ```typescript
 // 对象类型注解
 let user: {
-    name: string;
-    age: number;
-    email?: string; // 可选属性
-    readonly id: number; // 只读属性
+  name: string;
+  age: number;
+  email?: string; // 可选属性
+  readonly id: number; // 只读属性
 } = {
-    name: "王五",
-    age: 28,
-    id: 1001
+  name: '王五',
+  age: 28,
+  id: 1001,
 };
 
 // 不能修改只读属性
@@ -283,7 +287,8 @@ let user: {
 ### Mall-Frontend中的基础类型应用
 
 <augment_code_snippet path="mall-frontend/src/types/index.ts" mode="EXCERPT">
-````typescript
+
+```typescript
 // 用户相关类型
 export interface User {
   id: number;
@@ -312,7 +317,8 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
-````
+```
+
 </augment_code_snippet>
 
 ---
@@ -326,33 +332,39 @@ export interface Product {
 ```typescript
 // 基础接口
 interface Product {
-    id: number;
-    name: string;
-    price: number;
-    description?: string; // 可选属性
+  id: number;
+  name: string;
+  price: number;
+  description?: string; // 可选属性
 }
 
 // 接口继承
 interface DigitalProduct extends Product {
-    downloadUrl: string;
-    fileSize: number;
+  downloadUrl: string;
+  fileSize: number;
 }
 
 // 实现接口
 class EBook implements DigitalProduct {
-    id: number;
-    name: string;
-    price: number;
-    downloadUrl: string;
-    fileSize: number;
+  id: number;
+  name: string;
+  price: number;
+  downloadUrl: string;
+  fileSize: number;
 
-    constructor(id: number, name: string, price: number, url: string, size: number) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.downloadUrl = url;
-        this.fileSize = size;
-    }
+  constructor(
+    id: number,
+    name: string,
+    price: number,
+    url: string,
+    size: number
+  ) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+    this.downloadUrl = url;
+    this.fileSize = size;
+  }
 }
 ```
 
@@ -467,62 +479,63 @@ func (e *EBook) GetFileSize() int64 { return e.FileSize }
 
 **💡 接口设计对比：**
 
-| 特性 | TypeScript | Java | Python | Go |
-|------|------------|------|--------|-----|
-| **接口声明** | `interface` | `interface` | `Protocol/ABC` | `interface` |
-| **实现方式** | `implements` | `implements` | 继承/鸭子类型 | 隐式实现 |
-| **可选属性** | `?:` 语法 | 无（需默认实现） | `Optional[T]` | 指针类型 |
-| **多重继承** | 支持 | 支持 | 支持 | 接口嵌入 |
-| **运行时检查** | 编译后消失 | 运行时存在 | 运行时存在 | 运行时存在 |
+| 特性           | TypeScript   | Java             | Python         | Go          |
+| -------------- | ------------ | ---------------- | -------------- | ----------- |
+| **接口声明**   | `interface`  | `interface`      | `Protocol/ABC` | `interface` |
+| **实现方式**   | `implements` | `implements`     | 继承/鸭子类型  | 隐式实现    |
+| **可选属性**   | `?:` 语法    | 无（需默认实现） | `Optional[T]`  | 指针类型    |
+| **多重继承**   | 支持         | 支持             | 支持           | 接口嵌入    |
+| **运行时检查** | 编译后消失   | 运行时存在       | 运行时存在     | 运行时存在  |
 
 ### 函数接口
 
 ```typescript
 // 函数类型接口
 interface SearchFunction {
-    (query: string, page: number): Promise<Product[]>;
+  (query: string, page: number): Promise<Product[]>;
 }
 
 // 使用函数接口
 const searchProducts: SearchFunction = async (query, page) => {
-    // 实现搜索逻辑
-    return [];
+  // 实现搜索逻辑
+  return [];
 };
 
 // 带有属性的函数接口
 interface ApiClient {
-    baseUrl: string;
-    timeout: number;
-    get<T>(url: string): Promise<T>;
-    post<T>(url: string, data: any): Promise<T>;
+  baseUrl: string;
+  timeout: number;
+  get<T>(url: string): Promise<T>;
+  post<T>(url: string, data: any): Promise<T>;
 }
 ```
 
 ### Mall-Frontend中的接口设计
 
 <augment_code_snippet path="mall-frontend/src/interfaces/core.ts" mode="EXCERPT">
-````typescript
+
+```typescript
 // 基础管理器接口
 export interface IManager {
   readonly name: string;
   readonly version: string;
   readonly status: ServiceStatus;
-  
+
   /**
    * 初始化管理器
    */
   initialize(): Promise<void>;
-  
+
   /**
    * 销毁管理器
    */
   destroy(): Promise<void>;
-  
+
   /**
    * 获取管理器状态
    */
   getStatus(): ServiceStatus;
-  
+
   /**
    * 健康检查
    */
@@ -535,7 +548,8 @@ export interface IConfigurable<T = any> {
   updateConfig(config: Partial<T>): Promise<void>;
   resetConfig(): Promise<void>;
 }
-````
+```
+
 </augment_code_snippet>
 
 ---
@@ -548,28 +562,28 @@ export interface IConfigurable<T = any> {
 
 ```typescript
 // 基础联合类型
-type Status = "loading" | "success" | "error";
+type Status = 'loading' | 'success' | 'error';
 type ID = string | number;
 
 // 函数参数联合类型
 function formatId(id: string | number): string {
-    if (typeof id === "string") {
-        return id.toUpperCase();
-    }
-    return id.toString();
+  if (typeof id === 'string') {
+    return id.toUpperCase();
+  }
+  return id.toString();
 }
 
 // 对象联合类型
-type ApiResponse = 
-    | { status: "success"; data: any }
-    | { status: "error"; message: string };
+type ApiResponse =
+  | { status: 'success'; data: any }
+  | { status: 'error'; message: string };
 
 function handleResponse(response: ApiResponse) {
-    if (response.status === "success") {
-        console.log(response.data); // TypeScript知道这里有data属性
-    } else {
-        console.log(response.message); // TypeScript知道这里有message属性
-    }
+  if (response.status === 'success') {
+    console.log(response.data); // TypeScript知道这里有data属性
+  } else {
+    console.log(response.message); // TypeScript知道这里有message属性
+  }
 }
 ```
 
@@ -580,32 +594,32 @@ function handleResponse(response: ApiResponse) {
 ```typescript
 // 基础交叉类型
 interface User {
-    name: string;
-    email: string;
+  name: string;
+  email: string;
 }
 
 interface Admin {
-    permissions: string[];
-    level: number;
+  permissions: string[];
+  level: number;
 }
 
 type AdminUser = User & Admin;
 
 const admin: AdminUser = {
-    name: "管理员",
-    email: "admin@example.com",
-    permissions: ["read", "write", "delete"],
-    level: 1
+  name: '管理员',
+  email: 'admin@example.com',
+  permissions: ['read', 'write', 'delete'],
+  level: 1,
 };
 
 // Mixin模式
 interface Timestamped {
-    createdAt: Date;
-    updatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface Versioned {
-    version: number;
+  version: number;
 }
 
 type Entity<T> = T & Timestamped & Versioned;
@@ -616,13 +630,20 @@ type UserEntity = Entity<User>;
 ### Mall-Frontend中的联合类型应用
 
 <augment_code_snippet path="mall-frontend/src/types/index.ts" mode="EXCERPT">
-````typescript
+
+```typescript
 // 订单状态联合类型
 export interface Order {
   id: number;
   order_no: string;
   user_id: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'completed' | 'cancelled';
+  status:
+    | 'pending'
+    | 'paid'
+    | 'shipped'
+    | 'delivered'
+    | 'completed'
+    | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   shipping_status: 'pending' | 'shipped' | 'delivered';
   total_amount: string;
@@ -635,7 +656,8 @@ export interface Payment {
   payment_method: 'alipay' | 'wechat' | 'balance' | 'unionpay';
   status: 'pending' | 'success' | 'failed' | 'cancelled';
 }
-````
+```
+
 </augment_code_snippet>
 
 ---
@@ -648,17 +670,17 @@ export interface Payment {
 
 ```typescript
 // 基础类型断言
-let someValue: unknown = "这是一个字符串";
+let someValue: unknown = '这是一个字符串';
 let strLength: number = (someValue as string).length;
 
 // DOM元素类型断言
-const inputElement = document.getElementById("username") as HTMLInputElement;
-inputElement.value = "新值";
+const inputElement = document.getElementById('username') as HTMLInputElement;
+inputElement.value = '新值';
 
 // 非空断言
 function processUser(user: User | null) {
-    // 我们确定user不为null
-    console.log(user!.name);
+  // 我们确定user不为null
+  console.log(user!.name);
 }
 ```
 
@@ -669,47 +691,47 @@ function processUser(user: User | null) {
 ```typescript
 // typeof类型守卫
 function padLeft(value: string, padding: string | number) {
-    if (typeof padding === "number") {
-        return Array(padding + 1).join(" ") + value;
-    }
-    if (typeof padding === "string") {
-        return padding + value;
-    }
-    throw new Error(`Expected string or number, got '${padding}'.`);
+  if (typeof padding === 'number') {
+    return Array(padding + 1).join(' ') + value;
+  }
+  if (typeof padding === 'string') {
+    return padding + value;
+  }
+  throw new Error(`Expected string or number, got '${padding}'.`);
 }
 
 // instanceof类型守卫
 class Bird {
-    fly() {
-        console.log("鸟儿在飞");
-    }
+  fly() {
+    console.log('鸟儿在飞');
+  }
 }
 
 class Fish {
-    swim() {
-        console.log("鱼儿在游");
-    }
+  swim() {
+    console.log('鱼儿在游');
+  }
 }
 
 function move(animal: Bird | Fish) {
-    if (animal instanceof Bird) {
-        animal.fly(); // TypeScript知道这是Bird
-    } else {
-        animal.swim(); // TypeScript知道这是Fish
-    }
+  if (animal instanceof Bird) {
+    animal.fly(); // TypeScript知道这是Bird
+  } else {
+    animal.swim(); // TypeScript知道这是Fish
+  }
 }
 
 // 自定义类型守卫
 function isString(value: any): value is string {
-    return typeof value === "string";
+  return typeof value === 'string';
 }
 
 function processValue(value: string | number) {
-    if (isString(value)) {
-        console.log(value.toUpperCase()); // TypeScript知道这是string
-    } else {
-        console.log(value.toFixed(2)); // TypeScript知道这是number
-    }
+  if (isString(value)) {
+    console.log(value.toUpperCase()); // TypeScript知道这是string
+  } else {
+    console.log(value.toFixed(2)); // TypeScript知道这是number
+  }
 }
 ```
 
@@ -717,20 +739,22 @@ function processValue(value: string | number) {
 
 ```typescript
 // API响应类型守卫
-function isSuccessResponse<T>(response: ApiResponse<T>): response is { code: 200; data: T; message: string } {
-    return response.code === 200;
+function isSuccessResponse<T>(
+  response: ApiResponse<T>
+): response is { code: 200; data: T; message: string } {
+  return response.code === 200;
 }
 
 // 使用类型守卫
 async function fetchUserData(id: number) {
-    const response = await api.get(`/users/${id}`);
-    
-    if (isSuccessResponse<User>(response)) {
-        // TypeScript知道response.data是User类型
-        console.log(response.data.username);
-    } else {
-        console.error(response.message);
-    }
+  const response = await api.get(`/users/${id}`);
+
+  if (isSuccessResponse<User>(response)) {
+    // TypeScript知道response.data是User类型
+    console.log(response.data.username);
+  } else {
+    console.error(response.message);
+  }
 }
 ```
 
@@ -740,23 +764,23 @@ async function fetchUserData(id: number) {
 
 ### TypeScript vs Java
 
-| 特性 | TypeScript | Java |
-|------|------------|------|
-| 类型检查 | 编译时 + 可选 | 编译时 + 强制 |
+| 特性     | TypeScript     | Java           |
+| -------- | -------------- | -------------- |
+| 类型检查 | 编译时 + 可选  | 编译时 + 强制  |
 | 类型推断 | 强大的类型推断 | 有限的类型推断 |
-| 泛型 | 支持，更灵活 | 支持，类型擦除 |
-| 接口 | 结构化类型 | 名义化类型 |
-| 运行时 | JavaScript | JVM |
+| 泛型     | 支持，更灵活   | 支持，类型擦除 |
+| 接口     | 结构化类型     | 名义化类型     |
+| 运行时   | JavaScript     | JVM            |
 
 ```typescript
 // TypeScript - 结构化类型
 interface Point {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 function distance(p: Point) {
-    return Math.sqrt(p.x * p.x + p.y * p.y);
+  return Math.sqrt(p.x * p.x + p.y * p.y);
 }
 
 // 任何具有x和y属性的对象都可以作为Point使用
@@ -778,17 +802,17 @@ class CartesianPoint implements Point {
 
 ### TypeScript vs Python
 
-| 特性 | TypeScript | Python |
-|------|------------|--------|
-| 类型系统 | 静态类型 | 动态类型 |
+| 特性     | TypeScript | Python     |
+| -------- | ---------- | ---------- |
+| 类型系统 | 静态类型   | 动态类型   |
 | 类型注解 | 编译时检查 | 运行时提示 |
-| 性能 | 编译优化 | 解释执行 |
-| 生态系统 | npm/前端 | pip/通用 |
+| 性能     | 编译优化   | 解释执行   |
+| 生态系统 | npm/前端   | pip/通用   |
 
 ```typescript
 // TypeScript
 function add(a: number, b: number): number {
-    return a + b;
+  return a + b;
 }
 ```
 
@@ -805,7 +829,8 @@ def add(a: int, b: int) -> int:
 ### 用户认证类型定义
 
 <augment_code_snippet path="mall-frontend/src/types/index.ts" mode="EXCERPT">
-````typescript
+
+```typescript
 // 登录请求类型
 export interface LoginRequest {
   username: string;
@@ -820,21 +845,26 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
 }
-````
+```
+
 </augment_code_snippet>
 
 ### Redux状态管理中的类型应用
 
 <augment_code_snippet path="mall-frontend/src/store/slices/authSlice.ts" mode="EXCERPT">
-````typescript
+
+```typescript
 // 异步action的类型定义
 export const loginAsync = createAsyncThunk(
   'auth/login',
-  async (loginData: LoginRequest & { remember?: boolean }, { rejectWithValue }) => {
+  async (
+    loginData: LoginRequest & { remember?: boolean },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await authAPI.login(loginData);
       const { user, token, refresh_token } = response.data;
-      
+
       return { user, token };
     } catch (error: any) {
       return rejectWithValue(error.message || '登录失败');
@@ -851,9 +881,10 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
     },
-  }
+  },
 });
-````
+```
+
 </augment_code_snippet>
 
 ### 服务接口的类型设计
@@ -861,24 +892,38 @@ const authSlice = createSlice({
 ```typescript
 // API服务接口
 interface AuthAPI {
-    login(data: LoginRequest): Promise<ApiResponse<{ user: User; token: string; refresh_token: string }>>;
-    register(data: RegisterRequest): Promise<ApiResponse<{ user: User; token: string; refresh_token: string }>>;
-    logout(): Promise<ApiResponse<null>>;
-    getProfile(): Promise<ApiResponse<User>>;
-    refreshToken(refreshToken: string): Promise<ApiResponse<{ token: string; refresh_token?: string }>>;
+  login(
+    data: LoginRequest
+  ): Promise<ApiResponse<{ user: User; token: string; refresh_token: string }>>;
+  register(
+    data: RegisterRequest
+  ): Promise<ApiResponse<{ user: User; token: string; refresh_token: string }>>;
+  logout(): Promise<ApiResponse<null>>;
+  getProfile(): Promise<ApiResponse<User>>;
+  refreshToken(
+    refreshToken: string
+  ): Promise<ApiResponse<{ token: string; refresh_token?: string }>>;
 }
 
 // 实现API服务
 class AuthService implements AuthAPI {
-    async login(data: LoginRequest) {
-        return httpClient.post<{ user: User; token: string; refresh_token: string }>('/auth/login', data);
-    }
-    
-    async register(data: RegisterRequest) {
-        return httpClient.post<{ user: User; token: string; refresh_token: string }>('/auth/register', data);
-    }
-    
-    // ... 其他方法实现
+  async login(data: LoginRequest) {
+    return httpClient.post<{
+      user: User;
+      token: string;
+      refresh_token: string;
+    }>('/auth/login', data);
+  }
+
+  async register(data: RegisterRequest) {
+    return httpClient.post<{
+      user: User;
+      token: string;
+      refresh_token: string;
+    }>('/auth/register', data);
+  }
+
+  // ... 其他方法实现
 }
 ```
 
@@ -891,6 +936,7 @@ class AuthService implements AuthAPI {
 **Q: TypeScript相比JavaScript有什么优势？**
 
 **A: TypeScript的主要优势包括：**
+
 - **静态类型检查**：编译时发现错误，减少运行时bug
 - **更好的IDE支持**：智能提示、重构、导航
 - **代码可读性**：类型即文档，提高代码可维护性
@@ -903,21 +949,33 @@ class AuthService implements AuthAPI {
 
 **A: 类型系统对比分析：**
 
-| 特性 | TypeScript | Java | Python |
-|------|------------|------|--------|
-| **类型检查时机** | 编译时 | 编译时 | 运行时（可选静态） |
-| **类型推断** | 强大的类型推断 | 有限的类型推断 | 动态类型推断 |
-| **结构化类型** | 支持（鸭子类型） | 不支持（名义类型） | 支持（鸭子类型） |
-| **可选类型** | 渐进式类型 | 强制类型 | 可选类型提示 |
+| 特性             | TypeScript       | Java               | Python             |
+| ---------------- | ---------------- | ------------------ | ------------------ |
+| **类型检查时机** | 编译时           | 编译时             | 运行时（可选静态） |
+| **类型推断**     | 强大的类型推断   | 有限的类型推断     | 动态类型推断       |
+| **结构化类型**   | 支持（鸭子类型） | 不支持（名义类型） | 支持（鸭子类型）   |
+| **可选类型**     | 渐进式类型       | 强制类型           | 可选类型提示       |
 
 ```typescript
 // TypeScript - 结构化类型
-interface Flyable { fly(): void; }
-class Bird { fly() { console.log("flying"); } }
-class Airplane { fly() { console.log("flying"); } }
+interface Flyable {
+  fly(): void;
+}
+class Bird {
+  fly() {
+    console.log('flying');
+  }
+}
+class Airplane {
+  fly() {
+    console.log('flying');
+  }
+}
 
-function makeFly(obj: Flyable) { obj.fly(); }
-makeFly(new Bird());     // ✅ 可以
+function makeFly(obj: Flyable) {
+  obj.fly();
+}
+makeFly(new Bird()); // ✅ 可以
 makeFly(new Airplane()); // ✅ 可以（结构兼容）
 ```
 
@@ -935,6 +993,7 @@ makeFly(new Airplane()); // ❌ 编译错误（必须显式实现接口）
 **Q: 为什么TypeScript选择结构化类型而不是名义类型？**
 
 **A: 设计考虑：**
+
 1. **JavaScript兼容性** - 保持与JavaScript的鸭子类型一致
 2. **灵活性** - 更容易集成第三方库
 3. **渐进式迁移** - 降低从JavaScript迁移的成本
@@ -948,20 +1007,20 @@ makeFly(new Airplane()); // ❌ 编译错误（必须显式实现接口）
 
 ```typescript
 interface Point {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 interface Named {
-    name: string;
+  name: string;
 }
 
 function logPoint(p: Point) {
-    console.log(`${p.x}, ${p.y}`);
+  console.log(`${p.x}, ${p.y}`);
 }
 
 // 只要对象具有x和y属性，就可以作为Point使用
-const point = { x: 12, y: 26, name: "origin" };
+const point = { x: 12, y: 26, name: 'origin' };
 logPoint(point); // 正常工作
 
 // 这与Java等名义化类型系统不同
@@ -983,9 +1042,7 @@ type Test2 = IsString<number>; // false
 // 实用的条件类型
 type NonNullable<T> = T extends null | undefined ? never : T;
 
-type ApiResponse<T> = T extends string 
-    ? { message: T } 
-    : { data: T };
+type ApiResponse<T> = T extends string ? { message: T } : { data: T };
 ```
 
 ### 4. 泛型的深度应用
@@ -996,22 +1053,22 @@ type ApiResponse<T> = T extends string
 
 ```typescript
 interface ApiEndpoints {
-    '/users': { GET: User[]; POST: User };
-    '/products': { GET: Product[]; POST: Product };
+  '/users': { GET: User[]; POST: User };
+  '/products': { GET: Product[]; POST: Product };
 }
 
 class TypedApiClient {
-    async request<
-        Path extends keyof ApiEndpoints,
-        Method extends keyof ApiEndpoints[Path]
-    >(
-        path: Path,
-        method: Method,
-        data?: Method extends 'POST' ? ApiEndpoints[Path][Method] : never
-    ): Promise<ApiEndpoints[Path][Method]> {
-        // 实现API请求逻辑
-        return {} as ApiEndpoints[Path][Method];
-    }
+  async request<
+    Path extends keyof ApiEndpoints,
+    Method extends keyof ApiEndpoints[Path],
+  >(
+    path: Path,
+    method: Method,
+    data?: Method extends 'POST' ? ApiEndpoints[Path][Method] : never
+  ): Promise<ApiEndpoints[Path][Method]> {
+    // 实现API请求逻辑
+    return {} as ApiEndpoints[Path][Method];
+  }
 }
 
 // 使用时具有完整的类型安全
@@ -1029,6 +1086,7 @@ const newUser = await client.request('/users', 'POST', userData); // 需要User�
 **题目**: 为电商系统设计完整的商品类型系统
 
 **要求**:
+
 1. 定义基础商品接口
 2. 支持不同类型的商品（实体商品、数字商品、服务商品）
 3. 实现商品搜索和过滤功能
@@ -1039,51 +1097,51 @@ const newUser = await client.request('/users', 'POST', userData); // 需要User�
 ```typescript
 // 基础商品接口
 interface BaseProduct {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    currency: string;
-    category: string;
-    tags: string[];
-    createdAt: Date;
-    updatedAt: Date;
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  category: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 商品类型枚举
 enum ProductType {
-    PHYSICAL = 'physical',
-    DIGITAL = 'digital',
-    SERVICE = 'service'
+  PHYSICAL = 'physical',
+  DIGITAL = 'digital',
+  SERVICE = 'service',
 }
 
 // 实体商品
 interface PhysicalProduct extends BaseProduct {
-    type: ProductType.PHYSICAL;
-    weight: number;
-    dimensions: {
-        length: number;
-        width: number;
-        height: number;
-    };
-    shippingRequired: true;
+  type: ProductType.PHYSICAL;
+  weight: number;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  shippingRequired: true;
 }
 
 // 数字商品
 interface DigitalProduct extends BaseProduct {
-    type: ProductType.DIGITAL;
-    downloadUrl: string;
-    fileSize: number;
-    format: string;
-    shippingRequired: false;
+  type: ProductType.DIGITAL;
+  downloadUrl: string;
+  fileSize: number;
+  format: string;
+  shippingRequired: false;
 }
 
 // 服务商品
 interface ServiceProduct extends BaseProduct {
-    type: ProductType.SERVICE;
-    duration: number; // 服务时长（分钟）
-    location: 'online' | 'offline' | 'both';
-    shippingRequired: false;
+  type: ProductType.SERVICE;
+  duration: number; // 服务时长（分钟）
+  location: 'online' | 'offline' | 'both';
+  shippingRequired: false;
 }
 
 // 联合类型
@@ -1091,63 +1149,64 @@ type Product = PhysicalProduct | DigitalProduct | ServiceProduct;
 
 // 类型守卫
 function isPhysicalProduct(product: Product): product is PhysicalProduct {
-    return product.type === ProductType.PHYSICAL;
+  return product.type === ProductType.PHYSICAL;
 }
 
 function isDigitalProduct(product: Product): product is DigitalProduct {
-    return product.type === ProductType.DIGITAL;
+  return product.type === ProductType.DIGITAL;
 }
 
 function isServiceProduct(product: Product): product is ServiceProduct {
-    return product.type === ProductType.SERVICE;
+  return product.type === ProductType.SERVICE;
 }
 
 // 搜索过滤器
 interface ProductFilter {
-    type?: ProductType;
-    category?: string;
-    priceRange?: {
-        min: number;
-        max: number;
-    };
-    tags?: string[];
+  type?: ProductType;
+  category?: string;
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  tags?: string[];
 }
 
 // 搜索结果
 interface SearchResult<T extends Product = Product> {
-    products: T[];
-    total: number;
-    page: number;
-    pageSize: number;
+  products: T[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 // 类型安全的商品服务
 class ProductService {
-    async searchProducts<T extends ProductType>(
-        filter: ProductFilter & { type: T }
-    ): Promise<SearchResult<Extract<Product, { type: T }>>> {
-        // 实现搜索逻辑
-        return {} as SearchResult<Extract<Product, { type: T }>>;
+  async searchProducts<T extends ProductType>(
+    filter: ProductFilter & { type: T }
+  ): Promise<SearchResult<Extract<Product, { type: T }>>> {
+    // 实现搜索逻辑
+    return {} as SearchResult<Extract<Product, { type: T }>>;
+  }
+
+  async getProduct<T extends ProductType>(
+    id: string,
+    type: T
+  ): Promise<Extract<Product, { type: T }> | null> {
+    // 实现获取逻辑
+    return null;
+  }
+
+  calculateShipping(product: Product): number {
+    if (isPhysicalProduct(product)) {
+      // 只有实体商品需要计算运费
+      const volume =
+        product.dimensions.length *
+        product.dimensions.width *
+        product.dimensions.height;
+      return Math.max(5, volume * 0.01 + product.weight * 0.5);
     }
-    
-    async getProduct<T extends ProductType>(
-        id: string,
-        type: T
-    ): Promise<Extract<Product, { type: T }> | null> {
-        // 实现获取逻辑
-        return null;
-    }
-    
-    calculateShipping(product: Product): number {
-        if (isPhysicalProduct(product)) {
-            // 只有实体商品需要计算运费
-            const volume = product.dimensions.length * 
-                          product.dimensions.width * 
-                          product.dimensions.height;
-            return Math.max(5, volume * 0.01 + product.weight * 0.5);
-        }
-        return 0; // 数字商品和服务商品无运费
-    }
+    return 0; // 数字商品和服务商品无运费
+  }
 }
 ```
 
@@ -1156,6 +1215,7 @@ class ProductService {
 **题目**: 设计类型安全的Redux状态管理
 
 **要求**:
+
 1. 定义应用的全局状态类型
 2. 实现类型安全的action和reducer
 3. 提供类型化的选择器
@@ -1166,107 +1226,111 @@ class ProductService {
 ```typescript
 // 状态类型定义
 interface AppState {
-    auth: AuthState;
-    products: ProductState;
-    cart: CartState;
-    ui: UIState;
+  auth: AuthState;
+  products: ProductState;
+  cart: CartState;
+  ui: UIState;
 }
 
 interface ProductState {
-    items: Product[];
-    loading: boolean;
-    error: string | null;
-    filters: ProductFilter;
-    pagination: {
-        page: number;
-        pageSize: number;
-        total: number;
-    };
+  items: Product[];
+  loading: boolean;
+  error: string | null;
+  filters: ProductFilter;
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+  };
 }
 
 // Action类型定义
-type ProductAction = 
-    | { type: 'PRODUCTS_FETCH_START' }
-    | { type: 'PRODUCTS_FETCH_SUCCESS'; payload: { products: Product[]; total: number } }
-    | { type: 'PRODUCTS_FETCH_ERROR'; payload: string }
-    | { type: 'PRODUCTS_SET_FILTER'; payload: Partial<ProductFilter> }
-    | { type: 'PRODUCTS_CLEAR_FILTER' };
+type ProductAction =
+  | { type: 'PRODUCTS_FETCH_START' }
+  | {
+      type: 'PRODUCTS_FETCH_SUCCESS';
+      payload: { products: Product[]; total: number };
+    }
+  | { type: 'PRODUCTS_FETCH_ERROR'; payload: string }
+  | { type: 'PRODUCTS_SET_FILTER'; payload: Partial<ProductFilter> }
+  | { type: 'PRODUCTS_CLEAR_FILTER' };
 
 // Action创建器
 const productActions = {
-    fetchStart: (): ProductAction => ({ type: 'PRODUCTS_FETCH_START' }),
-    fetchSuccess: (products: Product[], total: number): ProductAction => ({
-        type: 'PRODUCTS_FETCH_SUCCESS',
-        payload: { products, total }
-    }),
-    fetchError: (error: string): ProductAction => ({
-        type: 'PRODUCTS_FETCH_ERROR',
-        payload: error
-    }),
-    setFilter: (filter: Partial<ProductFilter>): ProductAction => ({
-        type: 'PRODUCTS_SET_FILTER',
-        payload: filter
-    }),
-    clearFilter: (): ProductAction => ({ type: 'PRODUCTS_CLEAR_FILTER' })
+  fetchStart: (): ProductAction => ({ type: 'PRODUCTS_FETCH_START' }),
+  fetchSuccess: (products: Product[], total: number): ProductAction => ({
+    type: 'PRODUCTS_FETCH_SUCCESS',
+    payload: { products, total },
+  }),
+  fetchError: (error: string): ProductAction => ({
+    type: 'PRODUCTS_FETCH_ERROR',
+    payload: error,
+  }),
+  setFilter: (filter: Partial<ProductFilter>): ProductAction => ({
+    type: 'PRODUCTS_SET_FILTER',
+    payload: filter,
+  }),
+  clearFilter: (): ProductAction => ({ type: 'PRODUCTS_CLEAR_FILTER' }),
 };
 
 // 类型安全的reducer
 function productReducer(
-    state: ProductState = initialProductState,
-    action: ProductAction
+  state: ProductState = initialProductState,
+  action: ProductAction
 ): ProductState {
-    switch (action.type) {
-        case 'PRODUCTS_FETCH_START':
-            return { ...state, loading: true, error: null };
-        
-        case 'PRODUCTS_FETCH_SUCCESS':
-            return {
-                ...state,
-                loading: false,
-                items: action.payload.products,
-                pagination: {
-                    ...state.pagination,
-                    total: action.payload.total
-                }
-            };
-        
-        case 'PRODUCTS_FETCH_ERROR':
-            return { ...state, loading: false, error: action.payload };
-        
-        case 'PRODUCTS_SET_FILTER':
-            return {
-                ...state,
-                filters: { ...state.filters, ...action.payload }
-            };
-        
-        case 'PRODUCTS_CLEAR_FILTER':
-            return { ...state, filters: {} };
-        
-        default:
-            return state;
-    }
+  switch (action.type) {
+    case 'PRODUCTS_FETCH_START':
+      return { ...state, loading: true, error: null };
+
+    case 'PRODUCTS_FETCH_SUCCESS':
+      return {
+        ...state,
+        loading: false,
+        items: action.payload.products,
+        pagination: {
+          ...state.pagination,
+          total: action.payload.total,
+        },
+      };
+
+    case 'PRODUCTS_FETCH_ERROR':
+      return { ...state, loading: false, error: action.payload };
+
+    case 'PRODUCTS_SET_FILTER':
+      return {
+        ...state,
+        filters: { ...state.filters, ...action.payload },
+      };
+
+    case 'PRODUCTS_CLEAR_FILTER':
+      return { ...state, filters: {} };
+
+    default:
+      return state;
+  }
 }
 
 // 类型化选择器
 const productSelectors = {
-    getProducts: (state: AppState): Product[] => state.products.items,
-    getLoading: (state: AppState): boolean => state.products.loading,
-    getError: (state: AppState): string | null => state.products.error,
-    getFilters: (state: AppState): ProductFilter => state.products.filters,
-    
-    // 计算选择器
-    getFilteredProducts: (state: AppState): Product[] => {
-        const { items, filters } = state.products;
-        return items.filter(product => {
-            if (filters.type && product.type !== filters.type) return false;
-            if (filters.category && product.category !== filters.category) return false;
-            if (filters.priceRange) {
-                const { min, max } = filters.priceRange;
-                if (product.price < min || product.price > max) return false;
-            }
-            return true;
-        });
-    }
+  getProducts: (state: AppState): Product[] => state.products.items,
+  getLoading: (state: AppState): boolean => state.products.loading,
+  getError: (state: AppState): string | null => state.products.error,
+  getFilters: (state: AppState): ProductFilter => state.products.filters,
+
+  // 计算选择器
+  getFilteredProducts: (state: AppState): Product[] => {
+    const { items, filters } = state.products;
+    return items.filter(product => {
+      if (filters.type && product.type !== filters.type) return false;
+      if (filters.category && product.category !== filters.category)
+        return false;
+      if (filters.priceRange) {
+        const { min, max } = filters.priceRange;
+        if (product.price < min || product.price > max) return false;
+      }
+      return true;
+    });
+  },
 };
 ```
 
@@ -1320,6 +1384,7 @@ TypeScript的类型系统是现代前端开发的基石，掌握它将大大提�
 **题目**: 设计一个类型安全的事件发布订阅系统
 
 **要求**:
+
 1. 支持多种事件类型
 2. 类型安全的事件监听和触发
 3. 支持事件数据的类型检查
@@ -1330,14 +1395,14 @@ TypeScript的类型系统是现代前端开发的基石，掌握它将大大提�
 ```typescript
 // 事件类型定义
 interface EventMap {
-    'user:login': { user: User; timestamp: Date };
-    'user:logout': { userId: string; timestamp: Date };
-    'product:add': { product: Product };
-    'product:update': { productId: string; changes: Partial<Product> };
-    'cart:add': { productId: string; quantity: number };
-    'cart:remove': { productId: string };
-    'order:created': { order: Order };
-    'order:updated': { orderId: string; status: Order['status'] };
+  'user:login': { user: User; timestamp: Date };
+  'user:logout': { userId: string; timestamp: Date };
+  'product:add': { product: Product };
+  'product:update': { productId: string; changes: Partial<Product> };
+  'cart:add': { productId: string; quantity: number };
+  'cart:remove': { productId: string };
+  'order:created': { order: Order };
+  'order:updated': { orderId: string; status: Order['status'] };
 }
 
 // 事件监听器类型
@@ -1345,84 +1410,81 @@ type EventListener<T> = (data: T) => void;
 
 // 类型安全的事件发射器
 class TypedEventEmitter {
-    private listeners: {
-        [K in keyof EventMap]?: EventListener<EventMap[K]>[];
-    } = {};
+  private listeners: {
+    [K in keyof EventMap]?: EventListener<EventMap[K]>[];
+  } = {};
 
-    // 添加监听器
-    on<K extends keyof EventMap>(
-        event: K,
-        listener: EventListener<EventMap[K]>
-    ): () => void {
-        if (!this.listeners[event]) {
-            this.listeners[event] = [];
-        }
-        this.listeners[event]!.push(listener);
-
-        // 返回取消订阅函数
-        return () => this.off(event, listener);
+  // 添加监听器
+  on<K extends keyof EventMap>(
+    event: K,
+    listener: EventListener<EventMap[K]>
+  ): () => void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
     }
+    this.listeners[event]!.push(listener);
 
-    // 移除监听器
-    off<K extends keyof EventMap>(
-        event: K,
-        listener: EventListener<EventMap[K]>
-    ): void {
-        const eventListeners = this.listeners[event];
-        if (eventListeners) {
-            const index = eventListeners.indexOf(listener);
-            if (index > -1) {
-                eventListeners.splice(index, 1);
-            }
-        }
-    }
+    // 返回取消订阅函数
+    return () => this.off(event, listener);
+  }
 
-    // 触发事件
-    emit<K extends keyof EventMap>(
-        event: K,
-        data: EventMap[K]
-    ): void {
-        const eventListeners = this.listeners[event];
-        if (eventListeners) {
-            eventListeners.forEach(listener => listener(data));
-        }
+  // 移除监听器
+  off<K extends keyof EventMap>(
+    event: K,
+    listener: EventListener<EventMap[K]>
+  ): void {
+    const eventListeners = this.listeners[event];
+    if (eventListeners) {
+      const index = eventListeners.indexOf(listener);
+      if (index > -1) {
+        eventListeners.splice(index, 1);
+      }
     }
+  }
 
-    // 一次性监听器
-    once<K extends keyof EventMap>(
-        event: K,
-        listener: EventListener<EventMap[K]>
-    ): void {
-        const onceListener: EventListener<EventMap[K]> = (data) => {
-            listener(data);
-            this.off(event, onceListener);
-        };
-        this.on(event, onceListener);
+  // 触发事件
+  emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void {
+    const eventListeners = this.listeners[event];
+    if (eventListeners) {
+      eventListeners.forEach(listener => listener(data));
     }
+  }
 
-    // 移除所有监听器
-    removeAllListeners<K extends keyof EventMap>(event?: K): void {
-        if (event) {
-            delete this.listeners[event];
-        } else {
-            this.listeners = {};
-        }
+  // 一次性监听器
+  once<K extends keyof EventMap>(
+    event: K,
+    listener: EventListener<EventMap[K]>
+  ): void {
+    const onceListener: EventListener<EventMap[K]> = data => {
+      listener(data);
+      this.off(event, onceListener);
+    };
+    this.on(event, onceListener);
+  }
+
+  // 移除所有监听器
+  removeAllListeners<K extends keyof EventMap>(event?: K): void {
+    if (event) {
+      delete this.listeners[event];
+    } else {
+      this.listeners = {};
     }
+  }
 }
 
 // 使用示例
 const eventEmitter = new TypedEventEmitter();
 
 // 类型安全的事件监听
-const unsubscribe = eventEmitter.on('user:login', (data) => {
-    // data的类型自动推断为 { user: User; timestamp: Date }
-    console.log(`用户 ${data.user.username} 在 ${data.timestamp} 登录`);
+const unsubscribe = eventEmitter.on('user:login', data => {
+  // data的类型自动推断为 { user: User; timestamp: Date }
+  console.log(`用户 ${data.user.username} 在 ${data.timestamp} 登录`);
 });
 
 // 类型安全的事件触发
 eventEmitter.emit('user:login', {
-    user: { id: 1, username: 'john', email: 'john@example.com' } as User,
-    timestamp: new Date()
+  user: { id: 1, username: 'john', email: 'john@example.com' } as User,
+  timestamp: new Date(),
 });
 
 // 编译时错误检查
@@ -1450,17 +1512,17 @@ TypeScript在编译时会进行类型擦除，运行时不包含类型信息：
 ```typescript
 // 编译前
 interface User {
-    name: string;
-    age: number;
+  name: string;
+  age: number;
 }
 
 function greet(user: User): string {
-    return `Hello, ${user.name}!`;
+  return `Hello, ${user.name}!`;
 }
 
 // 编译后
 function greet(user) {
-    return `Hello, ${user.name}!`;
+  return `Hello, ${user.name}!`;
 }
 ```
 
@@ -1544,4 +1606,4 @@ function greet(user) {
 
 ---
 
-*下一章我们将学习《泛型与高级类型应用》，探索TypeScript更强大的类型编程能力！* 🚀
+_下一章我们将学习《泛型与高级类型应用》，探索TypeScript更强大的类型编程能力！_ 🚀

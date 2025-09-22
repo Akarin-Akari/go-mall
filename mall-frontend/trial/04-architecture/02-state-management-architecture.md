@@ -1,6 +1,6 @@
 # 第2章：状态管理架构设计 🔄
 
-> *"状态管理不是技术问题，而是架构问题！"* 🚀
+> _"状态管理不是技术问题，而是架构问题！"_ 🚀
 
 ## 📚 本章导览
 
@@ -76,7 +76,7 @@ interface StateClassification {
     shared: '组件间共享状态';
     global: '全局应用状态';
   };
-  
+
   // 按数据源分类
   source: {
     client: '客户端状态';
@@ -84,14 +84,14 @@ interface StateClassification {
     url: 'URL状态';
     form: '表单状态';
   };
-  
+
   // 按生命周期分类
   lifecycle: {
     ephemeral: '临时状态';
     session: '会话状态';
     persistent: '持久化状态';
   };
-  
+
   // 按变更频率分类
   frequency: {
     static: '静态状态';
@@ -113,9 +113,9 @@ const stateManagementPrinciples = {
       
       // ✅ 单一数据源
       const user = useUserStore(state => state.user);
-    `
+    `,
   },
-  
+
   // 2. 状态不可变性 (Immutability)
   immutability: {
     principle: '状态应该是不可变的，通过创建新状态来更新',
@@ -132,9 +132,9 @@ const stateManagementPrinciples = {
           name: 'New Name'
         }
       }));
-    `
+    `,
   },
-  
+
   // 3. 可预测性 (Predictability)
   predictability: {
     principle: '相同的输入应该产生相同的输出',
@@ -149,9 +149,9 @@ const stateManagementPrinciples = {
             return state;
         }
       }
-    `
+    `,
   },
-  
+
   // 4. 最小化状态 (Minimal State)
   minimalState: {
     principle: '只存储必要的状态，派生状态应该通过计算得出',
@@ -173,8 +173,8 @@ const stateManagementPrinciples = {
       const totalPrice = useSelector(state => 
         state.items.reduce((sum, item) => sum + item.price, 0)
       );
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -197,9 +197,9 @@ const stateManagementEvolution = {
         $('#username').text(user.name);
         $('#avatar').attr('src', user.avatar);
       }
-    `
+    `,
   },
-  
+
   // 2. MVC时代 - 模型视图分离
   mvc: {
     period: '2010-2013',
@@ -216,9 +216,9 @@ const stateManagementEvolution = {
           this.$el.html(template(this.model.toJSON()));
         }
       });
-    `
+    `,
   },
-  
+
   // 3. Flux时代 - 单向数据流
   flux: {
     period: '2014-2015',
@@ -235,9 +235,9 @@ const stateManagementEvolution = {
           payload: user
         })
       };
-    `
+    `,
   },
-  
+
   // 4. Redux时代 - 函数式状态管理
   redux: {
     period: '2015-2019',
@@ -254,16 +254,16 @@ const stateManagementEvolution = {
             return state;
         }
       };
-    `
+    `,
   },
-  
+
   // 5. 现代时代 - 多样化方案
   modern: {
     period: '2019至今',
     approach: 'Hooks、Zustand、Jotai等轻量化方案',
     benefits: ['简化API', '更好的TypeScript支持', '更小的包体积'],
-    trends: ['原子化状态', '服务端状态分离', '类型安全']
-  }
+    trends: ['原子化状态', '服务端状态分离', '类型安全'],
+  },
 };
 ```
 
@@ -278,61 +278,61 @@ const stateManagementDecisionTree = {
       question: '状态是否需要在多个组件间共享？',
       no: {
         recommendation: 'useState / useReducer',
-        reason: '本地状态足够，无需引入复杂的状态管理'
+        reason: '本地状态足够，无需引入复杂的状态管理',
       },
-      yes: { nextQuestion: 2 }
+      yes: { nextQuestion: 2 },
     },
     {
       id: 2,
       question: '应用规模是否较大（>100个组件）？',
       no: {
         recommendation: 'Context API + useReducer',
-        reason: '中小型应用，Context API足够应对'
+        reason: '中小型应用，Context API足够应对',
       },
-      yes: { nextQuestion: 3 }
+      yes: { nextQuestion: 3 },
     },
     {
       id: 3,
       question: '团队是否熟悉函数式编程？',
       yes: {
         recommendation: 'Redux Toolkit',
-        reason: '大型应用，需要强大的状态管理和调试工具'
+        reason: '大型应用，需要强大的状态管理和调试工具',
       },
-      no: { nextQuestion: 4 }
+      no: { nextQuestion: 4 },
     },
     {
       id: 4,
       question: '是否需要复杂的异步逻辑？',
       yes: {
         recommendation: 'Redux Toolkit + RTK Query',
-        reason: '复杂异步场景，Redux生态更成熟'
+        reason: '复杂异步场景，Redux生态更成熟',
       },
       no: {
         recommendation: 'Zustand',
-        reason: '简单易用，学习成本低'
-      }
-    }
+        reason: '简单易用，学习成本低',
+      },
+    },
   ],
-  
+
   // 特殊场景推荐
   specialCases: {
     formManagement: {
       recommendation: 'React Hook Form + Zod',
-      reason: '专门的表单状态管理，性能更好'
+      reason: '专门的表单状态管理，性能更好',
     },
     serverState: {
       recommendation: 'React Query / SWR',
-      reason: '服务端状态有特殊需求，需要专门的解决方案'
+      reason: '服务端状态有特殊需求，需要专门的解决方案',
     },
     realTimeData: {
       recommendation: 'Zustand + WebSocket',
-      reason: '实时数据需要响应式更新'
+      reason: '实时数据需要响应式更新',
     },
     atomicState: {
       recommendation: 'Jotai / Recoil',
-      reason: '细粒度状态管理，避免不必要的重渲染'
-    }
-  }
+      reason: '细粒度状态管理，避免不必要的重渲染',
+    },
+  },
 };
 ```
 
@@ -349,7 +349,7 @@ const performanceConsiderations = {
       'useMemo',
       'useCallback',
       '状态分割',
-      '选择器优化'
+      '选择器优化',
     ],
     example: `
       // ❌ 会导致所有组件重渲染
@@ -364,17 +364,12 @@ const performanceConsiderations = {
       const userStore = create((set) => ({ ... }));
       const productStore = create((set) => ({ ... }));
       const cartStore = create((set) => ({ ... }));
-    `
+    `,
   },
-  
+
   // 2. 内存优化
   memoryOptimization: {
-    strategies: [
-      '状态清理',
-      '弱引用',
-      '分页加载',
-      '虚拟滚动'
-    ],
+    strategies: ['状态清理', '弱引用', '分页加载', '虚拟滚动'],
     example: `
       // 组件卸载时清理状态
       useEffect(() => {
@@ -383,18 +378,13 @@ const performanceConsiderations = {
           clearLargeDataSet();
         };
       }, []);
-    `
+    `,
   },
-  
+
   // 3. 网络优化
   networkOptimization: {
-    techniques: [
-      '请求去重',
-      '缓存策略',
-      '乐观更新',
-      '批量请求'
-    ]
-  }
+    techniques: ['请求去重', '缓存策略', '乐观更新', '批量请求'],
+  },
 };
 ```
 
@@ -432,7 +422,7 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: true,
     performance: 'Good',
     ecosystem: 'Rich',
-    useCase: ['大型应用', '复杂状态逻辑', '时间旅行调试', '团队协作']
+    useCase: ['大型应用', '复杂状态逻辑', '时间旅行调试', '团队协作'],
   },
   {
     name: 'Zustand',
@@ -445,7 +435,7 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: true,
     performance: 'Excellent',
     ecosystem: 'Growing',
-    useCase: ['中小型应用', '快速原型', '简单状态管理', '性能敏感']
+    useCase: ['中小型应用', '快速原型', '简单状态管理', '性能敏感'],
   },
   {
     name: 'Context API',
@@ -458,7 +448,7 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: true,
     performance: 'Average',
     ecosystem: 'Limited',
-    useCase: ['主题管理', '用户认证', '简单共享状态', '避免prop drilling']
+    useCase: ['主题管理', '用户认证', '简单共享状态', '避免prop drilling'],
   },
   {
     name: 'Jotai',
@@ -471,7 +461,7 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: true,
     performance: 'Excellent',
     ecosystem: 'Growing',
-    useCase: ['原子化状态', '细粒度更新', '复杂依赖关系', '性能优化']
+    useCase: ['原子化状态', '细粒度更新', '复杂依赖关系', '性能优化'],
   },
   {
     name: 'Valtio',
@@ -484,7 +474,7 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: false,
     performance: 'Excellent',
     ecosystem: 'Limited',
-    useCase: ['代理状态', '简单API', '快速开发', '原型验证']
+    useCase: ['代理状态', '简单API', '快速开发', '原型验证'],
   },
   {
     name: 'React Query',
@@ -497,8 +487,8 @@ const stateManagementComparison: StateManagementSolution[] = [
     ssr: true,
     performance: 'Excellent',
     ecosystem: 'Rich',
-    useCase: ['服务端状态', '缓存管理', '数据同步', 'API状态管理']
-  }
+    useCase: ['服务端状态', '缓存管理', '数据同步', 'API状态管理'],
+  },
 ];
 
 // 详细功能对比
@@ -525,7 +515,7 @@ const featureComparison = {
         const dispatch = useDispatch();
         const user = useSelector(state => state.user);
         dispatch(userSlice.actions.updateUser({ name: 'John', email: 'john@example.com' }));
-      `
+      `,
     },
     zustand: {
       complexity: 'Low',
@@ -541,7 +531,7 @@ const featureComparison = {
         // 使用
         const { name, email, updateUser } = useUserStore();
         updateUser({ name: 'John', email: 'john@example.com' });
-      `
+      `,
     },
     context: {
       complexity: 'Medium',
@@ -566,7 +556,7 @@ const featureComparison = {
 
         // 使用
         const { user, updateUser } = useContext(UserContext);
-      `
+      `,
     },
     jotai: {
       complexity: 'Medium',
@@ -586,9 +576,9 @@ const featureComparison = {
         // 使用
         const [user, setUser] = useAtom(userAtom);
         setUser({ name: 'John', email: 'john@example.com' });
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -630,7 +620,7 @@ export const store = configureStore({
     cart: cartSlice.reducer,
     api: apiSlice.reducer,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
@@ -700,14 +690,19 @@ export const fetchUserProfile = createAsyncThunk(
       const response = await authApi.getProfile();
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch profile'
+      );
     }
   }
 );
 
 export const updateUserPreferences = createAsyncThunk(
   'user/updatePreferences',
-  async (preferences: Partial<UserState['preferences']>, { getState, rejectWithValue }) => {
+  async (
+    preferences: Partial<UserState['preferences']>,
+    { getState, rejectWithValue }
+  ) => {
     try {
       const state = getState() as RootState;
       const updatedPreferences = { ...state.user.preferences, ...preferences };
@@ -715,7 +710,9 @@ export const updateUserPreferences = createAsyncThunk(
       await authApi.updatePreferences(updatedPreferences);
       return updatedPreferences;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update preferences');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update preferences'
+      );
     }
   }
 );
@@ -726,17 +723,20 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     // 同步actions
-    logout: (state) => {
+    logout: state => {
       state.currentUser = null;
       state.isAuthenticated = false;
       state.error = null;
     },
 
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
 
-    updateLocalPreferences: (state, action: PayloadAction<Partial<UserState['preferences']>>) => {
+    updateLocalPreferences: (
+      state,
+      action: PayloadAction<Partial<UserState['preferences']>>
+    ) => {
       state.preferences = { ...state.preferences, ...action.payload };
     },
 
@@ -747,10 +747,10 @@ const userSlice = createSlice({
   },
 
   // 异步actions的处理
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // 登录
-      .addCase(loginUser.pending, (state) => {
+      .addCase(loginUser.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -767,7 +767,7 @@ const userSlice = createSlice({
       })
 
       // 获取用户资料
-      .addCase(fetchUserProfile.pending, (state) => {
+      .addCase(fetchUserProfile.pending, state => {
         state.loading = true;
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
@@ -786,7 +786,8 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout, clearError, updateLocalPreferences, setUser } = userSlice.actions;
+export const { logout, clearError, updateLocalPreferences, setUser } =
+  userSlice.actions;
 export default userSlice;
 
 // store/slices/cartSlice.ts - 购物车状态切片
@@ -815,7 +816,14 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addToCart: (state, action: PayloadAction<{ product: Product; quantity?: number; options?: Record<string, string> }>) => {
+    addToCart: (
+      state,
+      action: PayloadAction<{
+        product: Product;
+        quantity?: number;
+        options?: Record<string, string>;
+      }>
+    ) => {
       const { product, quantity = 1, options = {} } = action.payload;
 
       // 查找是否已存在相同商品和选项的项目
@@ -840,20 +848,34 @@ const cartSlice = createSlice({
       state.lastUpdated = Date.now();
     },
 
-    removeFromCart: (state, action: PayloadAction<{ productId: string; options?: Record<string, string> }>) => {
+    removeFromCart: (
+      state,
+      action: PayloadAction<{
+        productId: string;
+        options?: Record<string, string>;
+      }>
+    ) => {
       const { productId, options = {} } = action.payload;
 
       state.items = state.items.filter(
-        item => !(
-          item.product.id === productId &&
-          JSON.stringify(item.selectedOptions) === JSON.stringify(options)
-        )
+        item =>
+          !(
+            item.product.id === productId &&
+            JSON.stringify(item.selectedOptions) === JSON.stringify(options)
+          )
       );
 
       state.lastUpdated = Date.now();
     },
 
-    updateQuantity: (state, action: PayloadAction<{ productId: string; quantity: number; options?: Record<string, string> }>) => {
+    updateQuantity: (
+      state,
+      action: PayloadAction<{
+        productId: string;
+        quantity: number;
+        options?: Record<string, string>;
+      }>
+    ) => {
       const { productId, quantity, options = {} } = action.payload;
 
       const itemIndex = state.items.findIndex(
@@ -872,12 +894,12 @@ const cartSlice = createSlice({
       }
     },
 
-    clearCart: (state) => {
+    clearCart: state => {
       state.items = [];
       state.lastUpdated = Date.now();
     },
 
-    toggleCart: (state) => {
+    toggleCart: state => {
       state.isOpen = !state.isOpen;
     },
 
@@ -893,7 +915,7 @@ export const {
   updateQuantity,
   clearCart,
   toggleCart,
-  setCartOpen
+  setCartOpen,
 } = cartSlice.actions;
 
 export default cartSlice;
@@ -903,19 +925,20 @@ export const selectCartItems = (state: RootState) => state.cart.items;
 export const selectCartIsOpen = (state: RootState) => state.cart.isOpen;
 
 // 记忆化选择器
-export const selectCartTotal = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((total, item) => total + (parseFloat(item.product.price) * item.quantity), 0)
+export const selectCartTotal = createSelector([selectCartItems], items =>
+  items.reduce(
+    (total, item) => total + parseFloat(item.product.price) * item.quantity,
+    0
+  )
 );
 
-export const selectCartItemCount = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((count, item) => count + item.quantity, 0)
+export const selectCartItemCount = createSelector([selectCartItems], items =>
+  items.reduce((count, item) => count + item.quantity, 0)
 );
 
 export const selectCartItemsByCategory = createSelector(
   [selectCartItems],
-  (items) => {
+  items => {
     const grouped: Record<string, CartItem[]> = {};
     items.forEach(item => {
       const category = item.product.categoryId;
@@ -961,7 +984,9 @@ interface UserState {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   fetchProfile: () => Promise<void>;
-  updatePreferences: (preferences: Partial<UserState['preferences']>) => Promise<void>;
+  updatePreferences: (
+    preferences: Partial<UserState['preferences']>
+  ) => Promise<void>;
   clearError: () => void;
   setUser: (user: User) => void;
 }
@@ -983,21 +1008,21 @@ export const useUserStore = create<UserState>()(
           },
 
           // Actions
-          login: async (credentials) => {
-            set((state) => {
+          login: async credentials => {
+            set(state => {
               state.loading = true;
               state.error = null;
             });
 
             try {
               const response = await authApi.login(credentials);
-              set((state) => {
+              set(state => {
                 state.currentUser = response.data.user;
                 state.isAuthenticated = true;
                 state.loading = false;
               });
             } catch (error: any) {
-              set((state) => {
+              set(state => {
                 state.error = error.response?.data?.message || 'Login failed';
                 state.loading = false;
                 state.isAuthenticated = false;
@@ -1006,7 +1031,7 @@ export const useUserStore = create<UserState>()(
           },
 
           logout: () => {
-            set((state) => {
+            set(state => {
               state.currentUser = null;
               state.isAuthenticated = false;
               state.error = null;
@@ -1019,48 +1044,51 @@ export const useUserStore = create<UserState>()(
               throw new Error('User not authenticated');
             }
 
-            set((state) => {
+            set(state => {
               state.loading = true;
             });
 
             try {
               const response = await authApi.getProfile();
-              set((state) => {
+              set(state => {
                 state.currentUser = response.data;
                 state.loading = false;
               });
             } catch (error: any) {
-              set((state) => {
-                state.error = error.response?.data?.message || 'Failed to fetch profile';
+              set(state => {
+                state.error =
+                  error.response?.data?.message || 'Failed to fetch profile';
                 state.loading = false;
               });
             }
           },
 
-          updatePreferences: async (newPreferences) => {
+          updatePreferences: async newPreferences => {
             const { preferences } = get();
             const updatedPreferences = { ...preferences, ...newPreferences };
 
             try {
               await authApi.updatePreferences(updatedPreferences);
-              set((state) => {
+              set(state => {
                 state.preferences = updatedPreferences;
               });
             } catch (error: any) {
-              set((state) => {
-                state.error = error.response?.data?.message || 'Failed to update preferences';
+              set(state => {
+                state.error =
+                  error.response?.data?.message ||
+                  'Failed to update preferences';
               });
             }
           },
 
           clearError: () => {
-            set((state) => {
+            set(state => {
               state.error = null;
             });
           },
 
-          setUser: (user) => {
-            set((state) => {
+          setUser: user => {
+            set(state => {
               state.currentUser = user;
               state.isAuthenticated = true;
             });
@@ -1069,7 +1097,7 @@ export const useUserStore = create<UserState>()(
       ),
       {
         name: 'user-store',
-        partialize: (state) => ({
+        partialize: state => ({
           currentUser: state.currentUser,
           isAuthenticated: state.isAuthenticated,
           preferences: state.preferences,
@@ -1081,11 +1109,13 @@ export const useUserStore = create<UserState>()(
 );
 
 // 选择器
-export const useUser = () => useUserStore((state) => state.currentUser);
-export const useIsAuthenticated = () => useUserStore((state) => state.isAuthenticated);
-export const useUserLoading = () => useUserStore((state) => state.loading);
-export const useUserError = () => useUserStore((state) => state.error);
-export const useUserPreferences = () => useUserStore((state) => state.preferences);
+export const useUser = () => useUserStore(state => state.currentUser);
+export const useIsAuthenticated = () =>
+  useUserStore(state => state.isAuthenticated);
+export const useUserLoading = () => useUserStore(state => state.loading);
+export const useUserError = () => useUserStore(state => state.error);
+export const useUserPreferences = () =>
+  useUserStore(state => state.preferences);
 
 // stores/cartStore.ts - Zustand购物车状态管理
 import { create } from 'zustand';
@@ -1105,9 +1135,17 @@ interface CartState {
   lastUpdated: number;
 
   // Actions
-  addToCart: (product: Product, quantity?: number, options?: Record<string, string>) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    options?: Record<string, string>
+  ) => void;
   removeFromCart: (productId: string, options?: Record<string, string>) => void;
-  updateQuantity: (productId: string, quantity: number, options?: Record<string, string>) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    options?: Record<string, string>
+  ) => void;
   clearCart: () => void;
   toggleCart: () => void;
   setCartOpen: (isOpen: boolean) => void;
@@ -1127,7 +1165,7 @@ export const useCartStore = create<CartState>()(
         lastUpdated: Date.now(),
 
         addToCart: (product, quantity = 1, options = {}) => {
-          set((state) => {
+          set(state => {
             const existingItemIndex = state.items.findIndex(
               item =>
                 item.product.id === product.id &&
@@ -1149,19 +1187,21 @@ export const useCartStore = create<CartState>()(
         },
 
         removeFromCart: (productId, options = {}) => {
-          set((state) => {
+          set(state => {
             state.items = state.items.filter(
-              item => !(
-                item.product.id === productId &&
-                JSON.stringify(item.selectedOptions) === JSON.stringify(options)
-              )
+              item =>
+                !(
+                  item.product.id === productId &&
+                  JSON.stringify(item.selectedOptions) ===
+                    JSON.stringify(options)
+                )
             );
             state.lastUpdated = Date.now();
           });
         },
 
         updateQuantity: (productId, quantity, options = {}) => {
-          set((state) => {
+          set(state => {
             const itemIndex = state.items.findIndex(
               item =>
                 item.product.id === productId &&
@@ -1180,20 +1220,20 @@ export const useCartStore = create<CartState>()(
         },
 
         clearCart: () => {
-          set((state) => {
+          set(state => {
             state.items = [];
             state.lastUpdated = Date.now();
           });
         },
 
         toggleCart: () => {
-          set((state) => {
+          set(state => {
             state.isOpen = !state.isOpen;
           });
         },
 
-        setCartOpen: (isOpen) => {
-          set((state) => {
+        setCartOpen: isOpen => {
+          set(state => {
             state.isOpen = isOpen;
           });
         },
@@ -1201,7 +1241,11 @@ export const useCartStore = create<CartState>()(
         // Computed values
         getTotalPrice: () => {
           const { items } = get();
-          return items.reduce((total, item) => total + (parseFloat(item.product.price) * item.quantity), 0);
+          return items.reduce(
+            (total, item) =>
+              total + parseFloat(item.product.price) * item.quantity,
+            0
+          );
         },
 
         getItemCount: () => {
@@ -1224,7 +1268,7 @@ export const useCartStore = create<CartState>()(
       })),
       {
         name: 'cart-store',
-        partialize: (state) => ({
+        partialize: state => ({
           items: state.items,
           lastUpdated: state.lastUpdated,
         }),
@@ -1235,10 +1279,11 @@ export const useCartStore = create<CartState>()(
 );
 
 // 选择器Hooks
-export const useCartItems = () => useCartStore((state) => state.items);
-export const useCartIsOpen = () => useCartStore((state) => state.isOpen);
-export const useCartTotal = () => useCartStore((state) => state.getTotalPrice());
-export const useCartItemCount = () => useCartStore((state) => state.getItemCount());
+export const useCartItems = () => useCartStore(state => state.items);
+export const useCartIsOpen = () => useCartStore(state => state.isOpen);
+export const useCartTotal = () => useCartStore(state => state.getTotalPrice());
+export const useCartItemCount = () =>
+  useCartStore(state => state.getItemCount());
 ```
 
 ### Zustand高级模式
@@ -1258,12 +1303,12 @@ interface BaseState {
 }
 
 // 基础Store创建器
-const createBaseSlice: StateCreator<BaseState> = (set) => ({
+const createBaseSlice: StateCreator<BaseState> = set => ({
   loading: false,
   error: null,
 
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
+  setLoading: loading => set({ loading }),
+  setError: error => set({ error }),
   clearError: () => set({ error: null }),
 });
 
@@ -1272,9 +1317,10 @@ interface AsyncMixin {
   executeAsync: <T>(asyncFn: () => Promise<T>) => Promise<T>;
 }
 
-const createAsyncMixin = <T extends BaseState>(): StateCreator<T & AsyncMixin, [], [], AsyncMixin> =>
+const createAsyncMixin =
+  <T extends BaseState>(): StateCreator<T & AsyncMixin, [], [], AsyncMixin> =>
   (set, get) => ({
-    executeAsync: async (asyncFn) => {
+    executeAsync: async asyncFn => {
       set({ loading: true, error: null } as Partial<T & AsyncMixin>);
 
       try {
@@ -1284,7 +1330,7 @@ const createAsyncMixin = <T extends BaseState>(): StateCreator<T & AsyncMixin, [
       } catch (error: any) {
         set({
           loading: false,
-          error: error.message || 'An error occurred'
+          error: error.message || 'An error occurred',
         } as Partial<T & AsyncMixin>);
         throw error;
       }
@@ -1325,7 +1371,9 @@ interface ProductState extends BaseState {
   clearFilters: () => void;
 }
 
-export const useProductStore = createEntityStore<Omit<ProductState, keyof BaseState | keyof AsyncMixin>>(
+export const useProductStore = createEntityStore<
+  Omit<ProductState, keyof BaseState | keyof AsyncMixin>
+>(
   'product-store',
   {
     products: [],
@@ -1349,9 +1397,9 @@ export const useProductStore = createEntityStore<Omit<ProductState, keyof BaseSt
       });
     },
 
-    setFilters: (newFilters) => {
-      set((state) => ({
-        filters: { ...state.filters, ...newFilters }
+    setFilters: newFilters => {
+      set(state => ({
+        filters: { ...state.filters, ...newFilters },
       }));
     },
 
@@ -1381,20 +1429,20 @@ const stateManagementDecisionMatrix = {
       components: '<50个组件',
       developers: '1-3人',
       recommendation: 'useState + useContext',
-      reason: '简单直接，无需引入额外复杂性'
+      reason: '简单直接，无需引入额外复杂性',
     },
     medium: {
       components: '50-200个组件',
       developers: '3-10人',
       recommendation: 'Zustand + React Query',
-      reason: '轻量级，易于学习，性能优秀'
+      reason: '轻量级，易于学习，性能优秀',
     },
     large: {
       components: '>200个组件',
       developers: '>10人',
       recommendation: 'Redux Toolkit + RTK Query',
-      reason: '标准化，强大的调试工具，团队协作友好'
-    }
+      reason: '标准化，强大的调试工具，团队协作友好',
+    },
   },
 
   // 状态复杂度维度
@@ -1402,18 +1450,18 @@ const stateManagementDecisionMatrix = {
     simple: {
       description: '简单CRUD，基础状态',
       recommendation: 'useState + useReducer',
-      features: ['本地状态', '简单更新', '无复杂逻辑']
+      features: ['本地状态', '简单更新', '无复杂逻辑'],
     },
     moderate: {
       description: '中等复杂度，跨组件状态',
       recommendation: 'Context API + useReducer',
-      features: ['共享状态', '中等复杂逻辑', '有限的异步操作']
+      features: ['共享状态', '中等复杂逻辑', '有限的异步操作'],
     },
     complex: {
       description: '复杂业务逻辑，大量异步操作',
       recommendation: 'Redux Toolkit',
-      features: ['复杂状态逻辑', '大量异步操作', '时间旅行调试']
-    }
+      features: ['复杂状态逻辑', '大量异步操作', '时间旅行调试'],
+    },
   },
 
   // 性能要求维度
@@ -1421,18 +1469,18 @@ const stateManagementDecisionMatrix = {
     standard: {
       description: '标准性能要求',
       recommendation: 'Zustand',
-      optimizations: ['选择性订阅', '状态分割']
+      optimizations: ['选择性订阅', '状态分割'],
     },
     high: {
       description: '高性能要求',
       recommendation: 'Jotai',
-      optimizations: ['原子化更新', '细粒度控制', '避免不必要重渲染']
+      optimizations: ['原子化更新', '细粒度控制', '避免不必要重渲染'],
     },
     extreme: {
       description: '极致性能要求',
       recommendation: 'Valtio + 手动优化',
-      optimizations: ['代理状态', '精确更新', '自定义优化']
-    }
+      optimizations: ['代理状态', '精确更新', '自定义优化'],
+    },
   },
 
   // 团队技能维度
@@ -1440,19 +1488,19 @@ const stateManagementDecisionMatrix = {
     beginner: {
       description: '团队React经验较少',
       recommendation: 'Zustand',
-      reason: 'API简单，学习曲线平缓'
+      reason: 'API简单，学习曲线平缓',
     },
     intermediate: {
       description: '团队有一定React经验',
       recommendation: 'Redux Toolkit',
-      reason: '标准化实践，丰富的学习资源'
+      reason: '标准化实践，丰富的学习资源',
     },
     advanced: {
       description: '团队React经验丰富',
       recommendation: '根据具体需求选择',
-      reason: '可以根据项目特点选择最适合的方案'
-    }
-  }
+      reason: '可以根据项目特点选择最适合的方案',
+    },
+  },
 };
 
 // 常见面试问题和答案
@@ -1463,32 +1511,23 @@ const commonInterviewQuestions = {
       redux: {
         pros: ['强大的调试工具', '丰富的生态', '标准化实践', '时间旅行'],
         cons: ['样板代码多', '学习曲线陡峭', '包体积大'],
-        useCase: '大型应用，复杂状态逻辑'
+        useCase: '大型应用，复杂状态逻辑',
       },
       zustand: {
         pros: ['API简单', '包体积小', '性能优秀', 'TypeScript友好'],
         cons: ['生态相对较小', '调试工具有限'],
-        useCase: '中小型应用，快速开发'
-      }
-    }
+        useCase: '中小型应用，快速开发',
+      },
+    },
   },
 
   q2: {
     question: '什么时候应该使用Context API？',
     answer: {
-      适合场景: [
-        '主题切换',
-        '用户认证状态',
-        '语言设置',
-        '避免prop drilling'
-      ],
-      不适合场景: [
-        '频繁更新的状态',
-        '复杂的状态逻辑',
-        '需要性能优化的场景'
-      ],
-      原因: 'Context会导致所有消费者重新渲染，不适合频繁变化的状态'
-    }
+      适合场景: ['主题切换', '用户认证状态', '语言设置', '避免prop drilling'],
+      不适合场景: ['频繁更新的状态', '复杂的状态逻辑', '需要性能优化的场景'],
+      原因: 'Context会导致所有消费者重新渲染，不适合频繁变化的状态',
+    },
   },
 
   q3: {
@@ -1499,7 +1538,7 @@ const commonInterviewQuestions = {
         '选择性订阅：只订阅需要的状态片段',
         '记忆化：使用useMemo和useCallback避免不必要的计算',
         '原子化：使用Jotai等原子化状态管理',
-        '虚拟化：对大列表使用虚拟滚动'
+        '虚拟化：对大列表使用虚拟滚动',
       ],
       example: `
         // ❌ 会导致所有组件重渲染
@@ -1513,8 +1552,8 @@ const commonInterviewQuestions = {
         const useUserStore = create(...);
         const useProductStore = create(...);
         const useUIStore = create(...);
-      `
-    }
+      `,
+    },
   },
 
   q4: {
@@ -1525,16 +1564,16 @@ const commonInterviewQuestions = {
         'Redux Saga: 复杂的异步流程控制',
         'RTK Query: 专门的数据获取',
         'React Query: 服务端状态管理',
-        'Zustand: 内置异步支持'
+        'Zustand: 内置异步支持',
       ],
       bestPractices: [
         '分离客户端状态和服务端状态',
         '使用专门的数据获取库',
         '实现乐观更新',
-        '处理加载和错误状态'
-      ]
-    }
-  }
+        '处理加载和错误状态',
+      ],
+    },
+  },
 };
 ```
 
@@ -1553,29 +1592,29 @@ const enterpriseStateArchitecture = {
       layer: '表现层',
       responsibility: 'UI组件，用户交互',
       stateTypes: ['UI状态', '表单状态', '临时状态'],
-      tools: ['useState', 'useReducer', 'React Hook Form']
+      tools: ['useState', 'useReducer', 'React Hook Form'],
     },
 
     business: {
       layer: '业务层',
       responsibility: '业务逻辑，状态管理',
       stateTypes: ['业务状态', '应用状态', '用户状态'],
-      tools: ['Redux Toolkit', 'Zustand', 'Context API']
+      tools: ['Redux Toolkit', 'Zustand', 'Context API'],
     },
 
     data: {
       layer: '数据层',
       responsibility: '数据获取，缓存管理',
       stateTypes: ['服务端状态', '缓存状态', 'API状态'],
-      tools: ['React Query', 'SWR', 'Apollo Client']
+      tools: ['React Query', 'SWR', 'Apollo Client'],
     },
 
     infrastructure: {
       layer: '基础设施层',
       responsibility: '持久化，同步，监控',
       stateTypes: ['持久化状态', '同步状态', '监控状态'],
-      tools: ['Redux Persist', 'LocalStorage', 'WebSocket']
-    }
+      tools: ['Redux Persist', 'LocalStorage', 'WebSocket'],
+    },
   },
 
   // 2. 模块化设计
@@ -1597,7 +1636,7 @@ const enterpriseStateArchitecture = {
             store/
               cartSlice.ts
       `,
-      benefits: ['独立开发', '易于测试', '代码复用']
+      benefits: ['独立开发', '易于测试', '代码复用'],
     },
 
     sharedModules: {
@@ -1610,8 +1649,8 @@ const enterpriseStateArchitecture = {
             middleware/
             types/
       `,
-      purpose: '共享状态，通用逻辑'
-    }
+      purpose: '共享状态，通用逻辑',
+    },
   },
 
   // 3. 状态规范化
@@ -1649,7 +1688,7 @@ const enterpriseStateArchitecture = {
         }
       }
     `,
-    benefits: ['避免数据重复', '更新效率高', '查询性能好']
+    benefits: ['避免数据重复', '更新效率高', '查询性能好'],
   },
 
   // 4. 状态同步策略
@@ -1671,7 +1710,7 @@ const enterpriseStateArchitecture = {
             dispatch(updateUserFailure({ userId, error }));
           }
         };
-      `
+      `,
     },
 
     serverToClient: {
@@ -1690,9 +1729,9 @@ const enterpriseStateArchitecture = {
             return () => ws.close();
           }, []);
         };
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1705,6 +1744,7 @@ const enterpriseStateArchitecture = {
 **任务**: 为Mall-Frontend设计完整的状态管理架构，包括用户、商品、购物车、订单等模块。
 
 **要求**:
+
 - 选择合适的状态管理方案
 - 设计模块化的状态结构
 - 实现状态持久化
@@ -1715,6 +1755,7 @@ const enterpriseStateArchitecture = {
 **任务**: 将一个使用Context API的应用迁移到Zustand。
 
 **要求**:
+
 - 分析现有Context结构
 - 设计Zustand store架构
 - 实现渐进式迁移
@@ -1725,6 +1766,7 @@ const enterpriseStateArchitecture = {
 **任务**: 为状态管理模块编写完整的测试套件。
 
 **要求**:
+
 - 单元测试：测试reducers和actions
 - 集成测试：测试组件与状态的集成
 - 端到端测试：测试完整的用户流程
@@ -1773,8 +1815,12 @@ const enterpriseStateArchitecture = {
 
 ---
 
-*下一章我们将学习《组件库设计与开发》，探索可复用组件系统的构建！* 🚀
+_下一章我们将学习《组件库设计与开发》，探索可复用组件系统的构建！_ 🚀
+
 ```
+
 ```
+
 ```
+
 ```

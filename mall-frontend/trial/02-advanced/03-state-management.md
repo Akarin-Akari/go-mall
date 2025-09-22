@@ -1,6 +1,6 @@
 # 第3章：状态管理策略与最佳实践 🗃️
 
-> *"选择合适的状态管理方案，是构建可维护大型应用的关键！"* 🎯
+> _"选择合适的状态管理方案，是构建可维护大型应用的关键！"_ 🎯
 
 ## 📚 本章导览
 
@@ -152,12 +152,12 @@ export const useUserStore = defineStore('user', {
     user: null as User | null,
     cart: [] as CartItem[],
     theme: 'light' as 'light' | 'dark',
-    language: 'zh' as 'zh' | 'en'
+    language: 'zh' as 'zh' | 'en',
   }),
 
   getters: {
-    cartItemCount: (state) => state.cart.length,
-    isLoggedIn: (state) => state.user !== null
+    cartItemCount: state => state.cart.length,
+    isLoggedIn: state => state.user !== null,
   },
 
   actions: {
@@ -167,8 +167,8 @@ export const useUserStore = defineStore('user', {
 
     addToCart(item: CartItem) {
       this.cart.push(item);
-    }
-  }
+    },
+  },
 });
 </script>
 ```
@@ -186,14 +186,14 @@ interface AppState {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StateService {
   private stateSubject = new BehaviorSubject<AppState>({
     user: null,
     cart: [],
     theme: 'light',
-    language: 'zh'
+    language: 'zh',
   });
 
   public state$: Observable<AppState> = this.stateSubject.asObservable();
@@ -205,21 +205,21 @@ export class StateService {
   updateUser(user: User | null): void {
     this.stateSubject.next({
       ...this.currentState,
-      user
+      user,
     });
   }
 
   addToCart(item: CartItem): void {
     this.stateSubject.next({
       ...this.currentState,
-      cart: [...this.currentState.cart, item]
+      cart: [...this.currentState.cart, item],
     });
   }
 
   setTheme(theme: 'light' | 'dark'): void {
     this.stateSubject.next({
       ...this.currentState,
-      theme
+      theme,
     });
   }
 }
@@ -236,7 +236,7 @@ export class StateService {
         {{ showDetails ? '收起' : '详情' }}
       </button>
     </div>
-  `
+  `,
 })
 export class ProductCardComponent {
   isLiked = false;
@@ -408,14 +408,14 @@ class _ProductCardState extends State<ProductCard> {
 
 **💡 状态管理对比：**
 
-| 特性 | React | Vue 3 | Angular | Svelte | Flutter |
-|------|-------|-------|---------|--------|---------|
-| **本地状态** | `useState` | `ref/reactive` | 组件属性 | 变量 | `setState` |
-| **全局状态** | Context/Redux | Pinia | 服务+RxJS | Stores | Provider |
-| **状态更新** | `setState` | `.value =` | `next()` | `update()` | `notifyListeners()` |
-| **派生状态** | `useMemo` | `computed` | `map/filter` | `derived` | `get` 方法 |
-| **异步状态** | useEffect | `watch` | Observable | `$:` | FutureBuilder |
-| **性能优化** | memo/callback | `shallowRef` | OnPush | 自动优化 | `const` 构造 |
+| 特性         | React         | Vue 3          | Angular      | Svelte     | Flutter             |
+| ------------ | ------------- | -------------- | ------------ | ---------- | ------------------- |
+| **本地状态** | `useState`    | `ref/reactive` | 组件属性     | 变量       | `setState`          |
+| **全局状态** | Context/Redux | Pinia          | 服务+RxJS    | Stores     | Provider            |
+| **状态更新** | `setState`    | `.value =`     | `next()`     | `update()` | `notifyListeners()` |
+| **派生状态** | `useMemo`     | `computed`     | `map/filter` | `derived`  | `get` 方法          |
+| **异步状态** | useEffect     | `watch`        | Observable   | `$:`       | FutureBuilder       |
+| **性能优化** | memo/callback | `shallowRef`   | OnPush       | 自动优化   | `const` 构造        |
 
 ### 状态管理的挑战
 
@@ -527,11 +527,16 @@ function useProductList() {
   // 3. 派生状态
   const filteredProducts = useMemo(() => {
     return state.products.filter(product => {
-      if (state.filters.category && product.category !== state.filters.category) {
+      if (
+        state.filters.category &&
+        product.category !== state.filters.category
+      ) {
         return false;
       }
-      if (product.price < state.filters.priceRange[0] ||
-          product.price > state.filters.priceRange[1]) {
+      if (
+        product.price < state.filters.priceRange[0] ||
+        product.price > state.filters.priceRange[1]
+      ) {
         return false;
       }
       if (product.rating < state.filters.rating) {
@@ -889,7 +894,7 @@ export const store = configureStore({
     products: productsSlice,
     ui: uiSlice,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
@@ -937,9 +942,14 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addItem: (state, action: PayloadAction<{ product: Product; quantity: number }>) => {
+    addItem: (
+      state,
+      action: PayloadAction<{ product: Product; quantity: number }>
+    ) => {
       const { product, quantity } = action.payload;
-      const existingItem = state.items.find(item => item.product.id === product.id);
+      const existingItem = state.items.find(
+        item => item.product.id === product.id
+      );
 
       if (existingItem) {
         existingItem.quantity += quantity;
@@ -954,10 +964,15 @@ const cartSlice = createSlice({
     },
 
     removeItem: (state, action: PayloadAction<{ itemId: string }>) => {
-      state.items = state.items.filter(item => item.id !== action.payload.itemId);
+      state.items = state.items.filter(
+        item => item.id !== action.payload.itemId
+      );
     },
 
-    updateQuantity: (state, action: PayloadAction<{ itemId: string; quantity: number }>) => {
+    updateQuantity: (
+      state,
+      action: PayloadAction<{ itemId: string; quantity: number }>
+    ) => {
       const { itemId, quantity } = action.payload;
       const item = state.items.find(item => item.id === itemId);
 
@@ -983,7 +998,7 @@ const cartSlice = createSlice({
       });
     },
 
-    clearCart: (state) => {
+    clearCart: state => {
       state.items = [];
     },
 
@@ -1015,30 +1030,30 @@ export const selectCartLoading = (state: RootState) => state.cart.loading;
 export const selectCartError = (state: RootState) => state.cart.error;
 
 // Memoized selectors
-export const selectCartTotalItems = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((total, item) => total + item.quantity, 0)
+export const selectCartTotalItems = createSelector([selectCartItems], items =>
+  items.reduce((total, item) => total + item.quantity, 0)
 );
 
-export const selectCartTotalPrice = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((total, item) => {
+export const selectCartTotalPrice = createSelector([selectCartItems], items =>
+  items.reduce((total, item) => {
     const price = parseFloat(item.product.discount_price || item.product.price);
     return total + price * item.quantity;
   }, 0)
 );
 
-export const selectSelectedItems = createSelector(
-  [selectCartItems],
-  (items) => items.filter(item => item.selected)
+export const selectSelectedItems = createSelector([selectCartItems], items =>
+  items.filter(item => item.selected)
 );
 
 export const selectSelectedTotalPrice = createSelector(
   [selectSelectedItems],
-  (items) => items.reduce((total, item) => {
-    const price = parseFloat(item.product.discount_price || item.product.price);
-    return total + price * item.quantity;
-  }, 0)
+  items =>
+    items.reduce((total, item) => {
+      const price = parseFloat(
+        item.product.discount_price || item.product.price
+      );
+      return total + price * item.quantity;
+    }, 0)
 );
 
 export default cartSlice.reducer;
@@ -1081,16 +1096,20 @@ const initialState: ProductsState = {
 // 异步thunk
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
-  async (params: {
-    page?: number;
-    pageSize?: number;
-    category?: string;
-    search?: string;
-  }, { rejectWithValue }) => {
+  async (
+    params: {
+      page?: number;
+      pageSize?: number;
+      category?: string;
+      search?: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
       const searchParams = new URLSearchParams();
       if (params.page) searchParams.set('page', params.page.toString());
-      if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
+      if (params.pageSize)
+        searchParams.set('pageSize', params.pageSize.toString());
       if (params.category) searchParams.set('category', params.category);
       if (params.search) searchParams.set('search', params.search);
 
@@ -1139,15 +1158,15 @@ const productsSlice = createSlice({
       state.pagination = { ...state.pagination, ...action.payload };
     },
 
-    clearFilters: (state) => {
+    clearFilters: state => {
       state.filters = initialState.filters;
       state.pagination.page = 1;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // fetchProducts
     builder
-      .addCase(fetchProducts.pending, (state) => {
+      .addCase(fetchProducts.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -1163,7 +1182,7 @@ const productsSlice = createSlice({
 
     // fetchCategories
     builder
-      .addCase(fetchCategories.pending, (state) => {
+      .addCase(fetchCategories.pending, state => {
         state.loading = true;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
@@ -1177,14 +1196,16 @@ const productsSlice = createSlice({
   },
 });
 
-export const { updateFilters, updatePagination, clearFilters } = productsSlice.actions;
+export const { updateFilters, updatePagination, clearFilters } =
+  productsSlice.actions;
 
 // Selectors
 export const selectProducts = (state: RootState) => state.products.list;
 export const selectCategories = (state: RootState) => state.products.categories;
 export const selectFilters = (state: RootState) => state.products.filters;
 export const selectPagination = (state: RootState) => state.products.pagination;
-export const selectProductsLoading = (state: RootState) => state.products.loading;
+export const selectProductsLoading = (state: RootState) =>
+  state.products.loading;
 export const selectProductsError = (state: RootState) => state.products.error;
 
 export default productsSlice.reducer;
@@ -1251,7 +1272,9 @@ export const useCartStore = create<CartStore>()(
 
         get totalPrice() {
           return get().items.reduce((total, item) => {
-            const price = parseFloat(item.product.discount_price || item.product.price);
+            const price = parseFloat(
+              item.product.discount_price || item.product.price
+            );
             return total + price * item.quantity;
           }, 0);
         },
@@ -1262,14 +1285,16 @@ export const useCartStore = create<CartStore>()(
 
         get selectedTotalPrice() {
           return get().selectedItems.reduce((total, item) => {
-            const price = parseFloat(item.product.discount_price || item.product.price);
+            const price = parseFloat(
+              item.product.discount_price || item.product.price
+            );
             return total + price * item.quantity;
           }, 0);
         },
 
         // Actions
         addItem: (product, quantity = 1) => {
-          set((state) => {
+          set(state => {
             const existingItemIndex = state.items.findIndex(
               item => item.product.id === product.id
             );
@@ -1287,8 +1312,8 @@ export const useCartStore = create<CartStore>()(
           });
         },
 
-        removeItem: (itemId) => {
-          set((state) => {
+        removeItem: itemId => {
+          set(state => {
             state.items = state.items.filter(item => item.id !== itemId);
           });
         },
@@ -1299,7 +1324,7 @@ export const useCartStore = create<CartStore>()(
             return;
           }
 
-          set((state) => {
+          set(state => {
             const item = state.items.find(item => item.id === itemId);
             if (item) {
               item.quantity = quantity;
@@ -1307,8 +1332,8 @@ export const useCartStore = create<CartStore>()(
           });
         },
 
-        toggleSelect: (itemId) => {
-          set((state) => {
+        toggleSelect: itemId => {
+          set(state => {
             const item = state.items.find(item => item.id === itemId);
             if (item) {
               item.selected = !item.selected;
@@ -1316,8 +1341,8 @@ export const useCartStore = create<CartStore>()(
           });
         },
 
-        selectAll: (selected) => {
-          set((state) => {
+        selectAll: selected => {
+          set(state => {
             state.items.forEach(item => {
               item.selected = selected;
             });
@@ -1325,19 +1350,19 @@ export const useCartStore = create<CartStore>()(
         },
 
         clearCart: () => {
-          set((state) => {
+          set(state => {
             state.items = [];
           });
         },
 
-        setLoading: (loading) => {
-          set((state) => {
+        setLoading: loading => {
+          set(state => {
             state.loading = loading;
           });
         },
 
-        setError: (error) => {
-          set((state) => {
+        setError: error => {
+          set(state => {
             state.error = error;
           });
         },
@@ -1362,7 +1387,7 @@ export const useCartStore = create<CartStore>()(
 
             const data = await response.json();
 
-            set((state) => {
+            set(state => {
               state.items = data.items;
             });
           } catch (error: any) {
@@ -1374,7 +1399,7 @@ export const useCartStore = create<CartStore>()(
       })),
       {
         name: 'mall-cart',
-        partialize: (state) => ({ items: state.items }), // 只持久化items
+        partialize: state => ({ items: state.items }), // 只持久化items
       }
     ),
     { name: 'cart-store' }
@@ -1385,14 +1410,15 @@ export const useCartStore = create<CartStore>()(
 export const useCartItems = () => useCartStore(state => state.items);
 export const useCartTotalItems = () => useCartStore(state => state.totalItems);
 export const useCartTotalPrice = () => useCartStore(state => state.totalPrice);
-export const useCartActions = () => useCartStore(state => ({
-  addItem: state.addItem,
-  removeItem: state.removeItem,
-  updateQuantity: state.updateQuantity,
-  toggleSelect: state.toggleSelect,
-  selectAll: state.selectAll,
-  clearCart: state.clearCart,
-}));
+export const useCartActions = () =>
+  useCartStore(state => ({
+    addItem: state.addItem,
+    removeItem: state.removeItem,
+    updateQuantity: state.updateQuantity,
+    toggleSelect: state.toggleSelect,
+    selectAll: state.selectAll,
+    clearCart: state.clearCart,
+  }));
 ```
 
 ### 组合多个Store
@@ -1437,7 +1463,7 @@ export const useAppStore = create<AppStore>()(
     sidebarOpen: false,
 
     // Actions
-    setUser: (user) => {
+    setUser: user => {
       set({ user, isAuthenticated: !!user });
     },
 
@@ -1447,33 +1473,33 @@ export const useAppStore = create<AppStore>()(
       useCartStore.getState().clearCart();
     },
 
-    setTheme: (theme) => {
+    setTheme: theme => {
       set({ theme });
       // 更新CSS变量或类名
       document.documentElement.setAttribute('data-theme', theme);
     },
 
-    setLanguage: (language) => {
+    setLanguage: language => {
       set({ language });
     },
 
     toggleSidebar: () => {
-      set((state) => ({ sidebarOpen: !state.sidebarOpen }));
+      set(state => ({ sidebarOpen: !state.sidebarOpen }));
     },
   }))
 );
 
 // 监听状态变化
 useAppStore.subscribe(
-  (state) => state.theme,
-  (theme) => {
+  state => state.theme,
+  theme => {
     localStorage.setItem('theme', theme);
   }
 );
 
 useAppStore.subscribe(
-  (state) => state.language,
-  (language) => {
+  state => state.language,
+  language => {
     localStorage.setItem('language', language);
   }
 );
@@ -1531,7 +1557,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```typescript
 // hooks/useProducts.ts
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 // 产品查询
 export function useProducts(params: {
@@ -1630,7 +1661,13 @@ export function useAddToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ productId, quantity }: { productId: number; quantity: number }) => {
+    mutationFn: async ({
+      productId,
+      quantity,
+    }: {
+      productId: number;
+      quantity: number;
+    }) => {
       const response = await fetch('/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1667,7 +1704,13 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Product> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<Product>;
+    }) => {
       const response = await fetch(`/api/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -1698,7 +1741,13 @@ export function useToggleFavorite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ productId, isFavorite }: { productId: number; isFavorite: boolean }) => {
+    mutationFn: async ({
+      productId,
+      isFavorite,
+    }: {
+      productId: number;
+      isFavorite: boolean;
+    }) => {
       const response = await fetch(`/api/products/${productId}/favorite`, {
         method: isFavorite ? 'POST' : 'DELETE',
       });
@@ -1728,7 +1777,10 @@ export function useToggleFavorite() {
     onError: (error, variables, context) => {
       // 回滚到之前的状态
       if (context?.previousProduct) {
-        queryClient.setQueryData(['product', context.productId], context.previousProduct);
+        queryClient.setQueryData(
+          ['product', context.productId],
+          context.previousProduct
+        );
       }
     },
     onSettled: (data, error, { productId }) => {
@@ -1749,13 +1801,13 @@ export function useToggleFavorite() {
 
 **A: 选择标准：**
 
-| 场景 | 推荐方案 | 理由 |
-|------|----------|------|
-| **小型应用** | useState + useContext | 简单直接，无额外依赖 |
-| **中型应用** | Zustand | 轻量级，易于使用 |
-| **大型应用** | Redux Toolkit | 成熟生态，强大的开发工具 |
-| **服务端状态** | React Query | 专门处理异步数据 |
-| **表单状态** | React Hook Form | 专门的表单解决方案 |
+| 场景           | 推荐方案              | 理由                     |
+| -------------- | --------------------- | ------------------------ |
+| **小型应用**   | useState + useContext | 简单直接，无额外依赖     |
+| **中型应用**   | Zustand               | 轻量级，易于使用         |
+| **大型应用**   | Redux Toolkit         | 成熟生态，强大的开发工具 |
+| **服务端状态** | React Query           | 专门处理异步数据         |
+| **表单状态**   | React Hook Form       | 专门的表单解决方案       |
 
 ```typescript
 // 决策树
@@ -1788,29 +1840,29 @@ const counterSlice = createSlice({
   name: 'counter',
   initialState: { value: 0 },
   reducers: {
-    increment: (state) => {
+    increment: state => {
       state.value += 1;
     },
   },
 });
 
 // Zustand - 更简洁，但需要自律
-const useCounterStore = create((set) => ({
+const useCounterStore = create(set => ({
   count: 0,
-  increment: () => set((state) => ({ count: state.count + 1 })),
+  increment: () => set(state => ({ count: state.count + 1 })),
 }));
 ```
 
 **对比表：**
 
-| 特性 | Redux Toolkit | Zustand |
-|------|---------------|---------|
-| **学习曲线** | 陡峭 | 平缓 |
-| **样板代码** | 多 | 少 |
-| **类型安全** | 需要配置 | 内置支持 |
-| **开发工具** | 强大 | 基础 |
-| **生态系统** | 丰富 | 简单 |
-| **包大小** | 较大 | 很小 |
+| 特性         | Redux Toolkit | Zustand  |
+| ------------ | ------------- | -------- |
+| **学习曲线** | 陡峭          | 平缓     |
+| **样板代码** | 多            | 少       |
+| **类型安全** | 需要配置      | 内置支持 |
+| **开发工具** | 强大          | 基础     |
+| **生态系统** | 丰富          | 简单     |
+| **包大小**   | 较大          | 很小     |
 
 ### 3. React Query的核心概念
 
@@ -1853,6 +1905,7 @@ const refetchOnReconnect = true;
 **题目**: 为Mall-Frontend设计一个混合状态管理架构
 
 **要求**:
+
 1. 使用不同的状态管理方案处理不同类型的状态
 2. 实现状态持久化
 3. 优化性能，避免不必要的重渲染
@@ -2114,7 +2167,12 @@ function ProductCard({ product }: { product: Product }) {
 
 ---
 
-*下一章我们将学习《React性能优化技巧》，探索提升React应用性能的各种策略！* 🚀
+_下一章我们将学习《React性能优化技巧》，探索提升React应用性能的各种策略！_ 🚀
+
 ```
+
 ```
+
+```
+
 ```

@@ -7,14 +7,13 @@ import {
   Button,
   Card,
   Typography,
-  Divider,
   Checkbox,
   message,
   Progress,
   Alert,
   Space,
   Tooltip,
-  Steps
+  Steps,
 } from 'antd';
 import {
   UserOutlined,
@@ -24,14 +23,17 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
   CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  SafetyCertificateOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { registerAsync, selectAuth, clearError } from '@/store/slices/authSlice';
+import {
+  registerAsync,
+  selectAuth,
+  clearError,
+} from '@/store/slices/authSlice';
 import { RegisterRequest } from '@/types';
 import { ROUTES } from '@/constants';
 
@@ -69,7 +71,12 @@ const RegisterPage: React.FC = () => {
 
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user, error, loading: authLoading } = useAppSelector(selectAuth);
+  const {
+    isAuthenticated,
+    user,
+    error,
+    loading: authLoading,
+  } = useAppSelector(selectAuth);
 
   // 如果已登录，重定向到首页
   useEffect(() => {
@@ -86,68 +93,82 @@ const RegisterPage: React.FC = () => {
   }, [dispatch]);
 
   // 实时验证用户名
-  const validateUsername = useCallback(async (username: string) => {
-    if (!username || username.length < 3) return;
+  const validateUsername = useCallback(
+    async (username: string) => {
+      if (!username || username.length < 3) return;
 
-    setUsernameChecking(true);
-    setValidationStatus(prev => ({ ...prev, username: 'validating' }));
+      setUsernameChecking(true);
+      setValidationStatus(prev => ({ ...prev, username: 'validating' }));
 
-    try {
-      // 模拟API调用检查用户名是否存在
-      await new Promise(resolve => setTimeout(resolve, 800));
+      try {
+        // 模拟API调用检查用户名是否存在
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-      // 这里应该调用真实的API
-      const isAvailable = !['admin', 'test', 'user'].includes(username.toLowerCase());
+        // 这里应该调用真实的API
+        const isAvailable = !['admin', 'test', 'user'].includes(
+          username.toLowerCase()
+        );
 
-      setValidationStatus(prev => ({
-        ...prev,
-        username: isAvailable ? 'success' : 'error'
-      }));
+        setValidationStatus(prev => ({
+          ...prev,
+          username: isAvailable ? 'success' : 'error',
+        }));
 
-      if (!isAvailable) {
-        form.setFields([{
-          name: 'username',
-          errors: ['该用户名已被使用，请选择其他用户名']
-        }]);
+        if (!isAvailable) {
+          form.setFields([
+            {
+              name: 'username',
+              errors: ['该用户名已被使用，请选择其他用户名'],
+            },
+          ]);
+        }
+      } catch (error) {
+        setValidationStatus(prev => ({ ...prev, username: 'error' }));
+      } finally {
+        setUsernameChecking(false);
       }
-    } catch (error) {
-      setValidationStatus(prev => ({ ...prev, username: 'error' }));
-    } finally {
-      setUsernameChecking(false);
-    }
-  }, [form]);
+    },
+    [form]
+  );
 
   // 实时验证邮箱
-  const validateEmail = useCallback(async (email: string) => {
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  const validateEmail = useCallback(
+    async (email: string) => {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
 
-    setEmailChecking(true);
-    setValidationStatus(prev => ({ ...prev, email: 'validating' }));
+      setEmailChecking(true);
+      setValidationStatus(prev => ({ ...prev, email: 'validating' }));
 
-    try {
-      // 模拟API调用检查邮箱是否存在
-      await new Promise(resolve => setTimeout(resolve, 600));
+      try {
+        // 模拟API调用检查邮箱是否存在
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-      // 这里应该调用真实的API
-      const isAvailable = !['test@example.com', 'admin@example.com'].includes(email.toLowerCase());
+        // 这里应该调用真实的API
+        const isAvailable = !['test@example.com', 'admin@example.com'].includes(
+          email.toLowerCase()
+        );
 
-      setValidationStatus(prev => ({
-        ...prev,
-        email: isAvailable ? 'success' : 'error'
-      }));
+        setValidationStatus(prev => ({
+          ...prev,
+          email: isAvailable ? 'success' : 'error',
+        }));
 
-      if (!isAvailable) {
-        form.setFields([{
-          name: 'email',
-          errors: ['该邮箱已被注册，请使用其他邮箱或直接登录']
-        }]);
+        if (!isAvailable) {
+          form.setFields([
+            {
+              name: 'email',
+              errors: ['该邮箱已被注册，请使用其他邮箱或直接登录'],
+            },
+          ]);
+        }
+      } catch (error) {
+        setValidationStatus(prev => ({ ...prev, email: 'error' }));
+      } finally {
+        setEmailChecking(false);
       }
-    } catch (error) {
-      setValidationStatus(prev => ({ ...prev, email: 'error' }));
-    } finally {
-      setEmailChecking(false);
-    }
-  }, [form]);
+    },
+    [form]
+  );
 
   // 密码强度检测
   const checkPasswordStrength = (password: string) => {
@@ -210,21 +231,22 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (values: RegisterFormData) => {
     try {
       setLoading(true);
-      
+
       const registerData: RegisterRequest = {
         username: values.username,
         email: values.email,
         phone: values.phone,
         password: values.password,
+        nickname: values.username, // 使用用户名作为昵称
       };
 
       const result = await dispatch(registerAsync(registerData));
-      
+
       if (registerAsync.fulfilled.match(result)) {
         message.success('注册成功！请登录您的账户');
         router.push(ROUTES.LOGIN);
       } else {
-        message.error(result.payload as string || '注册失败，请稍后重试');
+        message.error((result.payload as string) || '注册失败，请稍后重试');
       }
     } catch (error) {
       console.error('Register error:', error);
@@ -240,14 +262,16 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px',
+      }}
+    >
       <Card
         style={{
           width: '100%',
@@ -261,15 +285,13 @@ const RegisterPage: React.FC = () => {
           <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
             🛒 Go商城
           </Title>
-          <Text type="secondary">
-            创建您的账户，开始购物之旅
-          </Text>
+          <Text type='secondary'>创建您的账户，开始购物之旅</Text>
         </div>
 
         {/* 注册步骤指示器 */}
         <Steps
           current={currentStep}
-          size="small"
+          size='small'
           style={{ marginBottom: 24 }}
           items={[
             {
@@ -290,9 +312,9 @@ const RegisterPage: React.FC = () => {
         {/* 错误提示 */}
         {error && (
           <Alert
-            message="注册失败"
+            message='注册失败'
             description={error}
-            type="error"
+            type='error'
             showIcon
             closable
             style={{ marginBottom: 16 }}
@@ -302,19 +324,19 @@ const RegisterPage: React.FC = () => {
 
         <Form
           form={form}
-          name="register"
+          name='register'
           onFinish={handleSubmit}
           onFinishFailed={handleFormFailed}
-          autoComplete="off"
-          size="large"
-          layout="vertical"
+          autoComplete='off'
+          size='large'
+          layout='vertical'
         >
           <Form.Item
-            name="username"
+            name='username'
             label={
               <Space>
                 用户名
-                <Tooltip title="用户名将作为您的唯一标识，3-20位字符，支持中文、英文、数字和下划线">
+                <Tooltip title='用户名将作为您的唯一标识，3-20位字符，支持中文、英文、数字和下划线'>
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                 </Tooltip>
               </Space>
@@ -325,15 +347,18 @@ const RegisterPage: React.FC = () => {
               { required: true, message: '请输入用户名' },
               { min: 3, message: '用户名至少3位字符' },
               { max: 20, message: '用户名最多20位字符' },
-              { pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/, message: '用户名只能包含字母、数字、下划线和中文' },
+              {
+                pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
+                message: '用户名只能包含字母、数字、下划线和中文',
+              },
             ]}
           >
             <Input
               prefix={<UserOutlined />}
               suffix={usernameChecking ? <LoadingOutlined /> : null}
-              placeholder="请输入用户名"
-              autoComplete="username"
-              onChange={(e) => {
+              placeholder='请输入用户名'
+              autoComplete='username'
+              onChange={e => {
                 const value = e.target.value;
                 if (value.length >= 3) {
                   validateUsername(value);
@@ -346,11 +371,11 @@ const RegisterPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="email"
+            name='email'
             label={
               <Space>
                 邮箱地址
-                <Tooltip title="邮箱将用于账户验证、密码重置和重要通知">
+                <Tooltip title='邮箱将用于账户验证、密码重置和重要通知'>
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                 </Tooltip>
               </Space>
@@ -365,9 +390,9 @@ const RegisterPage: React.FC = () => {
             <Input
               prefix={<MailOutlined />}
               suffix={emailChecking ? <LoadingOutlined /> : null}
-              placeholder="请输入邮箱地址"
-              autoComplete="email"
-              onChange={(e) => {
+              placeholder='请输入邮箱地址'
+              autoComplete='email'
+              onChange={e => {
                 const value = e.target.value;
                 if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                   validateEmail(value);
@@ -379,8 +404,8 @@ const RegisterPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="phone"
-            label="手机号码"
+            name='phone'
+            label='手机号码'
             rules={[
               { required: true, message: '请输入手机号码' },
               { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码' },
@@ -388,17 +413,17 @@ const RegisterPage: React.FC = () => {
           >
             <Input
               prefix={<PhoneOutlined />}
-              placeholder="请输入手机号码"
-              autoComplete="tel"
+              placeholder='请输入手机号码'
+              autoComplete='tel'
             />
           </Form.Item>
 
           <Form.Item
-            name="password"
+            name='password'
             label={
               <Space>
                 密码
-                <Tooltip title="密码至少8位，建议包含大小写字母、数字和特殊字符">
+                <Tooltip title='密码至少8位，建议包含大小写字母、数字和特殊字符'>
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                 </Tooltip>
               </Space>
@@ -413,7 +438,9 @@ const RegisterPage: React.FC = () => {
                   if (!value) return Promise.resolve();
                   const result = checkPasswordStrength(value);
                   if (result.strength < 40) {
-                    return Promise.reject(new Error('密码强度太弱，请增强密码复杂度'));
+                    return Promise.reject(
+                      new Error('密码强度太弱，请增强密码复杂度')
+                    );
                   }
                   return Promise.resolve();
                 },
@@ -422,18 +449,28 @@ const RegisterPage: React.FC = () => {
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="请输入密码"
-              autoComplete="new-password"
+              placeholder='请输入密码'
+              autoComplete='new-password'
               onChange={handlePasswordChange}
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              iconRender={visible =>
+                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+              }
             />
           </Form.Item>
 
           {passwordStrength > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: 4,
+                }}
+              >
                 <Text style={{ fontSize: 12 }}>密码强度</Text>
-                <Text style={{ fontSize: 12, color: getPasswordStrengthColor() }}>
+                <Text
+                  style={{ fontSize: 12, color: getPasswordStrengthColor() }}
+                >
                   {getPasswordStrengthText()}
                 </Text>
               </div>
@@ -441,31 +478,58 @@ const RegisterPage: React.FC = () => {
                 percent={passwordStrength}
                 strokeColor={getPasswordStrengthColor()}
                 showInfo={false}
-                size="small"
+                size='small'
               />
 
               {/* 密码要求检查 */}
               <div style={{ marginTop: 8 }}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space
+                  direction='vertical'
+                  size='small'
+                  style={{ width: '100%' }}
+                >
                   {(() => {
                     const password = form.getFieldValue('password') || '';
                     const result = checkPasswordStrength(password);
                     return (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '12px' }}>
-                        <Text type={result.checks.length ? 'success' : 'secondary'}>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '4px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        <Text
+                          type={result.checks.length ? 'success' : 'secondary'}
+                        >
                           {result.checks.length ? '✓' : '○'} 至少8位字符
                         </Text>
-                        <Text type={result.checks.lowercase ? 'success' : 'secondary'}>
+                        <Text
+                          type={
+                            result.checks.lowercase ? 'success' : 'secondary'
+                          }
+                        >
                           {result.checks.lowercase ? '✓' : '○'} 包含小写字母
                         </Text>
-                        <Text type={result.checks.uppercase ? 'success' : 'secondary'}>
+                        <Text
+                          type={
+                            result.checks.uppercase ? 'success' : 'secondary'
+                          }
+                        >
                           {result.checks.uppercase ? '✓' : '○'} 包含大写字母
                         </Text>
-                        <Text type={result.checks.number ? 'success' : 'secondary'}>
+                        <Text
+                          type={result.checks.number ? 'success' : 'secondary'}
+                        >
                           {result.checks.number ? '✓' : '○'} 包含数字
                         </Text>
-                        <Text type={result.checks.special ? 'success' : 'secondary'} style={{ gridColumn: '1 / -1' }}>
-                          {result.checks.special ? '✓' : '○'} 包含特殊字符 (!@#$%^&*等)
+                        <Text
+                          type={result.checks.special ? 'success' : 'secondary'}
+                          style={{ gridColumn: '1 / -1' }}
+                        >
+                          {result.checks.special ? '✓' : '○'} 包含特殊字符
+                          (!@#$%^&*等)
                         </Text>
                       </div>
                     );
@@ -476,8 +540,8 @@ const RegisterPage: React.FC = () => {
           )}
 
           <Form.Item
-            name="confirmPassword"
-            label="确认密码"
+            name='confirmPassword'
+            label='确认密码'
             dependencies={['password']}
             rules={[
               { required: true, message: '请确认密码' },
@@ -493,26 +557,33 @@ const RegisterPage: React.FC = () => {
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="请再次输入密码"
-              autoComplete="new-password"
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              placeholder='请再次输入密码'
+              autoComplete='new-password'
+              iconRender={visible =>
+                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+              }
             />
           </Form.Item>
 
           <Form.Item
-            name="agreement"
-            valuePropName="checked"
+            name='agreement'
+            valuePropName='checked'
             rules={[
-              { validator: (_, value) => value ? Promise.resolve() : Promise.reject(new Error('请同意用户协议')) },
+              {
+                validator: (_, value) =>
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(new Error('请同意用户协议')),
+              },
             ]}
           >
             <Checkbox>
               我已阅读并同意{' '}
-              <Link href="/terms" style={{ color: '#1890ff' }}>
+              <Link href='/terms' style={{ color: '#1890ff' }}>
                 《用户协议》
-              </Link>
-              {' '}和{' '}
-              <Link href="/privacy" style={{ color: '#1890ff' }}>
+              </Link>{' '}
+              和{' '}
+              <Link href='/privacy' style={{ color: '#1890ff' }}>
                 《隐私政策》
               </Link>
             </Checkbox>
@@ -520,8 +591,8 @@ const RegisterPage: React.FC = () => {
 
           <Form.Item style={{ marginBottom: 16 }}>
             <Button
-              type="primary"
-              htmlType="submit"
+              type='primary'
+              htmlType='submit'
               loading={loading}
               block
               style={{
@@ -535,9 +606,12 @@ const RegisterPage: React.FC = () => {
           </Form.Item>
 
           <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">
+            <Text type='secondary'>
               已有账户？{' '}
-              <Link href={ROUTES.LOGIN} style={{ color: '#1890ff', fontWeight: 500 }}>
+              <Link
+                href={ROUTES.LOGIN}
+                style={{ color: '#1890ff', fontWeight: 500 }}
+              >
                 立即登录
               </Link>
             </Text>

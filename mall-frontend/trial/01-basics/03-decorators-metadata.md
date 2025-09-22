@@ -1,6 +1,6 @@
 # 第3章：装饰器与元数据编程 🎭
 
-> *"装饰器是TypeScript的魔法糖衣，让代码更优雅、更强大！"* ✨
+> _"装饰器是TypeScript的魔法糖衣，让代码更优雅、更强大！"_ ✨
 
 ## 📚 本章导览
 
@@ -242,13 +242,13 @@ func main() {
 
 **💡 装饰器/注解对比：**
 
-| 特性 | TypeScript | Java | Python | C# | Go |
-|------|------------|------|--------|----|----|
-| **原生支持** | 实验性 | 注解 | 原生装饰器 | 特性 | 无（函数包装） |
-| **运行时处理** | 编译时 | 反射处理 | 自动处理 | 反射处理 | 手动包装 |
-| **元数据** | reflect-metadata | 注解属性 | 函数属性 | 特性属性 | 反射 |
-| **性能影响** | 编译时 | 运行时反射 | 函数调用 | 运行时反射 | 函数调用 |
-| **应用场景** | 框架增强 | 配置标记 | 通用装饰 | 配置标记 | 函数增强 |
+| 特性           | TypeScript       | Java       | Python     | C#         | Go             |
+| -------------- | ---------------- | ---------- | ---------- | ---------- | -------------- |
+| **原生支持**   | 实验性           | 注解       | 原生装饰器 | 特性       | 无（函数包装） |
+| **运行时处理** | 编译时           | 反射处理   | 自动处理   | 反射处理   | 手动包装       |
+| **元数据**     | reflect-metadata | 注解属性   | 函数属性   | 特性属性   | 反射           |
+| **性能影响**   | 编译时           | 运行时反射 | 函数调用   | 运行时反射 | 函数调用       |
+| **应用场景**   | 框架增强         | 配置标记   | 通用装饰   | 配置标记   | 函数增强       |
 
 ### 装饰器的执行顺序
 
@@ -257,7 +257,11 @@ function classDecorator(constructor: Function) {
   console.log('类装饰器执行');
 }
 
-function methodDecorator(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+function methodDecorator(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
   console.log('方法装饰器执行:', propertyKey);
 }
 
@@ -265,7 +269,11 @@ function propertyDecorator(target: any, propertyKey: string) {
   console.log('属性装饰器执行:', propertyKey);
 }
 
-function parameterDecorator(target: any, propertyKey: string, parameterIndex: number) {
+function parameterDecorator(
+  target: any,
+  propertyKey: string,
+  parameterIndex: number
+) {
   console.log('参数装饰器执行:', propertyKey, parameterIndex);
 }
 
@@ -296,14 +304,14 @@ class Example {
 ```typescript
 // 类装饰器工厂
 function Entity(tableName: string) {
-  return function<T extends { new(...args: any[]): {} }>(constructor: T) {
+  return function <T extends { new (...args: any[]): {} }>(constructor: T) {
     return class extends constructor {
       tableName = tableName;
-      
+
       save() {
         console.log(`保存到表 ${tableName}`);
       }
-      
+
       static findAll() {
         console.log(`从表 ${tableName} 查询所有记录`);
       }
@@ -330,9 +338,9 @@ User.findAll(); // 从表 users 查询所有记录
 
 ```typescript
 // 单例装饰器
-function Singleton<T extends { new(...args: any[]): {} }>(constructor: T) {
+function Singleton<T extends { new (...args: any[]): {} }>(constructor: T) {
   let instance: T;
-  
+
   return class extends constructor {
     constructor(...args: any[]) {
       if (instance) {
@@ -349,16 +357,16 @@ function Singleton<T extends { new(...args: any[]): {} }>(constructor: T) {
 @Singleton
 class ApiClient {
   private baseURL: string;
-  
+
   constructor(baseURL: string = 'http://localhost:8080') {
     this.baseURL = baseURL;
     console.log('ApiClient 实例创建');
   }
-  
+
   async get(endpoint: string) {
     return fetch(`${this.baseURL}${endpoint}`);
   }
-  
+
   async post(endpoint: string, data: any) {
     return fetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
@@ -379,15 +387,15 @@ console.log(client1 === client2); // true
 ```typescript
 // 配置注入装饰器
 function Injectable(config?: any) {
-  return function<T extends { new(...args: any[]): {} }>(constructor: T) {
+  return function <T extends { new (...args: any[]): {} }>(constructor: T) {
     // 将配置注入到类的原型中
     if (config) {
       Object.assign(constructor.prototype, { config });
     }
-    
+
     // 添加依赖注入标记
     Reflect.defineMetadata('injectable', true, constructor);
-    
+
     return constructor;
   };
 }
@@ -396,11 +404,11 @@ function Injectable(config?: any) {
 @Injectable({
   timeout: 5000,
   retries: 3,
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 })
 class ProductService {
   config: any;
-  
+
   async getProducts(params: any) {
     console.log('使用配置:', this.config);
     // 实际的API调用逻辑
@@ -408,7 +416,7 @@ class ProductService {
       signal: AbortSignal.timeout(this.config.timeout),
     });
   }
-  
+
   async getProduct(id: number) {
     return fetch(`${this.config.baseURL}/api/products/${id}`);
   }
@@ -423,31 +431,36 @@ class ProductService {
 
 ```typescript
 // 缓存装饰器
-function Cache(ttl: number = 60000) { // 默认缓存1分钟
+function Cache(ttl: number = 60000) {
+  // 默认缓存1分钟
   const cache = new Map<string, { value: any; expiry: number }>();
-  
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
-    
-    descriptor.value = async function(...args: any[]) {
+
+    descriptor.value = async function (...args: any[]) {
       const cacheKey = `${propertyKey}_${JSON.stringify(args)}`;
       const cached = cache.get(cacheKey);
-      
+
       // 检查缓存是否有效
       if (cached && Date.now() < cached.expiry) {
         console.log(`缓存命中: ${cacheKey}`);
         return cached.value;
       }
-      
+
       // 执行原方法
       const result = await originalMethod.apply(this, args);
-      
+
       // 存储到缓存
       cache.set(cacheKey, {
         value: result,
-        expiry: Date.now() + ttl
+        expiry: Date.now() + ttl,
       });
-      
+
       console.log(`缓存存储: ${cacheKey}`);
       return result;
     };
@@ -459,10 +472,12 @@ class ProductService {
   @Cache(300000) // 缓存5分钟
   async getProducts(category?: string, page: number = 1) {
     console.log('从API获取商品数据...');
-    const response = await fetch(`/api/products?category=${category}&page=${page}`);
+    const response = await fetch(
+      `/api/products?category=${category}&page=${page}`
+    );
     return response.json();
   }
-  
+
   @Cache(600000) // 缓存10分钟
   async getProductDetail(id: number) {
     console.log('从API获取商品详情...');
@@ -477,27 +492,33 @@ class ProductService {
 ```typescript
 // 重试装饰器
 function Retry(maxAttempts: number = 3, delay: number = 1000) {
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
-    
-    descriptor.value = async function(...args: any[]) {
+
+    descriptor.value = async function (...args: any[]) {
       let lastError: Error;
-      
+
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           return await originalMethod.apply(this, args);
         } catch (error) {
           lastError = error as Error;
           console.log(`方法 ${propertyKey} 第 ${attempt} 次尝试失败:`, error);
-          
+
           if (attempt < maxAttempts) {
             console.log(`等待 ${delay}ms 后重试...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
       }
-      
-      throw new Error(`方法 ${propertyKey} 在 ${maxAttempts} 次尝试后仍然失败: ${lastError.message}`);
+
+      throw new Error(
+        `方法 ${propertyKey} 在 ${maxAttempts} 次尝试后仍然失败: ${lastError.message}`
+      );
     };
   };
 }
@@ -507,18 +528,18 @@ class PaymentService {
   @Retry(3, 2000) // 最多重试3次，间隔2秒
   async processPayment(orderId: number, amount: number) {
     console.log(`处理订单 ${orderId} 的支付，金额: ${amount}`);
-    
+
     // 模拟可能失败的支付API调用
     const response = await fetch('/api/payments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId, amount }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`支付失败: ${response.status}`);
     }
-    
+
     return response.json();
   }
 }
@@ -529,28 +550,39 @@ class PaymentService {
 ```typescript
 // 性能监控装饰器
 function Performance(threshold: number = 1000) {
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
-    
-    descriptor.value = async function(...args: any[]) {
+
+    descriptor.value = async function (...args: any[]) {
       const startTime = performance.now();
-      
+
       try {
         const result = await originalMethod.apply(this, args);
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         if (duration > threshold) {
-          console.warn(`⚠️ 方法 ${propertyKey} 执行时间过长: ${duration.toFixed(2)}ms`);
+          console.warn(
+            `⚠️ 方法 ${propertyKey} 执行时间过长: ${duration.toFixed(2)}ms`
+          );
         } else {
-          console.log(`✅ 方法 ${propertyKey} 执行时间: ${duration.toFixed(2)}ms`);
+          console.log(
+            `✅ 方法 ${propertyKey} 执行时间: ${duration.toFixed(2)}ms`
+          );
         }
-        
+
         return result;
       } catch (error) {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        console.error(`❌ 方法 ${propertyKey} 执行失败 (${duration.toFixed(2)}ms):`, error);
+        console.error(
+          `❌ 方法 ${propertyKey} 执行失败 (${duration.toFixed(2)}ms):`,
+          error
+        );
         throw error;
       }
     };
@@ -562,17 +594,17 @@ class SearchService {
   @Performance(500) // 超过500ms就警告
   async searchProducts(query: string, filters: any) {
     console.log(`搜索商品: ${query}`);
-    
+
     // 模拟复杂的搜索逻辑
     const response = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, filters }),
     });
-    
+
     return response.json();
   }
-  
+
   @Performance(200) // 超过200ms就警告
   async getSearchSuggestions(query: string) {
     const response = await fetch(`/api/search/suggestions?q=${query}`);
@@ -597,7 +629,7 @@ function Required(target: any, propertyKey: string) {
 }
 
 function MinLength(length: number) {
-  return function(target: any, propertyKey: string) {
+  return function (target: any, propertyKey: string) {
     const minLengthProperties = Reflect.getMetadata('minLength', target) || {};
     minLengthProperties[propertyKey] = length;
     Reflect.defineMetadata('minLength', minLengthProperties, target);
@@ -613,7 +645,7 @@ function Email(target: any, propertyKey: string) {
 // 验证函数
 function validate(obj: any): string[] {
   const errors: string[] = [];
-  
+
   // 检查必填字段
   const requiredProperties = Reflect.getMetadata('required', obj) || [];
   for (const prop of requiredProperties) {
@@ -621,7 +653,7 @@ function validate(obj: any): string[] {
       errors.push(`${prop} 是必填字段`);
     }
   }
-  
+
   // 检查最小长度
   const minLengthProperties = Reflect.getMetadata('minLength', obj) || {};
   for (const [prop, minLength] of Object.entries(minLengthProperties)) {
@@ -629,7 +661,7 @@ function validate(obj: any): string[] {
       errors.push(`${prop} 最少需要 ${minLength} 个字符`);
     }
   }
-  
+
   // 检查邮箱格式
   const emailProperties = Reflect.getMetadata('email', obj) || [];
   for (const prop of emailProperties) {
@@ -637,7 +669,7 @@ function validate(obj: any): string[] {
       errors.push(`${prop} 邮箱格式不正确`);
     }
   }
-  
+
   return errors;
 }
 
@@ -646,19 +678,19 @@ class UserRegistrationForm {
   @Required
   @MinLength(3)
   username: string = '';
-  
+
   @Required
   @Email
   email: string = '';
-  
+
   @Required
   @MinLength(6)
   password: string = '';
-  
+
   constructor(data: Partial<UserRegistrationForm>) {
     Object.assign(this, data);
   }
-  
+
   validate(): string[] {
     return validate(this);
   }
@@ -668,7 +700,7 @@ class UserRegistrationForm {
 const form = new UserRegistrationForm({
   username: 'jo',
   email: 'invalid-email',
-  password: '123'
+  password: '123',
 });
 
 const errors = form.validate();
@@ -681,9 +713,9 @@ console.log(errors);
 ```typescript
 // 格式化装饰器
 function Format(formatter: (value: any) => any) {
-  return function(target: any, propertyKey: string) {
+  return function (target: any, propertyKey: string) {
     let value = target[propertyKey];
-    
+
     Object.defineProperty(target, propertyKey, {
       get() {
         return value;
@@ -692,7 +724,7 @@ function Format(formatter: (value: any) => any) {
         value = formatter(newValue);
       },
       enumerable: true,
-      configurable: true
+      configurable: true,
     });
   };
 }
@@ -703,7 +735,7 @@ const formatters = {
   phone: (value: string) => value.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3'),
   date: (value: Date) => value.toLocaleDateString('zh-CN'),
   uppercase: (value: string) => value.toUpperCase(),
-  trim: (value: string) => value.trim()
+  trim: (value: string) => value.trim(),
 };
 
 // Mall-Frontend中的商品模型
@@ -711,13 +743,13 @@ class Product {
   @Format(formatters.trim)
   @Format(formatters.uppercase)
   name: string = '';
-  
+
   @Format(formatters.currency)
   price: number = 0;
-  
+
   @Format(formatters.date)
   createdAt: Date = new Date();
-  
+
   constructor(data: Partial<Product>) {
     Object.assign(this, data);
   }
@@ -726,7 +758,7 @@ class Product {
 const product = new Product({
   name: '  iphone 15 pro  ',
   price: 7999,
-  createdAt: new Date()
+  createdAt: new Date(),
 });
 
 console.log(product.name); // "IPHONE 15 PRO"
@@ -742,29 +774,40 @@ console.log(product.price); // "¥7999.00"
 ```typescript
 // 参数验证装饰器
 function ValidateParam(validator: (value: any) => boolean, message: string) {
-  return function(target: any, propertyKey: string, parameterIndex: number) {
-    const existingValidators = Reflect.getMetadata('paramValidators', target, propertyKey) || {};
+  return function (target: any, propertyKey: string, parameterIndex: number) {
+    const existingValidators =
+      Reflect.getMetadata('paramValidators', target, propertyKey) || {};
     existingValidators[parameterIndex] = { validator, message };
-    Reflect.defineMetadata('paramValidators', existingValidators, target, propertyKey);
+    Reflect.defineMetadata(
+      'paramValidators',
+      existingValidators,
+      target,
+      propertyKey
+    );
   };
 }
 
 // 方法装饰器：执行参数验证
-function ValidateParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+function ValidateParams(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
   const originalMethod = descriptor.value;
-  
-  descriptor.value = function(...args: any[]) {
-    const validators = Reflect.getMetadata('paramValidators', target, propertyKey) || {};
-    
+
+  descriptor.value = function (...args: any[]) {
+    const validators =
+      Reflect.getMetadata('paramValidators', target, propertyKey) || {};
+
     for (const [index, { validator, message }] of Object.entries(validators)) {
       const paramIndex = parseInt(index);
       const paramValue = args[paramIndex];
-      
+
       if (!validator(paramValue)) {
         throw new Error(`参数 ${paramIndex} 验证失败: ${message}`);
       }
     }
-    
+
     return originalMethod.apply(this, args);
   };
 }
@@ -774,7 +817,7 @@ const validators = {
   isPositive: (value: number) => value > 0,
   isEmail: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
   isNotEmpty: (value: string) => value.trim().length > 0,
-  isValidId: (value: number) => Number.isInteger(value) && value > 0
+  isValidId: (value: number) => Number.isInteger(value) && value > 0,
 };
 
 // Mall-Frontend中的订单服务
@@ -783,22 +826,22 @@ class OrderService {
   async createOrder(
     @ValidateParam(validators.isValidId, '用户ID必须是正整数')
     userId: number,
-    
+
     @ValidateParam(validators.isPositive, '总金额必须大于0')
     totalAmount: number,
-    
+
     @ValidateParam(validators.isNotEmpty, '收货地址不能为空')
     shippingAddress: string
   ) {
     console.log('创建订单:', { userId, totalAmount, shippingAddress });
-    
+
     // 实际的订单创建逻辑
     return {
       id: Date.now(),
       userId,
       totalAmount,
       shippingAddress,
-      status: 'pending'
+      status: 'pending',
     };
   }
 }
@@ -852,17 +895,21 @@ import 'reflect-metadata';
 class Container {
   private services = new Map<string, any>();
   private singletons = new Map<string, any>();
-  
-  register<T>(token: string, implementation: new (...args: any[]) => T, singleton = false) {
+
+  register<T>(
+    token: string,
+    implementation: new (...args: any[]) => T,
+    singleton = false
+  ) {
     this.services.set(token, { implementation, singleton });
   }
-  
+
   resolve<T>(token: string): T {
     const service = this.services.get(token);
     if (!service) {
       throw new Error(`服务 ${token} 未注册`);
     }
-    
+
     if (service.singleton) {
       if (!this.singletons.has(token)) {
         const instance = this.createInstance(service.implementation);
@@ -870,27 +917,28 @@ class Container {
       }
       return this.singletons.get(token);
     }
-    
+
     return this.createInstance(service.implementation);
   }
-  
+
   private createInstance<T>(constructor: new (...args: any[]) => T): T {
     // 获取构造函数的参数类型
-    const paramTypes = Reflect.getMetadata('design:paramtypes', constructor) || [];
-    
+    const paramTypes =
+      Reflect.getMetadata('design:paramtypes', constructor) || [];
+
     // 解析依赖
     const dependencies = paramTypes.map((type: any) => {
       const token = Reflect.getMetadata('inject:token', type) || type.name;
       return this.resolve(token);
     });
-    
+
     return new constructor(...dependencies);
   }
 }
 
 // 装饰器
 function Injectable(token?: string) {
-  return function<T extends { new(...args: any[]): {} }>(constructor: T) {
+  return function <T extends { new (...args: any[]): {} }>(constructor: T) {
     const actualToken = token || constructor.name;
     Reflect.defineMetadata('inject:token', actualToken, constructor);
     return constructor;
@@ -898,7 +946,11 @@ function Injectable(token?: string) {
 }
 
 function Inject(token: string) {
-  return function(target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
+  return function (
+    target: any,
+    propertyKey: string | symbol | undefined,
+    parameterIndex: number
+  ) {
     const existingTokens = Reflect.getMetadata('inject:tokens', target) || [];
     existingTokens[parameterIndex] = token;
     Reflect.defineMetadata('inject:tokens', existingTokens, target);
@@ -909,7 +961,7 @@ function Inject(token: string) {
 @Injectable('ApiClient')
 class ApiClient {
   constructor(private baseURL: string = 'http://localhost:8080') {}
-  
+
   async get(endpoint: string) {
     return fetch(`${this.baseURL}${endpoint}`);
   }
@@ -918,7 +970,7 @@ class ApiClient {
 @Injectable('ProductService')
 class ProductService {
   constructor(private apiClient: ApiClient) {}
-  
+
   async getProducts() {
     return this.apiClient.get('/api/products');
   }
@@ -930,7 +982,7 @@ class CartService {
     private apiClient: ApiClient,
     private productService: ProductService
   ) {}
-  
+
   async addToCart(productId: number, quantity: number) {
     const product = await this.productService.getProducts();
     return this.apiClient.get(`/api/cart/add/${productId}/${quantity}`);
@@ -961,21 +1013,29 @@ cartService.addToCart(1, 2);
 **A: 装饰器执行时机和顺序：**
 
 1. **执行时机**: 装饰器在类定义时执行，不是在实例化时
-2. **执行顺序**: 
+2. **执行顺序**:
    - 属性装饰器 → 参数装饰器 → 方法装饰器 → 类装饰器
    - 多个同类型装饰器：从下到上执行
 
 ```typescript
 function first() {
   console.log('first(): factory evaluated');
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     console.log('first(): called');
   };
 }
 
 function second() {
   console.log('second(): factory evaluated');
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     console.log('second(): called');
   };
 }
@@ -1007,20 +1067,20 @@ function ClassDecorator(constructor: Function) {
 
 // 方法装饰器
 function MethodDecorator(
-  target: any,                    // 类的原型对象
-  propertyKey: string,            // 方法名
-  descriptor: PropertyDescriptor  // 属性描述符
+  target: any, // 类的原型对象
+  propertyKey: string, // 方法名
+  descriptor: PropertyDescriptor // 属性描述符
 ) {}
 
 // 属性装饰器
 function PropertyDecorator(
-  target: any,        // 类的原型对象
+  target: any, // 类的原型对象
   propertyKey: string // 属性名
 ) {}
 
 // 参数装饰器
 function ParameterDecorator(
-  target: any,        // 类的原型对象
+  target: any, // 类的原型对象
   propertyKey: string, // 方法名
   parameterIndex: number // 参数索引
 ) {}
@@ -1049,6 +1109,7 @@ function ParameterDecorator(
 **题目**: 为Mall-Frontend创建一个基于装饰器的表单验证系统
 
 **要求**:
+
 1. 支持多种验证规则（必填、长度、格式等）
 2. 支持自定义验证器
 3. 提供友好的错误信息
@@ -1069,7 +1130,7 @@ interface ValidationRule {
 
 // 验证装饰器
 function Validate(rule: ValidationRule) {
-  return function(target: any, propertyKey: string) {
+  return function (target: any, propertyKey: string) {
     const rules = Reflect.getMetadata('validation:rules', target) || {};
     if (!rules[propertyKey]) {
       rules[propertyKey] = [];
@@ -1082,41 +1143,45 @@ function Validate(rule: ValidationRule) {
 // 预定义验证规则
 const ValidationRules = {
   required: (message = '此字段为必填项') => ({
-    validator: (value: any) => value !== null && value !== undefined && value !== '',
-    message
+    validator: (value: any) =>
+      value !== null && value !== undefined && value !== '',
+    message,
   }),
-  
+
   minLength: (length: number, message?: string) => ({
     validator: (value: string) => !value || value.length >= length,
-    message: message || `最少需要${length}个字符`
+    message: message || `最少需要${length}个字符`,
   }),
-  
+
   maxLength: (length: number, message?: string) => ({
     validator: (value: string) => !value || value.length <= length,
-    message: message || `最多允许${length}个字符`
+    message: message || `最多允许${length}个字符`,
   }),
-  
+
   email: (message = '邮箱格式不正确') => ({
-    validator: (value: string) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-    message
+    validator: (value: string) =>
+      !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+    message,
   }),
-  
+
   phone: (message = '手机号格式不正确') => ({
     validator: (value: string) => !value || /^1[3-9]\d{9}$/.test(value),
-    message
+    message,
   }),
-  
+
   uniqueUsername: (message = '用户名已存在') => ({
     validator: async (value: string) => {
       if (!value) return true;
       // 模拟异步验证
-      const response = await fetch(`/api/users/check-username?username=${value}`);
+      const response = await fetch(
+        `/api/users/check-username?username=${value}`
+      );
       const result = await response.json();
       return result.available;
     },
     message,
-    async: true
-  })
+    async: true,
+  }),
 };
 
 // 验证器类
@@ -1124,17 +1189,17 @@ class Validator {
   static async validate(obj: any): Promise<{ [key: string]: string[] }> {
     const rules = Reflect.getMetadata('validation:rules', obj) || {};
     const errors: { [key: string]: string[] } = {};
-    
+
     for (const [property, propertyRules] of Object.entries(rules)) {
       const value = obj[property];
       const propertyErrors: string[] = [];
-      
+
       for (const rule of propertyRules as ValidationRule[]) {
         try {
-          const isValid = rule.async 
+          const isValid = rule.async
             ? await rule.validator(value)
             : rule.validator(value);
-            
+
           if (!isValid) {
             propertyErrors.push(rule.message);
           }
@@ -1142,12 +1207,12 @@ class Validator {
           propertyErrors.push(`验证过程中发生错误: ${error.message}`);
         }
       }
-      
+
       if (propertyErrors.length > 0) {
         errors[property] = propertyErrors;
       }
     }
-    
+
     return errors;
   }
 }
@@ -1159,22 +1224,22 @@ class UserRegistrationForm {
   @Validate(ValidationRules.maxLength(20))
   @Validate(ValidationRules.uniqueUsername())
   username: string = '';
-  
+
   @Validate(ValidationRules.required())
   @Validate(ValidationRules.email())
   email: string = '';
-  
+
   @Validate(ValidationRules.required())
   @Validate(ValidationRules.minLength(6))
   password: string = '';
-  
+
   @Validate(ValidationRules.phone())
   phone: string = '';
-  
+
   constructor(data: Partial<UserRegistrationForm>) {
     Object.assign(this, data);
   }
-  
+
   async validate() {
     return Validator.validate(this);
   }
@@ -1186,12 +1251,12 @@ async function testValidation() {
     username: 'jo',
     email: 'invalid-email',
     password: '123',
-    phone: '123456'
+    phone: '123456',
   });
-  
+
   const errors = await form.validate();
   console.log('验证错误:', errors);
-  
+
   // 输出:
   // {
   //   username: ['最少需要3个字符', '用户名已存在'],
@@ -1248,4 +1313,4 @@ async function testValidation() {
 
 ---
 
-*下一章我们将学习《模块系统与命名空间》，探索TypeScript的代码组织和模块化开发！* 🚀
+_下一章我们将学习《模块系统与命名空间》，探索TypeScript的代码组织和模块化开发！_ 🚀

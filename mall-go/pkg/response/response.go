@@ -1,16 +1,40 @@
 package response
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // Response 统一响应结构
 type Response struct {
-	Code    int         `json:"code"`    // 状态码
-	Message string      `json:"message"` // 消息
-	Data    interface{} `json:"data"`    // 数据
+	Code      int         `json:"code"`                // 状态码
+	Message   string      `json:"message"`             // 消息
+	Data      interface{} `json:"data"`                // 数据
+	TraceID   string      `json:"trace_id,omitempty"`  // 追踪ID
+	Timestamp int64       `json:"timestamp,omitempty"` // 时间戳
+}
+
+// ErrorDetail 详细错误信息
+type ErrorDetail struct {
+	Field   string      `json:"field,omitempty"`   // 错误字段
+	Value   interface{} `json:"value,omitempty"`   // 错误值
+	Message string      `json:"message"`           // 错误消息
+	Code    string      `json:"code,omitempty"`    // 错误代码
+}
+
+// ErrorResponse 详细错误响应结构
+type ErrorResponse struct {
+	Code      int           `json:"code"`                // 状态码
+	Message   string        `json:"message"`             // 主要错误消息
+	Details   []ErrorDetail `json:"details,omitempty"`   // 详细错误列表
+	TraceID   string        `json:"trace_id"`            // 追踪ID
+	Timestamp int64         `json:"timestamp"`           // 时间戳
+	Path      string        `json:"path,omitempty"`      // 请求路径
+	Method    string        `json:"method,omitempty"`    // 请求方法
 }
 
 // PageResult 分页响应结构
@@ -33,22 +57,93 @@ const (
 	CodeTooManyReq   = 429  // 请求过多
 )
 
+// 业务错误代码常量
+const (
+	// 用户相关错误
+	ErrUserNotFound     = "USER_NOT_FOUND"
+	ErrUserExists       = "USER_EXISTS"
+	ErrInvalidPassword  = "INVALID_PASSWORD"
+	ErrTokenExpired     = "TOKEN_EXPIRED"
+	ErrTokenInvalid     = "TOKEN_INVALID"
+	
+	// 商品相关错误
+	ErrProductNotFound  = "PRODUCT_NOT_FOUND"
+	ErrInsufficientStock = "INSUFFICIENT_STOCK"
+	ErrProductOffline   = "PRODUCT_OFFLINE"
+	
+	// 订单相关错误
+	ErrOrderNotFound    = "ORDER_NOT_FOUND"
+	ErrOrderStatusError = "ORDER_STATUS_ERROR"
+	ErrPaymentFailed    = "PAYMENT_FAILED"
+	
+	// 购物车相关错误
+	ErrCartItemNotFound = "CART_ITEM_NOT_FOUND"
+	ErrCartEmpty        = "CART_EMPTY"
+	
+	// 通用错误
+	ErrValidationFailed = "VALIDATION_FAILED"
+	ErrDatabaseError    = "DATABASE_ERROR"
+	ErrNetworkError     = "NETWORK_ERROR"
+	ErrServiceUnavailable = "SERVICE_UNAVAILABLE"
+)
+
+// generateTraceID 生成追踪ID
+func generateTraceID() string {
+	return uuid.New().String()
+}
+
 // Success 成功响应
 func Success(c *gin.Context, message string, data interface{}) {
+	c.Header("Content-Type", "application/json; charset=utf-8")
 	c.JSON(http.StatusOK, Response{
-		Code:    CodeSuccess,
-		Message: message,
-		Data:    data,
+		Code:      CodeSuccess,
+		Message:   message,
+		Data:      data,
+		TraceID:   generateTraceID(),
+		Timestamp: time.Now().Unix(),
 	})
 }
 
 // Error 错误响应
 func Error(c *gin.Context, code int, message string) {
+	c.Header("Content-Type", "application/json; charset=utf-8")
 	c.JSON(code, Response{
-		Code:    code,
-		Message: message,
-		Data:    nil,
+		Code:      code,
+		Message:   message,
+		Data:      nil,
+		TraceID:   generateTraceID(),
+		Timestamp: time.Now().Unix(),
 	})
+}
+
+// ErrorWithDetails 详细错误响应
+func ErrorWithDetails(c *gin.Context, httpCode int, message string, details []ErrorDetail) {
+	c.Header("Content-Type", "application/json; charset=utf-8")
+	c.JSON(httpCode, ErrorResponse{
+		Code:      httpCode,
+		Message:   message,
+		Details:   details,
+		TraceID:   generateTraceID(),
+		Timestamp: time.Now().Unix(),
+		Path:      c.Request.URL.Path,
+		Method:    c.Request.Method,
+	})
+}
+
+// ValidationError 参数验证错误响应（支持多个字段错误）
+func ValidationError(c *gin.Context, details []ErrorDetail) {
+	ErrorWithDetails(c, http.StatusBadRequest, "参数验证失败", details)
+}
+
+// BusinessErrorWithCode 业务错误响应（带错误代码）
+func BusinessErrorWithCode(c *gin.Context, message, errorCode string) {
+	details := []ErrorDetail{
+		{
+			Message: message,
+			Code:    errorCode,
+		},
+	}
+	ErrorWithDetails(c, http.StatusBadRequest, message, details)
 }
 
 // ServerError 服务器错误响应

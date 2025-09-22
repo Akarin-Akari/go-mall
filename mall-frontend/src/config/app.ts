@@ -5,7 +5,7 @@
 
 // API配置
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081',
   TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000'),
   VERSION: 'v1',
 } as const;
@@ -22,8 +22,10 @@ export const APP_CONFIG = {
 export const FEATURE_FLAGS = {
   ENABLE_DEBUG: process.env.NODE_ENV === 'development',
   ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
-  ENABLE_ERROR_REPORTING: process.env.NEXT_PUBLIC_ENABLE_ERROR_REPORTING === 'true',
-  ENABLE_PERFORMANCE_MONITORING: process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING === 'true',
+  ENABLE_ERROR_REPORTING:
+    process.env.NEXT_PUBLIC_ENABLE_ERROR_REPORTING === 'true',
+  ENABLE_PERFORMANCE_MONITORING:
+    process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING === 'true',
 } as const;
 
 // 缓存配置
@@ -109,12 +111,14 @@ export const CONFIG = {
 // 便捷的配置获取函数
 export const getConfig = <T extends keyof typeof CONFIG>(
   section: T
-): typeof CONFIG[T] => {
+): (typeof CONFIG)[T] => {
   return CONFIG[section];
 };
 
 // 检查功能是否启用
-export const isFeatureEnabled = (feature: keyof typeof FEATURE_FLAGS): boolean => {
+export const isFeatureEnabled = (
+  feature: keyof typeof FEATURE_FLAGS
+): boolean => {
   return FEATURE_FLAGS[feature];
 };
 
@@ -126,8 +130,10 @@ export const getApiUrl = (path: string): string => {
 };
 
 // 环境检查
-export const isDevelopment = (): boolean => process.env.NODE_ENV === 'development';
-export const isProduction = (): boolean => process.env.NODE_ENV === 'production';
+export const isDevelopment = (): boolean =>
+  process.env.NODE_ENV === 'development';
+export const isProduction = (): boolean =>
+  process.env.NODE_ENV === 'production';
 export const isTest = (): boolean => process.env.NODE_ENV === 'test';
 
 export default CONFIG;

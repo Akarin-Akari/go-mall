@@ -62,10 +62,13 @@ export const mockCartItems: CartItem[] = [
 // 计算购物车统计信息
 export const calculateCartStats = (items: CartItem[]) => {
   const selectedItems = items.filter(item => item.selected);
-  
-  const total_quantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const total_quantity = selectedItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
   const total_amount = selectedItems.reduce((sum, item) => {
-    return sum + (parseFloat(item.price) * item.quantity);
+    return sum + parseFloat(item.price) * item.quantity;
   }, 0);
 
   return {
@@ -91,9 +94,13 @@ export const mockCartAPI = {
   },
 
   // 添加商品到购物车
-  addToCart: async (productId: number, skuId: number, quantity: number): Promise<CartItem> => {
+  addToCart: async (
+    productId: number,
+    skuId: number,
+    quantity: number
+  ): Promise<CartItem> => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     // 查找是否已存在
     const existingIndex = mockCartItems.findIndex(
       item => item.product_id === productId && item.sku_id === skuId
@@ -116,16 +123,19 @@ export const mockCartAPI = {
         image: '/images/product-placeholder.svg',
         selected: true,
       };
-      
+
       mockCartItems.push(newItem);
       return newItem;
     }
   },
 
   // 更新商品数量
-  updateQuantity: async (itemId: number, quantity: number): Promise<CartItem> => {
+  updateQuantity: async (
+    itemId: number,
+    quantity: number
+  ): Promise<CartItem> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    
+
     const item = mockCartItems.find(item => item.id === itemId);
     if (!item) {
       throw new Error('商品不存在');
@@ -142,7 +152,7 @@ export const mockCartAPI = {
   // 删除商品
   removeItem: async (itemId: number): Promise<void> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    
+
     const index = mockCartItems.findIndex(item => item.id === itemId);
     if (index === -1) {
       throw new Error('商品不存在');
@@ -154,7 +164,7 @@ export const mockCartAPI = {
   // 批量删除商品
   removeItems: async (itemIds: number[]): Promise<void> => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     itemIds.forEach(itemId => {
       const index = mockCartItems.findIndex(item => item.id === itemId);
       if (index >= 0) {
@@ -170,9 +180,12 @@ export const mockCartAPI = {
   },
 
   // 更新商品选中状态
-  updateSelection: async (itemId: number, selected: boolean): Promise<CartItem> => {
+  updateSelection: async (
+    itemId: number,
+    selected: boolean
+  ): Promise<CartItem> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     const item = mockCartItems.find(item => item.id === itemId);
     if (!item) {
       throw new Error('商品不存在');
@@ -185,22 +198,24 @@ export const mockCartAPI = {
   // 全选/取消全选
   updateAllSelection: async (selected: boolean): Promise<CartItem[]> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    
+
     mockCartItems.forEach(item => {
       item.selected = selected;
     });
-    
+
     return mockCartItems;
   },
 
   // 同步购物车（登录后合并游客购物车）
   syncCart: async (guestItems: CartItem[]): Promise<Cart> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // 简化的合并逻辑
     guestItems.forEach(guestItem => {
       const existingIndex = mockCartItems.findIndex(
-        item => item.product_id === guestItem.product_id && item.sku_id === guestItem.sku_id
+        item =>
+          item.product_id === guestItem.product_id &&
+          item.sku_id === guestItem.sku_id
       );
 
       if (existingIndex >= 0) {
@@ -269,7 +284,9 @@ export const calculateDiscount = (totalAmount: number, couponId?: number) => {
     };
   }
 
-  const coupon = mockCoupons.find(c => c.id === couponId && c.status === 'available');
+  const coupon = mockCoupons.find(
+    c => c.id === couponId && c.status === 'available'
+  );
   if (!coupon) {
     return {
       original_amount: totalAmount,

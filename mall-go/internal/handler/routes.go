@@ -13,7 +13,7 @@ import (
 	paymentpkg "mall-go/pkg/payment"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -80,15 +80,15 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentServic
 	}
 
 	// 订单相关路由
-	orderHandler := order.NewHandler(db)
+	orderHandler := order.NewOrderHandler(db, rdb) // 使用正确的构造函数，传递Redis客户端
 	orderGroup := v1.Group("/orders")
 	orderGroup.Use(middleware.AuthMiddleware())
 	{
-		orderGroup.GET("", orderHandler.List)
-		orderGroup.GET("/:id", orderHandler.Get)
-		orderGroup.POST("", orderHandler.Create)
-		orderGroup.PUT("/:id/status", orderHandler.UpdateStatus)
-		orderGroup.PUT("/:id/cancel", orderHandler.CancelOrder) // 取消订单
+		orderGroup.GET("", orderHandler.GetOrderList)                 // 使用正确的方法名
+		orderGroup.GET("/:id", orderHandler.GetOrder)                 // 使用正确的方法名
+		orderGroup.POST("", orderHandler.CreateOrder)                 // 使用正确的方法名
+		orderGroup.PUT("/:id/status", orderHandler.UpdateOrderStatus) // 使用正确的方法名
+		orderGroup.PUT("/:id/cancel", orderHandler.CancelOrder)       // 取消订单
 	}
 
 	// 购物车相关路由
@@ -112,10 +112,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentServic
 	paymentGroup := v1.Group("/payments")
 	paymentGroup.Use(middleware.AuthMiddleware())
 	{
-		paymentGroup.POST("", paymentHandler.CreatePayment)       // 创建支付
-		paymentGroup.GET("", paymentHandler.ListPayments)        // 获取支付列表
-		paymentGroup.GET("/:id", paymentHandler.GetPaymentByID)  // 根据ID获取支付详情
-		paymentGroup.GET("/query", paymentHandler.QueryPayment)  // 查询支付状态
+		paymentGroup.POST("", paymentHandler.CreatePayment)        // 创建支付
+		paymentGroup.GET("", paymentHandler.ListPayments)          // 获取支付列表
+		paymentGroup.GET("/:id", paymentHandler.GetPaymentByID)    // 根据ID获取支付详情
+		paymentGroup.GET("/query", paymentHandler.QueryPayment)    // 查询支付状态
 		paymentGroup.POST("/refund", paymentHandler.RefundPayment) // 申请退款
 	}
 
@@ -161,14 +161,14 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentServic
 	addressGroup := v1.Group("/addresses")
 	addressGroup.Use(middleware.AuthMiddleware())
 	{
-		addressGroup.GET("", addressHandler.GetAddresses)                    // 获取地址列表
-		addressGroup.POST("", addressHandler.CreateAddress)                 // 创建地址
-		addressGroup.PUT("/:id", addressHandler.UpdateAddress)              // 更新地址
-		addressGroup.DELETE("/:id", addressHandler.DeleteAddress)           // 删除地址
-		addressGroup.PUT("/:id/default", addressHandler.SetDefaultAddress)  // 设置默认地址
-		
+		addressGroup.GET("", addressHandler.GetAddresses)                  // 获取地址列表
+		addressGroup.POST("", addressHandler.CreateAddress)                // 创建地址
+		addressGroup.PUT("/:id", addressHandler.UpdateAddress)             // 更新地址
+		addressGroup.DELETE("/:id", addressHandler.DeleteAddress)          // 删除地址
+		addressGroup.PUT("/:id/default", addressHandler.SetDefaultAddress) // 设置默认地址
+
 		// 地区数据（无需认证）
-		addressGroup.GET("/regions", addressHandler.GetRegions)             // 获取地区数据
+		addressGroup.GET("/regions", addressHandler.GetRegions) // 获取地区数据
 	}
 }
 

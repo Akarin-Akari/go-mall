@@ -1,26 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Form, 
-  Input, 
-  Button, 
-  Card, 
-  Typography, 
-  message, 
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  message,
   Alert,
   Space,
   Steps,
-  Result
+  Result,
 } from 'antd';
-import { 
-  MailOutlined, 
+import {
+  MailOutlined,
   SafetyCertificateOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   LockOutlined,
   EyeInvisibleOutlined,
-  EyeTwoTone
+  EyeTwoTone,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -46,7 +46,7 @@ const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [canResend, setCanResend] = useState(true);
-  
+
   const router = useRouter();
 
   // 倒计时逻辑
@@ -66,10 +66,10 @@ const ForgotPasswordPage: React.FC = () => {
   const handleSendCode = async (values: ForgotPasswordFormData) => {
     try {
       setLoading(true);
-      
+
       // 这里应该调用真实的API
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // 模拟API调用
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
@@ -102,13 +102,13 @@ const ForgotPasswordPage: React.FC = () => {
   // 重新发送验证码
   const handleResendCode = async () => {
     if (!canResend) return;
-    
+
     try {
       setLoading(true);
-      
+
       // 模拟API调用
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setCountdown(60);
       setCanResend(false);
       message.success('验证码已重新发送');
@@ -123,10 +123,10 @@ const ForgotPasswordPage: React.FC = () => {
   const handleResetPassword = async (values: ResetPasswordFormData) => {
     try {
       setLoading(true);
-      
+
       // 这里应该调用真实的API
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
@@ -162,15 +162,15 @@ const ForgotPasswordPage: React.FC = () => {
         return (
           <Form
             form={form}
-            name="forgot-password"
+            name='forgot-password'
             onFinish={handleSendCode}
-            autoComplete="off"
-            size="large"
-            layout="vertical"
+            autoComplete='off'
+            size='large'
+            layout='vertical'
           >
             <Form.Item
-              name="email"
-              label="邮箱地址"
+              name='email'
+              label='邮箱地址'
               rules={[
                 { required: true, message: '请输入邮箱地址' },
                 { type: 'email', message: '请输入有效的邮箱地址' },
@@ -178,15 +178,15 @@ const ForgotPasswordPage: React.FC = () => {
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="请输入注册时使用的邮箱地址"
-                autoComplete="email"
+                placeholder='请输入注册时使用的邮箱地址'
+                autoComplete='email'
               />
             </Form.Item>
 
             <Form.Item style={{ marginBottom: 16 }}>
               <Button
-                type="primary"
-                htmlType="submit"
+                type='primary'
+                htmlType='submit'
                 loading={loading}
                 block
                 icon={<SafetyCertificateOutlined />}
@@ -201,9 +201,12 @@ const ForgotPasswordPage: React.FC = () => {
             </Form.Item>
 
             <div style={{ textAlign: 'center' }}>
-              <Text type="secondary">
+              <Text type='secondary'>
                 想起密码了？{' '}
-                <Link href={ROUTES.LOGIN} style={{ color: '#1890ff', fontWeight: 500 }}>
+                <Link
+                  href={ROUTES.LOGIN}
+                  style={{ color: '#1890ff', fontWeight: 500 }}
+                >
                   返回登录
                 </Link>
               </Text>
@@ -215,28 +218,28 @@ const ForgotPasswordPage: React.FC = () => {
         return (
           <Form
             form={resetForm}
-            name="reset-password"
+            name='reset-password'
             onFinish={handleResetPassword}
-            autoComplete="off"
-            size="large"
-            layout="vertical"
+            autoComplete='off'
+            size='large'
+            layout='vertical'
           >
             <Alert
-              message="验证码已发送"
+              message='验证码已发送'
               description={
-                <Space direction="vertical" size="small">
+                <Space direction='vertical' size='small'>
                   <Text>验证码已发送到 {email}</Text>
-                  <Text type="secondary">请查收邮件并输入6位验证码</Text>
+                  <Text type='secondary'>请查收邮件并输入6位验证码</Text>
                 </Space>
               }
-              type="info"
+              type='info'
               showIcon
               style={{ marginBottom: 16 }}
             />
 
             <Form.Item
-              name="code"
-              label="验证码"
+              name='code'
+              label='验证码'
               rules={[
                 { required: true, message: '请输入验证码' },
                 { len: 6, message: '验证码为6位数字' },
@@ -244,15 +247,15 @@ const ForgotPasswordPage: React.FC = () => {
               ]}
             >
               <Input
-                placeholder="请输入6位验证码"
+                placeholder='请输入6位验证码'
                 maxLength={6}
                 style={{ textAlign: 'center', fontSize: 18, letterSpacing: 4 }}
               />
             </Form.Item>
 
             <Form.Item
-              name="newPassword"
-              label="新密码"
+              name='newPassword'
+              label='新密码'
               rules={[
                 { required: true, message: '请输入新密码' },
                 { min: 8, message: '密码至少8位字符' },
@@ -260,15 +263,17 @@ const ForgotPasswordPage: React.FC = () => {
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="请输入新密码"
-                autoComplete="new-password"
-                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                placeholder='请输入新密码'
+                autoComplete='new-password'
+                iconRender={visible =>
+                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                }
               />
             </Form.Item>
 
             <Form.Item
-              name="confirmPassword"
-              label="确认新密码"
+              name='confirmPassword'
+              label='确认新密码'
               dependencies={['newPassword']}
               rules={[
                 { required: true, message: '请确认新密码' },
@@ -284,16 +289,18 @@ const ForgotPasswordPage: React.FC = () => {
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="请再次输入新密码"
-                autoComplete="new-password"
-                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                placeholder='请再次输入新密码'
+                autoComplete='new-password'
+                iconRender={visible =>
+                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                }
               />
             </Form.Item>
 
             <Form.Item style={{ marginBottom: 16 }}>
               <Button
-                type="primary"
-                htmlType="submit"
+                type='primary'
+                htmlType='submit'
                 loading={loading}
                 block
                 style={{
@@ -308,10 +315,10 @@ const ForgotPasswordPage: React.FC = () => {
 
             <div style={{ textAlign: 'center' }}>
               <Space>
-                <Text type="secondary">没收到验证码？</Text>
+                <Text type='secondary'>没收到验证码？</Text>
                 <Button
-                  type="link"
-                  size="small"
+                  type='link'
+                  size='small'
                   disabled={!canResend}
                   onClick={handleResendCode}
                   loading={loading}
@@ -327,14 +334,18 @@ const ForgotPasswordPage: React.FC = () => {
       case 2:
         return (
           <Result
-            status="success"
-            title="密码重置成功！"
-            subTitle="您的密码已成功重置，现在可以使用新密码登录了"
+            status='success'
+            title='密码重置成功！'
+            subTitle='您的密码已成功重置，现在可以使用新密码登录了'
             extra={[
-              <Button type="primary" key="login" onClick={() => router.push(ROUTES.LOGIN)}>
+              <Button
+                type='primary'
+                key='login'
+                onClick={() => router.push(ROUTES.LOGIN)}
+              >
                 立即登录
               </Button>,
-              <Button key="home" onClick={() => router.push(ROUTES.HOME)}>
+              <Button key='home' onClick={() => router.push(ROUTES.HOME)}>
                 返回首页
               </Button>,
             ]}
@@ -347,14 +358,16 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px',
+      }}
+    >
       <Card
         style={{
           width: '100%',
@@ -368,7 +381,7 @@ const ForgotPasswordPage: React.FC = () => {
           <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
             🛒 Go商城
           </Title>
-          <Text type="secondary">
+          <Text type='secondary'>
             {currentStep === 0 && '重置您的密码'}
             {currentStep === 1 && '验证您的身份'}
             {currentStep === 2 && '重置完成'}
@@ -379,7 +392,7 @@ const ForgotPasswordPage: React.FC = () => {
         {currentStep < 2 && (
           <Steps
             current={currentStep}
-            size="small"
+            size='small'
             style={{ marginBottom: 32 }}
             items={[
               {

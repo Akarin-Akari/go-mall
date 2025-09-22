@@ -4,7 +4,7 @@
  */
 
 import { errorHandler } from '@/utils/simpleErrorHandler';
-import { CONFIG, isFeatureEnabled } from '@/config/app';
+import { SECURITY_CONFIG } from '@/config/app';
 
 // 应用初始化状态
 interface AppInitState {
@@ -32,15 +32,11 @@ export async function initializeApp(): Promise<void> {
     // 1. 初始化错误处理
     await initializeErrorHandling();
 
-    // 2. 初始化性能监控（如果启用）
-    if (isFeatureEnabled('ENABLE_PERFORMANCE_MONITORING')) {
-      await initializePerformanceMonitoring();
-    }
+    // 2. 初始化性能监控（简化版本）
+    await initializePerformanceMonitoring();
 
-    // 3. 初始化分析工具（如果启用）
-    if (isFeatureEnabled('ENABLE_ANALYTICS')) {
-      await initializeAnalytics();
-    }
+    // 3. 初始化分析工具（简化版本）
+    await initializeAnalytics();
 
     // 4. 初始化用户会话
     await initializeUserSession();
@@ -50,19 +46,17 @@ export async function initializeApp(): Promise<void> {
 
     appState.isInitialized = true;
     appState.initEndTime = Date.now();
-    
+
     const initTime = appState.initEndTime - appState.initStartTime;
     console.log(`✅ Mall Frontend 应用初始化完成 (耗时: ${initTime}ms)`);
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     appState.errors.push(errorMessage);
-    
+
     errorHandler.handleError(error as Error, {
-      phase: 'app_initialization',
-      config: CONFIG.APP,
+      context: { phase: 'app_initialization' },
     });
-    
+
     console.error('❌ 应用初始化失败:', error);
     throw error;
   }
@@ -75,18 +69,20 @@ async function initializeErrorHandling(): Promise<void> {
   try {
     // 设置全局错误处理
     if (typeof window !== 'undefined') {
-      window.addEventListener('error', (event) => {
+      window.addEventListener('error', event => {
         errorHandler.handleError(event.error, {
-          type: 'global_error',
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
+          context: {
+            type: 'global_error',
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+          },
         });
       });
 
-      window.addEventListener('unhandledrejection', (event) => {
+      window.addEventListener('unhandledrejection', event => {
         errorHandler.handleError(new Error(event.reason), {
-          type: 'unhandled_promise_rejection',
+          context: { type: 'unhandled_promise_rejection' },
         });
       });
     }
@@ -106,10 +102,14 @@ async function initializePerformanceMonitoring(): Promise<void> {
     if (typeof window !== 'undefined' && 'performance' in window) {
       // 监控页面加载性能
       window.addEventListener('load', () => {
-        const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const perfData = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         if (perfData) {
           console.log('📊 页面性能数据:', {
-            domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
+            domContentLoaded:
+              perfData.domContentLoadedEventEnd -
+              perfData.domContentLoadedEventStart,
             loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
             totalTime: perfData.loadEventEnd - perfData.fetchStart,
           });
@@ -144,7 +144,7 @@ async function initializeUserSession(): Promise<void> {
   try {
     // 检查本地存储的用户信息
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(CONFIG.SECURITY.TOKEN_STORAGE_KEY);
+      const token = localStorage.getItem(SECURITY_CONFIG.TOKEN_STORAGE_KEY);
       if (token) {
         console.log('✓ 发现已保存的用户会话');
       }
@@ -204,16 +204,21 @@ export function healthCheck(): {
 } {
   const details = {
     initialized: appState.isInitialized,
-    initTime: appState.initEndTime ? appState.initEndTime - appState.initStartTime : null,
+    initTime: appState.initEndTime
+      ? appState.initEndTime - appState.initStartTime
+      : null,
     errors: appState.errors,
     config: {
-      apiBaseUrl: CONFIG.API.BASE_URL,
+      apiBaseUrl:
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
       environment: process.env.NODE_ENV,
-      features: CONFIG.FEATURES,
     },
   };
 
-  const status = appState.isInitialized && appState.errors.length === 0 ? 'healthy' : 'unhealthy';
+  const status =
+    appState.isInitialized && appState.errors.length === 0
+      ? 'healthy'
+      : 'unhealthy';
 
   return { status, details };
 }

@@ -1,6 +1,6 @@
 # 第4章：模块系统与命名空间 📦
 
-> *"良好的模块化设计是大型应用的基石，让代码组织井然有序！"* 🏗️
+> _"良好的模块化设计是大型应用的基石，让代码组织井然有序！"_ 🏗️
 
 ## 📚 本章导览
 
@@ -74,7 +74,8 @@ export default interface ApiResponse<T> {
 import ApiResponse, { User, Product } from '../types';
 
 // 命名导出
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 export class ApiClient {
   private baseURL: string;
@@ -349,18 +350,19 @@ namespace Mall.Utils
 
 **💡 模块系统对比：**
 
-| 特性 | TypeScript | Java | Python | Go | C# |
-|------|------------|------|--------|----|----|
-| **模块单位** | 文件 | 类文件 | 文件/目录 | 包目录 | 命名空间 |
-| **导入语法** | `import/export` | `import` | `import/from` | `import` | `using` |
-| **默认导出** | 支持 | 不支持 | 支持 | 不支持 | 不支持 |
-| **重导出** | 支持 | 不支持 | 支持 | 不支持 | 支持 |
-| **动态导入** | 支持 | 反射 | 支持 | 不支持 | 反射 |
-| **循环依赖** | 部分支持 | 编译错误 | 支持 | 编译错误 | 编译错误 |
+| 特性         | TypeScript      | Java     | Python        | Go       | C#       |
+| ------------ | --------------- | -------- | ------------- | -------- | -------- |
+| **模块单位** | 文件            | 类文件   | 文件/目录     | 包目录   | 命名空间 |
+| **导入语法** | `import/export` | `import` | `import/from` | `import` | `using`  |
+| **默认导出** | 支持            | 不支持   | 支持          | 不支持   | 不支持   |
+| **重导出**   | 支持            | 不支持   | 支持          | 不支持   | 支持     |
+| **动态导入** | 支持            | 反射     | 支持          | 不支持   | 反射     |
+| **循环依赖** | 部分支持        | 编译错误 | 支持          | 编译错误 | 编译错误 |
 
 // 默认导出
 export default new ApiClient();
-```
+
+````
 
 ### 重新导出和Barrel模式
 
@@ -382,7 +384,7 @@ export default {
   cart: new CartService(),
   order: new OrderService(),
 };
-```
+````
 
 ```typescript
 // services/userService.ts
@@ -412,10 +414,13 @@ export class UserService {
 
   async login(username: string, password: string): Promise<string | null> {
     try {
-      const response = await apiClient.post<{ token: string }>('/api/auth/login', {
-        username,
-        password,
-      });
+      const response = await apiClient.post<{ token: string }>(
+        '/api/auth/login',
+        {
+          username,
+          password,
+        }
+      );
       return response.data.token;
     } catch (error) {
       console.error('登录失败:', error);
@@ -440,7 +445,7 @@ export class DynamicLoader {
 
     try {
       let component;
-      
+
       switch (componentName) {
         case 'ProductCard':
           component = await import('../components/business/ProductCard');
@@ -485,7 +490,7 @@ export class DynamicLoader {
   // 条件加载
   static async conditionalLoad(condition: boolean, modulePath: string) {
     if (!condition) return null;
-    
+
     try {
       const module = await import(modulePath);
       return module.default || module;
@@ -851,7 +856,12 @@ export interface Order {
   updatedAt: string;
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
 export type PaymentMethod = 'alipay' | 'wechat' | 'credit_card' | 'cash';
 
 export interface OrderItem {
@@ -884,31 +894,31 @@ declare namespace NodeJS {
   interface ProcessEnv {
     // Next.js环境变量
     NODE_ENV: 'development' | 'production' | 'test';
-    
+
     // 公共环境变量（客户端可访问）
     NEXT_PUBLIC_API_BASE_URL: string;
     NEXT_PUBLIC_APP_NAME: string;
     NEXT_PUBLIC_APP_VERSION: string;
     NEXT_PUBLIC_ENABLE_ANALYTICS: string;
-    
+
     // 服务端环境变量
     DATABASE_URL: string;
     REDIS_URL: string;
     JWT_SECRET: string;
     JWT_EXPIRES_IN: string;
-    
+
     // 第三方服务
     ALIPAY_APP_ID: string;
     ALIPAY_PRIVATE_KEY: string;
     WECHAT_APP_ID: string;
     WECHAT_APP_SECRET: string;
-    
+
     // 文件存储
     OSS_ACCESS_KEY_ID: string;
     OSS_ACCESS_KEY_SECRET: string;
     OSS_BUCKET: string;
     OSS_REGION: string;
-    
+
     // 邮件服务
     SMTP_HOST: string;
     SMTP_PORT: string;
@@ -1015,7 +1025,14 @@ export const services = {
 };
 
 // 单独导出
-export { ApiClient, AuthService, UserService, ProductService, CartService, OrderService };
+export {
+  ApiClient,
+  AuthService,
+  UserService,
+  ProductService,
+  CartService,
+  OrderService,
+};
 
 // 默认导出
 export default services;
@@ -1041,7 +1058,7 @@ export class LazyLoader {
     options: LazyComponentOptions = {}
   ): ComponentType<T> {
     const cacheKey = importFn.toString();
-    
+
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)!;
     }
@@ -1051,17 +1068,20 @@ export class LazyLoader {
         if (options.delay) {
           await new Promise(resolve => setTimeout(resolve, options.delay));
         }
-        
+
         return await importFn();
       } catch (error) {
         console.error('懒加载组件失败:', error);
-        
+
         if (options.retry && options.retry > 0) {
           // 重试逻辑
           await new Promise(resolve => setTimeout(resolve, 1000));
-          return this.component(importFn, { ...options, retry: options.retry - 1 });
+          return this.component(importFn, {
+            ...options,
+            retry: options.retry - 1,
+          });
         }
-        
+
         throw error;
       }
     });
@@ -1108,22 +1128,22 @@ export async function preloadCriticalComponents() {
 
 **A: 主要区别：**
 
-| 特性 | ES6 Modules | CommonJS |
-|------|-------------|----------|
-| **语法** | `import/export` | `require/module.exports` |
-| **加载时机** | 编译时静态加载 | 运行时动态加载 |
-| **树摇优化** | 支持 | 不支持 |
-| **循环依赖** | 更好的处理 | 可能有问题 |
-| **顶层this** | undefined | global对象 |
-| **动态导入** | `import()` | `require()` |
+| 特性         | ES6 Modules     | CommonJS                 |
+| ------------ | --------------- | ------------------------ |
+| **语法**     | `import/export` | `require/module.exports` |
+| **加载时机** | 编译时静态加载  | 运行时动态加载           |
+| **树摇优化** | 支持            | 不支持                   |
+| **循环依赖** | 更好的处理      | 可能有问题               |
+| **顶层this** | undefined       | global对象               |
+| **动态导入** | `import()`      | `require()`              |
 
 ```typescript
 // ES6 Modules
-import { useState } from 'react';           // 命名导入
-import React from 'react';                  // 默认导入
-import * as utils from './utils';           // 命名空间导入
-export const Component = () => {};          // 命名导出
-export default Component;                   // 默认导出
+import { useState } from 'react'; // 命名导入
+import React from 'react'; // 默认导入
+import * as utils from './utils'; // 命名空间导入
+export const Component = () => {}; // 命名导出
+export default Component; // 默认导出
 
 // CommonJS
 const { useState } = require('react');
@@ -1167,13 +1187,21 @@ import { helper } from './helper';
 ```typescript
 // 推荐：使用模块
 // math.ts
-export function add(a: number, b: number) { return a + b; }
-export function subtract(a: number, b: number) { return a - b; }
+export function add(a: number, b: number) {
+  return a + b;
+}
+export function subtract(a: number, b: number) {
+  return a - b;
+}
 
 // 不推荐：使用命名空间（除非特殊场景）
 namespace Math {
-  export function add(a: number, b: number) { return a + b; }
-  export function subtract(a: number, b: number) { return a - b; }
+  export function add(a: number, b: number) {
+    return a + b;
+  }
+  export function subtract(a: number, b: number) {
+    return a - b;
+  }
 }
 ```
 
@@ -1186,6 +1214,7 @@ namespace Math {
 **题目**: 为Mall-Frontend设计一个可扩展的主题系统
 
 **要求**:
+
 1. 支持多种主题（亮色、暗色、高对比度）
 2. 支持动态切换主题
 3. 支持自定义主题
@@ -1264,7 +1293,8 @@ const baseTheme = {
     xl: '32px',
   },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: {
       xs: '12px',
       sm: '14px',
@@ -1396,11 +1426,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // 保存主题到localStorage
   useEffect(() => {
     localStorage.setItem('theme', themeName);
-    
+
     // 更新CSS变量
     const root = document.documentElement;
     const theme = themes[themeName];
-    
+
     Object.entries(theme.colors).forEach(([key, value]) => {
       if (typeof value === 'string') {
         root.style.setProperty(`--color-${key}`, value);
@@ -1488,4 +1518,4 @@ export function useTheme(): ThemeContextValue {
 
 ---
 
-*下一章我们将学习《React组件设计模式》，探索现代React开发的核心技能！* 🚀
+_下一章我们将学习《React组件设计模式》，探索现代React开发的核心技能！_ 🚀

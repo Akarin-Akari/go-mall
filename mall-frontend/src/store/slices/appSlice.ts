@@ -15,30 +15,30 @@ const appSlice = createSlice({
   initialState,
   reducers: {
     // 切换主题
-    toggleTheme: (state) => {
+    toggleTheme: state => {
       state.theme = state.theme === 'light' ? 'dark' : 'light';
     },
-    
+
     // 设置主题
     setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
       state.theme = action.payload;
     },
-    
+
     // 切换侧边栏折叠状态
-    toggleCollapsed: (state) => {
+    toggleCollapsed: state => {
       state.collapsed = !state.collapsed;
     },
-    
+
     // 设置侧边栏折叠状态
     setCollapsed: (state, action: PayloadAction<boolean>) => {
       state.collapsed = action.payload;
     },
-    
+
     // 设置全局加载状态
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    
+
     // 设置语言
     setLocale: (state, action: PayloadAction<'zh-CN' | 'en-US'>) => {
       state.locale = action.payload;
@@ -59,7 +59,8 @@ export const {
 // 选择器
 export const selectApp = (state: { app: AppState }) => state.app;
 export const selectTheme = (state: { app: AppState }) => state.app.theme;
-export const selectCollapsed = (state: { app: AppState }) => state.app.collapsed;
+export const selectCollapsed = (state: { app: AppState }) =>
+  state.app.collapsed;
 export const selectLoading = (state: { app: AppState }) => state.app.loading;
 export const selectLocale = (state: { app: AppState }) => state.app.locale;
 

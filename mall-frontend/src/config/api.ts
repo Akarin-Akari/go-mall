@@ -1,43 +1,57 @@
-// API配置文件
+import { configManager } from '@/utils/configManager';
+
+// API配置文件 - 使用统一配置管理
 export const API_CONFIG = {
-  // 基础配置
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
-  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000'),
-  
+  // 基础配置 - 从配置管理器获取
+  get BASE_URL() {
+    return configManager.getApiBaseUrl();
+  },
+  get TIMEOUT() {
+    return configManager.getApiTimeout();
+  },
+
   // 重试配置
   RETRY_COUNT: 3,
   RETRY_DELAY: 1000,
-  
+
   // 缓存配置
-  CACHE_TTL: 5 * 60 * 1000, // 5分钟
-  
+  get CACHE_TTL() {
+    return 5 * 60 * 1000; // 5分钟
+  },
+
   // 认证配置
   TOKEN_HEADER: 'Authorization',
   TOKEN_PREFIX: 'Bearer ',
-  
+
   // 环境配置
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
-  
-  // 调试配置
-  ENABLE_REQUEST_LOG: process.env.NODE_ENV === 'development',
-  ENABLE_RESPONSE_LOG: process.env.NODE_ENV === 'development',
-  ENABLE_ERROR_LOG: true,
+
+  // 调试配置 - 从配置管理器获取
+  get ENABLE_REQUEST_LOG() {
+    return process.env.NODE_ENV === 'development';
+  },
+  get ENABLE_RESPONSE_LOG() {
+    return process.env.NODE_ENV === 'development';
+  },
+  get ENABLE_ERROR_LOG() {
+    return true;
+  },
 };
 
 // API端点配置
 export const API_ENDPOINTS = {
   // 认证相关
   AUTH: {
-    LOGIN: '/api/v1/auth/login',
-    REGISTER: '/api/v1/auth/register',
+    LOGIN: '/api/v1/users/login',
+    REGISTER: '/api/v1/users/register',
     LOGOUT: '/api/v1/auth/logout',
     REFRESH: '/api/v1/auth/refresh',
     PROFILE: '/api/v1/auth/profile',
     VERIFY_EMAIL: '/api/v1/auth/verify-email',
     RESET_PASSWORD: '/api/v1/auth/reset-password',
   },
-  
+
   // 用户相关
   USER: {
     PROFILE: '/api/v1/users/profile',
@@ -47,7 +61,7 @@ export const API_ENDPOINTS = {
     ADDRESSES: '/api/v1/users/addresses',
     FAVORITES: '/api/v1/users/favorites',
   },
-  
+
   // 商品相关
   PRODUCT: {
     LIST: '/api/v1/products',
@@ -58,7 +72,7 @@ export const API_ENDPOINTS = {
     REVIEWS: (id: number) => `/api/v1/products/${id}/reviews`,
     RELATED: (id: number) => `/api/v1/products/${id}/related`,
   },
-  
+
   // 购物车相关
   CART: {
     LIST: '/api/v1/cart',
@@ -69,7 +83,7 @@ export const API_ENDPOINTS = {
     SYNC: '/api/v1/cart/sync',
     COUNT: '/api/v1/cart/count',
   },
-  
+
   // 订单相关
   ORDER: {
     LIST: '/api/v1/orders',
@@ -79,7 +93,7 @@ export const API_ENDPOINTS = {
     CONFIRM: (id: number) => `/api/v1/orders/${id}/confirm`,
     REFUND: (id: number) => `/api/v1/orders/${id}/refund`,
   },
-  
+
   // 支付相关
   PAYMENT: {
     CREATE: '/api/v1/payments',
@@ -88,7 +102,7 @@ export const API_ENDPOINTS = {
     REFUND: '/api/v1/payments/refund',
     METHODS: '/api/v1/payments/methods',
   },
-  
+
   // 优惠券相关
   COUPON: {
     LIST: '/api/v1/coupons',
@@ -96,7 +110,7 @@ export const API_ENDPOINTS = {
     USE: (id: number) => `/api/v1/coupons/${id}/use`,
     MY_COUPONS: '/api/v1/users/coupons',
   },
-  
+
   // 地址相关
   ADDRESS: {
     LIST: '/api/v1/addresses',
@@ -106,14 +120,14 @@ export const API_ENDPOINTS = {
     SET_DEFAULT: (id: number) => `/api/v1/addresses/${id}/default`,
     REGIONS: '/api/v1/addresses/regions',
   },
-  
+
   // 文件上传
   UPLOAD: {
     IMAGE: '/api/v1/upload/image',
     FILE: '/api/v1/upload/file',
     AVATAR: '/api/v1/upload/avatar',
   },
-  
+
   // 系统相关
   SYSTEM: {
     CONFIG: '/api/v1/system/config',
@@ -152,39 +166,39 @@ export const BUSINESS_CODE = {
   NOT_FOUND: 1004,
   CONFLICT: 1005,
   RATE_LIMITED: 1006,
-  
+
   // 用户相关错误
   USER_NOT_FOUND: 2001,
   USER_ALREADY_EXISTS: 2002,
   INVALID_CREDENTIALS: 2003,
   EMAIL_NOT_VERIFIED: 2004,
   PASSWORD_TOO_WEAK: 2005,
-  
+
   // 商品相关错误
   PRODUCT_NOT_FOUND: 3001,
   PRODUCT_OUT_OF_STOCK: 3002,
   PRODUCT_UNAVAILABLE: 3003,
   INVALID_PRODUCT_SPEC: 3004,
-  
+
   // 购物车相关错误
   CART_ITEM_NOT_FOUND: 4001,
   CART_ITEM_OUT_OF_STOCK: 4002,
   CART_EMPTY: 4003,
   CART_ITEM_LIMIT_EXCEEDED: 4004,
-  
+
   // 订单相关错误
   ORDER_NOT_FOUND: 5001,
   ORDER_CANNOT_CANCEL: 5002,
   ORDER_ALREADY_PAID: 5003,
   ORDER_EXPIRED: 5004,
   INSUFFICIENT_STOCK: 5005,
-  
+
   // 支付相关错误
   PAYMENT_FAILED: 6001,
   PAYMENT_CANCELLED: 6002,
   PAYMENT_EXPIRED: 6003,
   INVALID_PAYMENT_METHOD: 6004,
-  
+
   // 优惠券相关错误
   COUPON_NOT_FOUND: 7001,
   COUPON_EXPIRED: 7002,
@@ -202,39 +216,39 @@ export const ERROR_MESSAGES = {
   [BUSINESS_CODE.NOT_FOUND]: '资源不存在',
   [BUSINESS_CODE.CONFLICT]: '资源冲突',
   [BUSINESS_CODE.RATE_LIMITED]: '请求过于频繁',
-  
+
   // 用户相关错误
   [BUSINESS_CODE.USER_NOT_FOUND]: '用户不存在',
   [BUSINESS_CODE.USER_ALREADY_EXISTS]: '用户已存在',
   [BUSINESS_CODE.INVALID_CREDENTIALS]: '用户名或密码错误',
   [BUSINESS_CODE.EMAIL_NOT_VERIFIED]: '邮箱未验证',
   [BUSINESS_CODE.PASSWORD_TOO_WEAK]: '密码强度不够',
-  
+
   // 商品相关错误
   [BUSINESS_CODE.PRODUCT_NOT_FOUND]: '商品不存在',
   [BUSINESS_CODE.PRODUCT_OUT_OF_STOCK]: '商品库存不足',
   [BUSINESS_CODE.PRODUCT_UNAVAILABLE]: '商品暂时不可用',
   [BUSINESS_CODE.INVALID_PRODUCT_SPEC]: '商品规格无效',
-  
+
   // 购物车相关错误
   [BUSINESS_CODE.CART_ITEM_NOT_FOUND]: '购物车商品不存在',
   [BUSINESS_CODE.CART_ITEM_OUT_OF_STOCK]: '购物车商品库存不足',
   [BUSINESS_CODE.CART_EMPTY]: '购物车为空',
   [BUSINESS_CODE.CART_ITEM_LIMIT_EXCEEDED]: '购物车商品数量超限',
-  
+
   // 订单相关错误
   [BUSINESS_CODE.ORDER_NOT_FOUND]: '订单不存在',
   [BUSINESS_CODE.ORDER_CANNOT_CANCEL]: '订单无法取消',
   [BUSINESS_CODE.ORDER_ALREADY_PAID]: '订单已支付',
   [BUSINESS_CODE.ORDER_EXPIRED]: '订单已过期',
   [BUSINESS_CODE.INSUFFICIENT_STOCK]: '库存不足',
-  
+
   // 支付相关错误
   [BUSINESS_CODE.PAYMENT_FAILED]: '支付失败',
   [BUSINESS_CODE.PAYMENT_CANCELLED]: '支付已取消',
   [BUSINESS_CODE.PAYMENT_EXPIRED]: '支付已过期',
   [BUSINESS_CODE.INVALID_PAYMENT_METHOD]: '支付方式无效',
-  
+
   // 优惠券相关错误
   [BUSINESS_CODE.COUPON_NOT_FOUND]: '优惠券不存在',
   [BUSINESS_CODE.COUPON_EXPIRED]: '优惠券已过期',
@@ -287,6 +301,9 @@ export const getApiUrl = (endpoint: string): string => {
 };
 
 // 获取错误消息
-export const getErrorMessage = (code: number, defaultMessage = '操作失败'): string => {
+export const getErrorMessage = (
+  code: number,
+  defaultMessage = '操作失败'
+): string => {
   return ERROR_MESSAGES[code as keyof typeof ERROR_MESSAGES] || defaultMessage;
 };

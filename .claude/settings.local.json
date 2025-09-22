@@ -1,0 +1,384 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(apt list:*)",
+      "Bash(curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /tmp/jq)",
+      "Bash(/tmp/jq:*)",
+      "Bash(cp /tmp/jq /usr/local/bin/jq)",
+      "Bash(cp /tmp/jq ./jq)",
+      "Bash(export PATH=$PATH:.)",
+      "Bash(ls -la debug_student_display.sh)",
+      "Bash(find:*)",
+      "Bash(find /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business -name \"*.java\" -type f)",
+      "Bash(find /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business -name \"*.java\" -type f -exec wc -l {} +)",
+      "Bash(grep -n \"public\\|private\\|protected\" /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business/src/main/java/org/dromara/business/service/impl/StudentsServiceImpl.java)",
+      "Bash(grep -n \"public.*(\" /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business/src/main/java/org/dromara/business/service/impl/StudentsServiceImpl.java)",
+      "Bash(sed -n '210,343p' /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business/src/main/java/org/dromara/business/service/impl/StudentsServiceImpl.java)",
+      "Bash(find /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-system -name \"*.java\" -type f -exec wc -l {} +)",
+      "Bash(find /mnt/f/HuifeixingRY/ruoyi-modules -name \"*.xml\" -type f)",
+      "Bash(find /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business/src/main/java -name \"*.java\" -exec grep -l \"static.*final.*String\" {})",
+      "Bash(mvn compile:*)",
+      "Bash(javac:*)",
+      "Bash(grep -r \"import.*IUsersApiService\" /mnt/f/HuifeixingRY/ruoyi-modules/ruoyi-business/src/main/java/)",
+      "Bash(ls:*)",
+      "Bash(timeout 30s mvn compile:*)",
+      "Bash(curl:*)",
+      "Bash(mysql:*)",
+      "Bash(mvn clean:*)",
+      "Bash(python3:*)",
+      "Bash(mvn install:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(./configure-claude-mcp.sh:*)",
+      "Bash(pip3 install:*)",
+      "Bash(export:*)",
+      "Bash(uvx:*)",
+      "Bash(pip3:*)",
+      "Bash(java:*)",
+      "Bash(mvn:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(source ~/.bashrc)",
+      "Bash(docker:*)",
+      "Bash(kubectl version:*)",
+      "Bash(kubeadm:*)",
+      "Bash(systemctl:*)",
+      "Bash(rm:*)",
+      "Bash(kubelet:*)",
+      "Bash(redis-cli:*)",
+      "Bash(mkdir:*)",
+      "Bash(wget:*)",
+      "Bash(tar:*)",
+      "Bash(sed:*)",
+      "Bash(sudo mv:*)",
+      "Bash(make:*)",
+      "Bash(MAVEN_OPTS=\"-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8\" mvn spring-boot:run -Dspring-boot.run.profiles=dev -DskipTests -pl ruoyi-admin -Dproject.build.sourceEncoding=UTF-8 -Dproject.reporting.outputEncoding=UTF-8)",
+      "Bash(ss:*)",
+      "Bash(./src/redis-server:*)",
+      "Bash(./src/redis-cli -h 127.0.0.1 -p 6379 -a 123456 ping)",
+      "Bash(cat:*)",
+      "Bash(./.claude/global-config-migrator.sh:*)",
+      "Bash(./mall-server.exe)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(-w \"\\nHTTP Status: %{http_code}\\n\")",
+      "Bash(taskkill:*)",
+      "Bash(git config:*)"
+    ],
+    "deny": []
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "GitHub": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+      },
+      "fromGalleryId": "modelcontextprotocol.servers_github"
+    },
+    "fetch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@tokenizin/mcp-npx-fetch"
+      ]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    },
+    "@master/mastergo-magic-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mastergo/magic-mcp",
+        "--token=MG_MCP_TOKEN",
+        "--url=https://mastergo.com"
+      ]
+    },
+    "redis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-redis",
+        "redis://localhost:6379"
+      ]
+    },
+    "magic": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@21st-dev/magic@latest",
+        "API_KEY=\"your-api-key\""
+      ]
+    },
+    "@modelcontextprotocol/fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ]
+    },
+    "LeetCode": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@jinzcdev/leetcode-mcp-server",
+        "--site",
+        "cn"
+      ]
+    },
+    "bingcn": {
+      "command": "npx",
+      "args": [
+        "bing-cn-mcp"
+      ]
+    },
+    "MiniMax": {
+      "command": "uvx",
+      "args": [
+        "minimax-mcp"
+      ],
+      "env": {
+        "MINIMAX_API_HOST": "https://api.minimaxi.chat",
+        "MINIMAX_API_KEY": "<insert-your-api-key-here>",
+        "MINIMAX_MCP_BASE_PATH": "<local-output-dir-path>"
+      }
+    },
+    "desktop-commander": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@wonderwhy-er/desktop-commander",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9"
+      ]
+    },
+    "debug": {
+      "command": "node",
+      "args": [
+        "/path/to/mcp-debug.js"
+      ]
+    },
+    "elasticsearch-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@elastic/mcp-server-elasticsearch"
+      ],
+      "env": {
+        "ES_API_KEY": "your-api-key",
+        "ES_URL": "your-elasticsearch-url"
+      }
+    },
+    "Sequential Thinking MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "install",
+        "@smithery-ai/server-sequential-thinking",
+        "--client",
+        "claude"
+      ]
+    },
+    "ClaudeCommander MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli",
+        "install",
+        "@wonderwhy-er/desktop-commander",
+        "--client",
+        "claude"
+      ]
+    },
+    "server-sequential-thinking": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@smithery-ai/server-sequential-thinking",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9"
+      ]
+    },
+    "mcpServers": {
+      "desktop-commander-debug": {
+        "command": "npx",
+        "args": [
+          "@wonderwhy-er/desktop-commander@latest",
+          "setup",
+          "--debug"
+        ]
+      }
+    },
+    "hackernews_composio": {
+      "url": "\"https://mcp.composio.dev/hackernews/thundering-petite-vulture-guyWBb?agent=cursor\""
+    },
+    "composio_composio": {
+      "url": "https://mcp.composio.dev/composio/server/7b4c59cd-2781-4086-a2b1-f9f280ce964c"
+    },
+    "mem0-memory-mcp": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@mem0ai/mem0-memory-mcp",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "mcp-browserbase": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@browserbasehq/mcp-browserbase",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "think-mcp-server": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@PhillipRt/think-mcp-server",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9"
+      ]
+    },
+    "neon": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "neon",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "exa": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "exa",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "servers": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@jlia0/servers",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "Framelink Figma MCP": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "figma-developer-mcp",
+        "--figma-api-key=figd_6JNZQRvpVcSWUhS7ezpLlJ8bcY2jOFLvUmSDDRuj",
+        "--stdio"
+      ]
+    },
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-6009653cc0d740d685bf9279e99f3a8b"
+      }
+    },
+    "mcp-server-firecrawl": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@mendableai/mcp-server-firecrawl",
+        "--key",
+        "1f906580-c771-4e74-b27e-21df869798c9",
+        "--profile",
+        "loud-magpie-TQ7CYk"
+      ]
+    },
+    "console-ninja": {
+      "command": "node",
+      "args": [
+        "~/.console-ninja/mcp/"
+      ]
+    },
+    "spec-workflow": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@pimzino/spec-workflow-mcp@latest",
+        "/path/to/your/project",
+        "--AutoStartDashboard"
+      ]
+    }
+  }
+}

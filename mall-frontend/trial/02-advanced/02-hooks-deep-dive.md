@@ -1,6 +1,6 @@
 # 第2章：Hooks深度应用与自定义Hooks 🎣
 
-> *"Hooks是React的革命性特性，让函数组件拥有了类组件的所有能力！"* ⚡
+> _"Hooks是React的革命性特性，让函数组件拥有了类组件的所有能力！"_ ⚡
 
 ## 📚 本章导览
 
@@ -121,7 +121,7 @@ const RegisterForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await submitRegistration(formState);
       resetForm();
@@ -171,9 +171,9 @@ function useAsyncEffect<T>(
       try {
         setLoading(true);
         setError(null);
-        
+
         const result = await asyncFn();
-        
+
         if (!isCancelled && !cancelRef.current) {
           setData(result);
           onSuccess?.(result);
@@ -208,13 +208,17 @@ function useAsyncEffect<T>(
 
 // Mall-Frontend中的商品详情获取
 function useProductDetail(productId: number) {
-  const { loading, data: product, error } = useAsyncEffect(
+  const {
+    loading,
+    data: product,
+    error,
+  } = useAsyncEffect(
     () => fetch(`/api/products/${productId}`).then(res => res.json()),
     [productId],
-    (product) => {
+    product => {
       console.log('商品详情加载成功:', product.name);
     },
-    (error) => {
+    error => {
       console.error('商品详情加载失败:', error);
     }
   );
@@ -553,8 +557,8 @@ function useProducts() {
     },
     {
       initialData: [],
-      transform: (response) => response.data || [],
-      onError: (error) => console.error('获取商品失败:', error),
+      transform: response => response.data || [],
+      onError: error => console.error('获取商品失败:', error),
     }
   );
 
@@ -586,7 +590,9 @@ interface UseFormReturn<T> {
   setValues: (values: Partial<T>) => void;
   setError: (field: keyof T, error: string) => void;
   setErrors: (errors: Partial<Record<keyof T, string>>) => void;
-  handleChange: (field: keyof T) => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleChange: (
+    field: keyof T
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleBlur: (field: keyof T) => () => void;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   reset: () => void;
@@ -664,14 +670,18 @@ function useForm<T extends Record<string, any>>(
   }, []);
 
   // 批量设置错误
-  const setErrorsCallback = useCallback((newErrors: Partial<Record<keyof T, string>>) => {
-    setErrors(prev => ({ ...prev, ...newErrors }));
-  }, []);
+  const setErrorsCallback = useCallback(
+    (newErrors: Partial<Record<keyof T, string>>) => {
+      setErrors(prev => ({ ...prev, ...newErrors }));
+    },
+    []
+  );
 
   // 处理输入变化
   const handleChange = useCallback(
     (field: keyof T) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+      const value =
+        e.target.type === 'checkbox' ? e.target.checked : e.target.value;
       setValue(field, value);
     },
     [setValue]
@@ -743,19 +753,25 @@ function useForm<T extends Record<string, any>>(
 
 // 验证规则
 const validationRules = {
-  required: (message = '此字段为必填项') => (value: any) =>
-    !value || (typeof value === 'string' && !value.trim()) ? message : null,
-  
+  required:
+    (message = '此字段为必填项') =>
+    (value: any) =>
+      !value || (typeof value === 'string' && !value.trim()) ? message : null,
+
   minLength: (length: number, message?: string) => (value: string) =>
     value && value.length < length
       ? message || `最少需要${length}个字符`
       : null,
-  
-  email: (message = '请输入有效的邮箱地址') => (value: string) =>
-    value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? message : null,
-  
-  phone: (message = '请输入有效的手机号') => (value: string) =>
-    value && !/^1[3-9]\d{9}$/.test(value) ? message : null,
+
+  email:
+    (message = '请输入有效的邮箱地址') =>
+    (value: string) =>
+      value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? message : null,
+
+  phone:
+    (message = '请输入有效的手机号') =>
+    (value: string) =>
+      value && !/^1[3-9]\d{9}$/.test(value) ? message : null,
 };
 
 // 使用示例：用户注册表单
@@ -777,28 +793,17 @@ function useRegisterForm() {
       agreeTerms: false,
     },
     validationRules: {
-      username: [
-        validationRules.required(),
-        validationRules.minLength(3),
-      ],
-      email: [
-        validationRules.required(),
-        validationRules.email(),
-      ],
-      password: [
-        validationRules.required(),
-        validationRules.minLength(6),
-      ],
+      username: [validationRules.required(), validationRules.minLength(3)],
+      email: [validationRules.required(), validationRules.email()],
+      password: [validationRules.required(), validationRules.minLength(6)],
       confirmPassword: [
         validationRules.required(),
         (value: string, values: RegisterFormData) =>
           value !== values.password ? '两次输入的密码不一致' : null,
       ],
-      agreeTerms: [
-        (value: boolean) => !value ? '请同意用户协议' : null,
-      ],
+      agreeTerms: [(value: boolean) => (!value ? '请同意用户协议' : null)],
     },
-    onSubmit: async (values) => {
+    onSubmit: async values => {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -826,22 +831,29 @@ import { useMemo, useCallback, useState, useEffect } from 'react';
 function useExpensiveCalculation(data: any[], filters: any) {
   return useMemo(() => {
     console.log('执行复杂计算...');
-    
+
     // 模拟复杂的数据处理
     return data
       .filter(item => {
-        if (filters.category && item.category !== filters.category) return false;
+        if (filters.category && item.category !== filters.category)
+          return false;
         if (filters.minPrice && item.price < filters.minPrice) return false;
         if (filters.maxPrice && item.price > filters.maxPrice) return false;
-        if (filters.search && !item.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
+        if (
+          filters.search &&
+          !item.name.toLowerCase().includes(filters.search.toLowerCase())
+        )
+          return false;
         return true;
       })
       .sort((a, b) => {
         switch (filters.sortBy) {
           case 'price':
-            return filters.sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+            return filters.sortOrder === 'asc'
+              ? a.price - b.price
+              : b.price - a.price;
           case 'name':
-            return filters.sortOrder === 'asc' 
+            return filters.sortOrder === 'asc'
               ? a.name.localeCompare(b.name)
               : b.name.localeCompare(a.name);
           default:
@@ -858,10 +870,8 @@ function useOptimizedEventHandlers() {
 
   // 使用useCallback优化事件处理函数
   const handleItemSelect = useCallback((itemId: number, selected: boolean) => {
-    setSelectedItems(prev => 
-      selected 
-        ? [...prev, itemId]
-        : prev.filter(id => id !== itemId)
+    setSelectedItems(prev =>
+      selected ? [...prev, itemId] : prev.filter(id => id !== itemId)
     );
   }, []);
 
@@ -882,9 +892,7 @@ function useOptimizedEventHandlers() {
 
     try {
       await Promise.all(
-        selectedItems.map(id => 
-          fetch(`/api/items/${id}`, { method: 'DELETE' })
-        )
+        selectedItems.map(id => fetch(`/api/items/${id}`, { method: 'DELETE' }))
       );
       setSelectedItems([]);
     } catch (error) {
@@ -993,7 +1001,9 @@ function useProductSearch() {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/products/search?q=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(
+        `/api/products/search?q=${encodeURIComponent(searchQuery)}`
+      );
       const data = await response.json();
       setResults(data.products || []);
     } catch (error) {
@@ -1064,7 +1074,7 @@ function BadComponent({ condition }: { condition: boolean }) {
 // ✅ 正确用法
 function GoodComponent({ condition }: { condition: boolean }) {
   const [state, setState] = useState(0);
-  
+
   useEffect(() => {
     if (condition) {
       // 条件逻辑放在Hook内部
@@ -1144,15 +1154,19 @@ function useLocalStorage<T>(
     }
   });
 
-  const setValue = useCallback((value: T | ((prev: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key, storedValue]);
+  const setValue = useCallback(
+    (value: T | ((prev: T) => T)) => {
+      try {
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
+        setStoredValue(valueToStore);
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error);
+      }
+    },
+    [key, storedValue]
+  );
 
   return [storedValue, setValue];
 }
@@ -1167,6 +1181,7 @@ function useLocalStorage<T>(
 **题目**: 为Mall-Frontend实现一个功能完整的购物车管理Hook
 
 **要求**:
+
 1. 支持添加、删除、修改商品
 2. 支持批量选择和操作
 3. 本地存储持久化
@@ -1260,18 +1275,21 @@ function useCart(): UseCartReturn {
   }, []);
 
   // 更新商品数量
-  const updateQuantity = useCallback((itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(itemId);
-      return;
-    }
+  const updateQuantity = useCallback(
+    (itemId: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(itemId);
+        return;
+      }
 
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, quantity } : item
-      )
-    );
-  }, [removeItem]);
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.id === itemId ? { ...item, quantity } : item
+        )
+      );
+    },
+    [removeItem]
+  );
 
   // 切换商品选中状态
   const toggleSelect = useCallback((itemId: string) => {
@@ -1284,9 +1302,7 @@ function useCart(): UseCartReturn {
 
   // 全选/取消全选
   const selectAll = useCallback((selected: boolean) => {
-    setItems(prevItems =>
-      prevItems.map(item => ({ ...item, selected }))
-    );
+    setItems(prevItems => prevItems.map(item => ({ ...item, selected })));
   }, []);
 
   // 清空购物车
@@ -1307,7 +1323,9 @@ function useCart(): UseCartReturn {
   // 计算总价格
   const totalPrice = useMemo(() => {
     return items.reduce((total, item) => {
-      const price = parseFloat(item.product.discount_price || item.product.price);
+      const price = parseFloat(
+        item.product.discount_price || item.product.price
+      );
       return total + price * item.quantity;
     }, 0);
   }, [items]);
@@ -1320,7 +1338,9 @@ function useCart(): UseCartReturn {
   // 计算选中商品的总价格
   const selectedTotalPrice = useMemo(() => {
     return selectedItems.reduce((total, item) => {
-      const price = parseFloat(item.product.discount_price || item.product.price);
+      const price = parseFloat(
+        item.product.discount_price || item.product.price
+      );
       return total + price * item.quantity;
     }, 0);
   }, [selectedItems]);
@@ -1390,4 +1410,4 @@ Hooks让React开发变得更加简洁和强大，是现代React开发的核心�
 
 ---
 
-*下一章我们将学习《状态管理策略与最佳实践》，探索复杂应用的状态管理解决方案！* 🚀
+_下一章我们将学习《状态管理策略与最佳实践》，探索复杂应用的状态管理解决方案！_ 🚀

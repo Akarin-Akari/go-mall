@@ -16,7 +16,7 @@ type User struct {
 	Password string `gorm:"not null;size:255" json:"-"` // 密码哈希
 	Nickname string `gorm:"size:50" json:"nickname"`
 	Avatar   string `gorm:"size:255" json:"avatar"`
-	Phone    string `gorm:"uniqueIndex;size:20" json:"phone"`
+	Phone    string `gorm:"size:20" json:"phone"` // 移除uniqueIndex约束，避免空字符串冲突
 	Role     string `gorm:"default:'user';size:20;index" json:"role"`
 	Status   string `gorm:"default:'active';size:20;index" json:"status"`
 

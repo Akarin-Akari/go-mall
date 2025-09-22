@@ -1,0 +1,62 @@
+[
+  {
+    "content": "Analyze project structure and understand backend API endpoints in mall-go",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Analyze frontend API integration patterns in mall-frontend",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Check backend server configuration and startup capability",
+    "status": "in_progress",
+    "id": "3"
+  },
+  {
+    "content": "Check frontend server configuration and startup capability",
+    "status": "pending",
+    "id": "4"
+  },
+  {
+    "content": "Test authentication API endpoints (login/register)",
+    "status": "pending",
+    "id": "5"
+  },
+  {
+    "content": "Test product API endpoints (listing, details, search)",
+    "status": "pending",
+    "id": "6"
+  },
+  {
+    "content": "Test shopping cart API endpoints (add, update, remove)",
+    "status": "pending",
+    "id": "7"
+  },
+  {
+    "content": "Test order management API endpoints (create, list, details)",
+    "status": "pending",
+    "id": "8"
+  },
+  {
+    "content": "Verify frontend-backend communication and CORS configuration",
+    "status": "pending",
+    "id": "9"
+  },
+  {
+    "content": "Test error handling and edge cases",
+    "status": "pending",
+    "id": "10"
+  },
+  {
+    "content": "Fix any identified integration issues",
+    "status": "pending",
+    "id": "11"
+  },
+  {
+    "content": "Generate comprehensive integration test report",
+    "status": "pending",
+    "id": "12"
+  }
+]

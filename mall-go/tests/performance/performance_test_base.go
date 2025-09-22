@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"mall-go/internal/config"
+	"mall-go/internal/handler"
 	"mall-go/internal/model"
-	"mall-go/internal/router"
 
 	"github.com/glebarez/sqlite"
 	"github.com/gin-gonic/gin"
@@ -61,8 +61,12 @@ func SetupPerformanceTest(t *testing.T) *PerformanceTestSuite {
 			Expire: "24h",
 		},
 		Database: config.DatabaseConfig{
-			Driver: "sqlite",
-			DSN:    ":memory:",
+			Driver:   "sqlite",
+			Host:     "",
+			Port:     0,
+			Username: "",
+			Password: "",
+			DBName:   ":memory:",
 		},
 	}
 
@@ -93,7 +97,11 @@ func SetupPerformanceTest(t *testing.T) *PerformanceTestSuite {
 	gin.SetMode(gin.TestMode)
 
 	// 创建路由
-	r := router.SetupRouter(db)
+	r := gin.Default()
+	
+	// 注册简化的路由用于测试
+	handler.RegisterMiddleware(r)
+	handler.RegisterRoutes(r, db, nil, nil)
 
 	// 创建测试服务器
 	server := httptest.NewServer(r)

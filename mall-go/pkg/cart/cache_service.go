@@ -9,7 +9,7 @@ import (
 
 	"mall-go/internal/model"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // CacheService 购物车缓存服务

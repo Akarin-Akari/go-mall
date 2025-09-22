@@ -233,8 +233,8 @@ type ProductUpdateRequest struct {
 
 // ProductListRequest 商品列表请求
 type ProductListRequest struct {
-	Page       int    `form:"page" binding:"min=1"`
-	PageSize   int    `form:"page_size" binding:"min=1,max=100"`
+	Page       int    `form:"page" binding:"omitempty,min=1"`
+	PageSize   int    `form:"page_size" binding:"omitempty,min=1,max=100"`
 	CategoryID *uint  `form:"category_id"`
 	Keyword    string `form:"keyword"`
 	Status     string `form:"status"`

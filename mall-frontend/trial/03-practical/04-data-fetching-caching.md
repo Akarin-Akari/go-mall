@@ -1,6 +1,6 @@
 # 第4章：数据获取与缓存策略优化 ⚡
 
-> *"高效的数据获取和智能的缓存策略，是构建高性能Web应用的核心！"* 🚀
+> _"高效的数据获取和智能的缓存策略，是构建高性能Web应用的核心！"_ 🚀
 
 ## 📚 本章导览
 
@@ -121,7 +121,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <div>
       {/* 服务端渲染的产品信息 */}
       <ProductDetails product={product} />
-      
+
       {/* 客户端懒加载的评论 */}
       <Suspense fallback={<ReviewsSkeleton />}>
         <ProductReviews productId={params.id} />
@@ -141,7 +141,7 @@ export async function generateStaticParams() {
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
   const post = await getBlogPost(params.slug);
-  
+
   return (
     <article>
       <h1>{post.title}</h1>
@@ -157,18 +157,24 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 // lib/api-client.ts - 优化的API客户端
 class ApiClient {
   private baseURL: string;
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<
+    string,
+    { data: any; timestamp: number; ttl: number }
+  >();
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
   }
 
   // 带缓存的GET请求
-  async get<T>(endpoint: string, options: {
-    cache?: boolean;
-    ttl?: number;
-    revalidate?: boolean;
-  } = {}): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    options: {
+      cache?: boolean;
+      ttl?: number;
+      revalidate?: boolean;
+    } = {}
+  ): Promise<T> {
     const { cache = true, ttl = 5 * 60 * 1000, revalidate = false } = options;
     const cacheKey = `${this.baseURL}${endpoint}`;
 
@@ -196,7 +202,7 @@ class ApiClient {
         this.cache.set(cacheKey, {
           data,
           timestamp: Date.now(),
-          ttl
+          ttl,
         });
       }
 
@@ -241,7 +247,9 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(process.env.NEXT_PUBLIC_API_BASE_URL || '');
+export const apiClient = new ApiClient(
+  process.env.NEXT_PUBLIC_API_BASE_URL || ''
+);
 ```
 
 ### 数据获取Hook封装
@@ -260,17 +268,14 @@ interface UseApiOptions<T> {
   onError?: (error: Error) => void;
 }
 
-export function useApi<T>(
-  endpoint: string,
-  options: UseApiOptions<T> = {}
-) {
+export function useApi<T>(endpoint: string, options: UseApiOptions<T> = {}) {
   const {
     enabled = true,
     staleTime = 5 * 60 * 1000,
     cacheTime = 10 * 60 * 1000,
     retry = 3,
     onSuccess,
-    onError
+    onError,
   } = options;
 
   return useQuery({
@@ -292,18 +297,19 @@ export function usePaginatedApi<T>(
   limit: number = 10
 ) {
   const queryKey = [endpoint, 'paginated', page, limit];
-  
+
   return useQuery({
     queryKey,
-    queryFn: () => apiClient.get<{
-      data: T[];
-      meta: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>(`${endpoint}?page=${page}&limit=${limit}`),
+    queryFn: () =>
+      apiClient.get<{
+        data: T[];
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>(`${endpoint}?page=${page}&limit=${limit}`),
     keepPreviousData: true, // 保持上一页数据，避免闪烁
     staleTime: 2 * 60 * 1000, // 2分钟
   });
@@ -318,7 +324,7 @@ export function useInfiniteApi<T>(endpoint: string, limit: number = 10) {
         data: T[];
         meta: { page: number; hasMore: boolean };
       }>(`${endpoint}?page=${pageParam}&limit=${limit}`),
-    getNextPageParam: (lastPage) =>
+    getNextPageParam: lastPage =>
       lastPage.meta.hasMore ? lastPage.meta.page + 1 : undefined,
     staleTime: 5 * 60 * 1000,
   });
@@ -388,7 +394,7 @@ export function ProductList({ initialProducts, initialCategories }: ProductListP
 
   // 获取分页商品数据
   const { data: productsResponse, isLoading, error } = usePaginatedApi<Product>(
-    selectedCategory 
+    selectedCategory
       ? `/api/products?category=${selectedCategory}`
       : '/api/products',
     currentPage,
@@ -509,7 +515,12 @@ export function ReactQueryProvider({ children }: { children: React.ReactNode }) 
 
 ```typescript
 // hooks/useProducts.ts - 商品相关查询Hook
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { Product, ProductFilters } from '@/types';
 import { apiClient } from '@/lib/api-client';
 
@@ -527,12 +538,13 @@ export const productKeys = {
 export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: productKeys.list(filters),
-    queryFn: () => apiClient.get<{
-      data: Product[];
-      meta: PaginationMeta;
-    }>('/api/products', { params: filters }),
+    queryFn: () =>
+      apiClient.get<{
+        data: Product[];
+        meta: PaginationMeta;
+      }>('/api/products', { params: filters }),
     staleTime: 2 * 60 * 1000, // 商品列表2分钟内有效
-    select: (data) => ({
+    select: data => ({
       products: data.data,
       pagination: data.meta,
     }),
@@ -563,7 +575,8 @@ export function useProductSearch(query: string, delay: number = 300) {
 
   return useQuery({
     queryKey: productKeys.search(debouncedQuery),
-    queryFn: () => apiClient.get<Product[]>(`/api/products/search?q=${debouncedQuery}`),
+    queryFn: () =>
+      apiClient.get<Product[]>(`/api/products/search?q=${debouncedQuery}`),
     enabled: debouncedQuery.length >= 2, // 至少2个字符才搜索
     staleTime: 5 * 60 * 1000,
   });
@@ -578,12 +591,12 @@ export function useInfiniteProducts(filters: ProductFilters = {}) {
         data: Product[];
         meta: PaginationMeta & { hasMore: boolean };
       }>('/api/products', {
-        params: { ...filters, page: pageParam, limit: 20 }
+        params: { ...filters, page: pageParam, limit: 20 },
       }),
-    getNextPageParam: (lastPage) =>
+    getNextPageParam: lastPage =>
       lastPage.meta.hasMore ? lastPage.meta.page + 1 : undefined,
     staleTime: 5 * 60 * 1000,
-    select: (data) => ({
+    select: data => ({
       pages: data.pages,
       products: data.pages.flatMap(page => page.data),
       hasNextPage: data.pages[data.pages.length - 1]?.meta.hasMore ?? false,
@@ -599,18 +612,15 @@ export function useProductMutations() {
   const createProduct = useMutation({
     mutationFn: (productData: Omit<Product, 'id'>) =>
       apiClient.post<Product>('/api/products', productData),
-    onSuccess: (newProduct) => {
+    onSuccess: newProduct => {
       // 更新商品列表缓存
-      queryClient.setQueryData(
-        productKeys.lists(),
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: [newProduct, ...oldData.data],
-          };
-        }
-      );
+      queryClient.setQueryData(productKeys.lists(), (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: [newProduct, ...oldData.data],
+        };
+      });
 
       // 使相关查询失效
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
@@ -621,7 +631,7 @@ export function useProductMutations() {
   const updateProduct = useMutation({
     mutationFn: ({ id, ...productData }: Partial<Product> & { id: number }) =>
       apiClient.put<Product>(`/api/products/${id}`, productData),
-    onSuccess: (updatedProduct) => {
+    onSuccess: updatedProduct => {
       // 更新商品详情缓存
       queryClient.setQueryData(
         productKeys.detail(updatedProduct.id),
@@ -629,18 +639,15 @@ export function useProductMutations() {
       );
 
       // 更新商品列表缓存
-      queryClient.setQueryData(
-        productKeys.lists(),
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.map((product: Product) =>
-              product.id === updatedProduct.id ? updatedProduct : product
-            ),
-          };
-        }
-      );
+      queryClient.setQueryData(productKeys.lists(), (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((product: Product) =>
+            product.id === updatedProduct.id ? updatedProduct : product
+          ),
+        };
+      });
     },
   });
 
@@ -659,7 +666,13 @@ export function useOptimisticProductUpdate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: number; updates: Partial<Product> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: number;
+      updates: Partial<Product>;
+    }) => {
       // 模拟网络延迟
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -680,10 +693,13 @@ export function useOptimisticProductUpdate() {
       const previousProduct = queryClient.getQueryData(productKeys.detail(id));
 
       // 乐观更新数据
-      queryClient.setQueryData(productKeys.detail(id), (old: Product | undefined) => {
-        if (!old) return old;
-        return { ...old, ...updates };
-      });
+      queryClient.setQueryData(
+        productKeys.detail(id),
+        (old: Product | undefined) => {
+          if (!old) return old;
+          return { ...old, ...updates };
+        }
+      );
 
       // 返回上下文对象，包含回滚数据
       return { previousProduct, id };
@@ -699,7 +715,10 @@ export function useOptimisticProductUpdate() {
     onError: (error, { id }, context) => {
       // 回滚到之前的数据
       if (context?.previousProduct) {
-        queryClient.setQueryData(productKeys.detail(id), context.previousProduct);
+        queryClient.setQueryData(
+          productKeys.detail(id),
+          context.previousProduct
+        );
       }
 
       // 显示错误提示
@@ -727,9 +746,11 @@ export function useRealtimeProductUpdates() {
 
   useEffect(() => {
     // WebSocket连接
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001');
+    const ws = new WebSocket(
+      process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001'
+    );
 
-    ws.onmessage = (event) => {
+    ws.onmessage = event => {
       const message = JSON.parse(event.data);
 
       switch (message.type) {
@@ -747,7 +768,7 @@ export function useRealtimeProductUpdates() {
         case 'PRODUCT_DELETED':
           // 移除商品详情缓存
           queryClient.removeQueries({
-            queryKey: productKeys.detail(message.data.id)
+            queryKey: productKeys.detail(message.data.id),
           });
 
           // 使商品列表查询失效
@@ -761,7 +782,7 @@ export function useRealtimeProductUpdates() {
       }
     };
 
-    ws.onerror = (error) => {
+    ws.onerror = error => {
       console.error('WebSocket error:', error);
     };
 
@@ -778,7 +799,7 @@ export function useSSEUpdates() {
   useEffect(() => {
     const eventSource = new EventSource('/api/sse/products');
 
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = event => {
       const data = JSON.parse(event.data);
 
       // 根据事件类型更新缓存
@@ -805,7 +826,7 @@ export function useSSEUpdates() {
       }
     };
 
-    eventSource.onerror = (error) => {
+    eventSource.onerror = error => {
       console.error('SSE error:', error);
     };
 
@@ -845,10 +866,14 @@ class CacheManager {
   }
 
   // 内存缓存
-  async setMemory(key: string, data: any, ttl: number = 5 * 60 * 1000): Promise<void> {
+  async setMemory(
+    key: string,
+    data: any,
+    ttl: number = 5 * 60 * 1000
+  ): Promise<void> {
     this.memoryCache.set(key, {
       data,
-      expires: Date.now() + ttl
+      expires: Date.now() + ttl,
     });
   }
 
@@ -870,7 +895,7 @@ class CacheManager {
 
     const item = {
       data,
-      expires: ttl ? Date.now() + ttl : null
+      expires: ttl ? Date.now() + ttl : null,
     };
 
     try {
@@ -911,8 +936,8 @@ export const cacheManager = new CacheManager({
     localStorage: true,
     sessionStorage: false,
     indexedDB: true,
-    serviceWorker: false
-  }
+    serviceWorker: false,
+  },
 });
 ```
 
@@ -1049,7 +1074,7 @@ const libraries: DataFetchingLibrary[] = [
     optimisticUpdates: true,
     infiniteQueries: true,
     suspense: true,
-    ecosystem: 'rich'
+    ecosystem: 'rich',
   },
   {
     name: 'SWR',
@@ -1061,7 +1086,7 @@ const libraries: DataFetchingLibrary[] = [
     optimisticUpdates: true,
     infiniteQueries: true,
     suspense: true,
-    ecosystem: 'growing'
+    ecosystem: 'growing',
   },
   {
     name: 'Apollo Client',
@@ -1073,8 +1098,8 @@ const libraries: DataFetchingLibrary[] = [
     optimisticUpdates: true,
     infiniteQueries: false,
     suspense: true,
-    ecosystem: 'rich'
-  }
+    ecosystem: 'rich',
+  },
 ];
 
 // 使用场景对比
@@ -1082,20 +1107,20 @@ const useCaseComparison = {
   'React Query': {
     bestFor: 'REST API, 复杂缓存需求, 企业级应用',
     pros: ['强大的缓存机制', '丰富的配置选项', '优秀的开发体验'],
-    cons: ['包体积较大', '学习曲线陡峭']
+    cons: ['包体积较大', '学习曲线陡峭'],
   },
 
-  'SWR': {
+  SWR: {
     bestFor: '简单应用, 快速原型, 包体积敏感',
     pros: ['轻量级', '简单易用', 'Vercel官方支持'],
-    cons: ['功能相对简单', '生态系统较小']
+    cons: ['功能相对简单', '生态系统较小'],
   },
 
   'Apollo Client': {
     bestFor: 'GraphQL应用, 复杂状态管理',
     pros: ['GraphQL原生支持', '强大的缓存', '丰富的功能'],
-    cons: ['包体积最大', '仅适用于GraphQL']
-  }
+    cons: ['包体积最大', '仅适用于GraphQL'],
+  },
 };
 ```
 
@@ -1113,7 +1138,7 @@ const cacheArchitecture = {
     ttl: '5分钟',
     size: '50MB',
     hitRate: '90%',
-    useCase: '热点数据, 计算结果'
+    useCase: '热点数据, 计算结果',
   },
 
   // L2: 浏览器缓存
@@ -1121,43 +1146,43 @@ const cacheArchitecture = {
     localStorage: {
       ttl: '1天',
       size: '5-10MB',
-      useCase: '用户偏好, 配置信息'
+      useCase: '用户偏好, 配置信息',
     },
     sessionStorage: {
       ttl: '会话期间',
       size: '5-10MB',
-      useCase: '临时数据, 表单状态'
+      useCase: '临时数据, 表单状态',
     },
     indexedDB: {
       ttl: '1周',
       size: '50MB+',
-      useCase: '大量数据, 离线支持'
-    }
+      useCase: '大量数据, 离线支持',
+    },
   },
 
   // L3: HTTP缓存
   http: {
     browserCache: {
       ttl: '1小时',
-      useCase: '静态资源, API响应'
+      useCase: '静态资源, API响应',
     },
     cdn: {
       ttl: '1天',
-      useCase: '图片, CSS, JS文件'
-    }
+      useCase: '图片, CSS, JS文件',
+    },
   },
 
   // L4: 服务端缓存
   server: {
     redis: {
       ttl: '1小时',
-      useCase: '数据库查询结果, 会话数据'
+      useCase: '数据库查询结果, 会话数据',
     },
     memcached: {
       ttl: '30分钟',
-      useCase: '计算密集型结果'
-    }
-  }
+      useCase: '计算密集型结果',
+    },
+  },
 };
 
 // 缓存策略模式
@@ -1167,7 +1192,7 @@ const cacheStrategies = {
     useCase: '静态内容, 不经常变化的数据',
     implementation: `
       const data = await cache.get(key) || await fetch(url);
-    `
+    `,
   },
 
   'Network-First': {
@@ -1181,7 +1206,7 @@ const cacheStrategies = {
       } catch {
         return cache.get(key);
       }
-    `
+    `,
   },
 
   'Stale-While-Revalidate': {
@@ -1194,8 +1219,8 @@ const cacheStrategies = {
         return cachedData;
       }
       return fetch(url);
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -1311,6 +1336,7 @@ export function useDebouncedQuery<T>(
 **任务**: 为Mall-Frontend实现一个智能的多层缓存系统，包括内存、localStorage、IndexedDB三层缓存。
 
 **要求**:
+
 - 实现缓存优先级和回退机制
 - 支持缓存过期和自动清理
 - 提供缓存命中率统计
@@ -1321,6 +1347,7 @@ export function useDebouncedQuery<T>(
 **任务**: 优化商品列表页面的加载性能，实现虚拟滚动、图片懒加载、数据预加载等功能。
 
 **要求**:
+
 - 使用react-window实现虚拟滚动
 - 实现图片懒加载和渐进式加载
 - 添加骨架屏和加载状态
@@ -1331,6 +1358,7 @@ export function useDebouncedQuery<T>(
 **任务**: 实现商品库存的实时同步，当库存发生变化时自动更新所有相关页面。
 
 **要求**:
+
 - 使用WebSocket或SSE实现实时通信
 - 实现乐观更新和错误回滚
 - 添加离线状态检测和数据同步
@@ -1379,4 +1407,4 @@ export function useDebouncedQuery<T>(
 
 ---
 
-*下一章我们将学习《前端架构设计原则》，探索大型项目的架构设计！* 🚀
+_下一章我们将学习《前端架构设计原则》，探索大型项目的架构设计！_ 🚀

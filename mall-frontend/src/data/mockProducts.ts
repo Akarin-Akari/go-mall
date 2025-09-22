@@ -5,7 +5,8 @@ export const mockProducts: Product[] = [
   {
     id: 1,
     name: 'iPhone 15 Pro Max 256GB 深空黑色',
-    description: '搭载A17 Pro芯片，支持5G网络，拥有强大的摄影系统和超长续航能力。',
+    description:
+      '搭载A17 Pro芯片，支持5G网络，拥有强大的摄影系统和超长续航能力。',
     price: '9999.00',
     discount_price: '8999.00',
     stock: 50,
@@ -13,7 +14,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',
-      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
     ],
     rating: 4.8,
     sales_count: 1250,
@@ -23,7 +24,8 @@ export const mockProducts: Product[] = [
   {
     id: 2,
     name: 'MacBook Pro 14英寸 M3芯片',
-    description: '全新M3芯片，14英寸Liquid Retina XDR显示屏，专业级性能，适合创意工作者。',
+    description:
+      '全新M3芯片，14英寸Liquid Retina XDR显示屏，专业级性能，适合创意工作者。',
     price: '14999.00',
     discount_price: '13999.00',
     stock: 30,
@@ -31,7 +33,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400'
+      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400',
     ],
     rating: 4.9,
     sales_count: 856,
@@ -49,7 +51,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400'
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400',
     ],
     rating: 4.6,
     sales_count: 2340,
@@ -67,7 +69,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400'
+      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400',
     ],
     rating: 4.7,
     sales_count: 1890,
@@ -85,7 +87,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
     ],
     rating: 4.5,
     sales_count: 456,
@@ -103,7 +105,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=400'
+      'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=400',
     ],
     rating: 4.4,
     sales_count: 1123,
@@ -121,7 +123,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400',
-      'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400'
+      'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
     ],
     rating: 4.8,
     sales_count: 567,
@@ -139,7 +141,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-      'https://images.unsplash.com/photo-1622260614153-03223fb72052?w=400'
+      'https://images.unsplash.com/photo-1622260614153-03223fb72052?w=400',
     ],
     rating: 4.6,
     sales_count: 789,
@@ -157,7 +159,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400'
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400',
     ],
     rating: 4.9,
     sales_count: 1456,
@@ -166,7 +168,7 @@ export const mockProducts: Product[] = [
   },
   {
     id: 10,
-    name: 'Levi\'s 501 经典牛仔裤',
+    name: "Levi's 501 经典牛仔裤",
     description: '经典直筒版型，优质丹宁面料，百搭时尚，经久耐穿。',
     price: '699.00',
     discount_price: '549.00',
@@ -175,7 +177,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400',
-      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400'
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400',
     ],
     rating: 4.5,
     sales_count: 2890,
@@ -193,7 +195,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
-      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400'
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',
     ],
     rating: 4.7,
     sales_count: 678,
@@ -211,7 +213,7 @@ export const mockProducts: Product[] = [
     status: 'active',
     images: [
       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400'
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
     ],
     rating: 4.3,
     sales_count: 1234,
@@ -247,59 +249,69 @@ export const getPagedProducts = (
   // 关键词搜索
   if (filters.keyword) {
     const keyword = filters.keyword.toLowerCase();
-    filteredProducts = filteredProducts.filter(product =>
-      product.name.toLowerCase().includes(keyword) ||
-      product.description.toLowerCase().includes(keyword)
+    filteredProducts = filteredProducts.filter(
+      product =>
+        product.name.toLowerCase().includes(keyword) ||
+        product.description.toLowerCase().includes(keyword)
     );
   }
 
   // 分类筛选
   if (filters.categoryId) {
-    filteredProducts = filteredProducts.filter(product =>
-      product.category_id === filters.categoryId
+    filteredProducts = filteredProducts.filter(
+      product => product.category_id === filters.categoryId
     );
   }
 
   // 价格筛选
   if (filters.minPrice !== undefined) {
-    filteredProducts = filteredProducts.filter(product =>
-      parseFloat(product.discount_price || product.price) >= filters.minPrice!
+    filteredProducts = filteredProducts.filter(
+      product =>
+        parseFloat(product.discount_price || product.price) >= filters.minPrice!
     );
   }
   if (filters.maxPrice !== undefined) {
-    filteredProducts = filteredProducts.filter(product =>
-      parseFloat(product.discount_price || product.price) <= filters.maxPrice!
+    filteredProducts = filteredProducts.filter(
+      product =>
+        parseFloat(product.discount_price || product.price) <= filters.maxPrice!
     );
   }
 
   // 评分筛选
   if (filters.minRating) {
-    filteredProducts = filteredProducts.filter(product =>
-      (product.rating || 0) >= filters.minRating!
+    filteredProducts = filteredProducts.filter(
+      product => (product.rating || 0) >= filters.minRating!
     );
   }
 
   // 排序
   switch (filters.sortBy) {
     case 'price_asc':
-      filteredProducts.sort((a, b) =>
-        parseFloat(a.discount_price || a.price) - parseFloat(b.discount_price || b.price)
+      filteredProducts.sort(
+        (a, b) =>
+          parseFloat(a.discount_price || a.price) -
+          parseFloat(b.discount_price || b.price)
       );
       break;
     case 'price_desc':
-      filteredProducts.sort((a, b) =>
-        parseFloat(b.discount_price || b.price) - parseFloat(a.discount_price || a.price)
+      filteredProducts.sort(
+        (a, b) =>
+          parseFloat(b.discount_price || b.price) -
+          parseFloat(a.discount_price || a.price)
       );
       break;
     case 'sales_desc':
-      filteredProducts.sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0));
+      filteredProducts.sort(
+        (a, b) => (b.sales_count || 0) - (a.sales_count || 0)
+      );
       break;
     case 'rating_desc':
       filteredProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       break;
     case 'created_desc':
-      filteredProducts.sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      filteredProducts.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       break;
     default:

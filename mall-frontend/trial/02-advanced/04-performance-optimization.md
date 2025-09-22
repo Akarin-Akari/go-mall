@@ -1,6 +1,6 @@
 # 第4章：React性能优化技巧 ⚡
 
-> *"性能优化不是过早优化，而是在正确的时机做正确的事情！"* 🎯
+> _"性能优化不是过早优化，而是在正确的时机做正确的事情！"_ 🎯
 
 ## 📚 本章导览
 
@@ -78,7 +78,7 @@ const ProductCard = ({ product, onAddToCart, onToggleFavorite }: ProductCardProp
 // ✅ 正确：使用memo优化
 const OptimizedProductCard = memo(({ product, onAddToCart, onToggleFavorite }: ProductCardProps) => {
   console.log('ProductCard渲染:', product.name);
-  
+
   return (
     <div className="product-card">
       <img src={product.images[0]} alt={product.name} />
@@ -125,7 +125,7 @@ function ProductList() {
   };
 
   const handleToggleFavorite = (productId: number) => {
-    setProducts(prev => prev.map(p => 
+    setProducts(prev => prev.map(p =>
       p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
     ));
   };
@@ -155,7 +155,7 @@ function OptimizedProductList() {
   }, []);
 
   const handleToggleFavorite = useCallback((productId: number) => {
-    setProducts(prev => prev.map(p => 
+    setProducts(prev => prev.map(p =>
       p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
     ));
   }, []);
@@ -184,29 +184,29 @@ import { useMemo, useState, useCallback } from 'react';
 function useProductFiltering(products: Product[], filters: ProductFilters) {
   const filteredProducts = useMemo(() => {
     console.log('执行产品过滤计算...');
-    
+
     return products.filter(product => {
       // 分类过滤
       if (filters.category && product.category !== filters.category) {
         return false;
       }
-      
+
       // 价格范围过滤
       const price = parseFloat(product.price);
       if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
         return false;
       }
-      
+
       // 评分过滤
       if (product.rating < filters.rating) {
         return false;
       }
-      
+
       // 搜索关键词过滤
       if (filters.search && !product.name.toLowerCase().includes(filters.search.toLowerCase())) {
         return false;
       }
-      
+
       return true;
     }).sort((a, b) => {
       // 排序逻辑
@@ -274,7 +274,7 @@ function useCartCalculations(cartItems: CartItem[]) {
   // 分组信息
   const groupedItems = useMemo(() => {
     const groups: Record<string, CartItem[]> = {};
-    
+
     cartItems.forEach(item => {
       const category = item.product.category;
       if (!groups[category]) {
@@ -384,7 +384,7 @@ function ProductPageBad({ productId }: { productId: number }) {
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // 大量的useEffect和业务逻辑...
-  
+
   return (
     <div className="product-page">
       {/* 大量的JSX... */}
@@ -423,7 +423,7 @@ const ProductHeader = memo(({ productId }: { productId: number }) => {
 // 产品详情组件
 const ProductDetails = memo(({ productId }: { productId: number }) => {
   const { data: product } = useProduct(productId);
-  
+
   if (!product) return null;
 
   return (
@@ -803,7 +803,10 @@ function useChunkedData<T>(data: T[], chunkSize: number = 1000) {
       setCurrentChunkIndex(prev => prev + 1);
 
       // 如果还有时间且还有数据要处理，继续处理
-      if (deadline.timeRemaining() > 0 && currentChunkIndex + 1 < Math.ceil(data.length / chunkSize)) {
+      if (
+        deadline.timeRemaining() > 0 &&
+        currentChunkIndex + 1 < Math.ceil(data.length / chunkSize)
+      ) {
         processChunk(deadline);
       } else {
         // 安排下一次处理
@@ -1127,7 +1130,8 @@ function useEventListener<T extends keyof WindowEventMap>(
   }, [handler]);
 
   useEffect(() => {
-    const eventListener = (event: WindowEventMap[T]) => savedHandler.current(event);
+    const eventListener = (event: WindowEventMap[T]) =>
+      savedHandler.current(event);
 
     element.addEventListener(eventName, eventListener as EventListener);
 
@@ -1415,7 +1419,10 @@ const ResponsiveImage = memo(({
 class RequestDeduplicator {
   private static pendingRequests = new Map<string, Promise<any>>();
 
-  static async request<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
+  static async request<T>(
+    key: string,
+    requestFn: () => Promise<T>
+  ): Promise<T> {
     if (this.pendingRequests.has(key)) {
       return this.pendingRequests.get(key)!;
     }
@@ -1431,7 +1438,10 @@ class RequestDeduplicator {
 
 // 2. 请求缓存
 class RequestCache {
-  private static cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private static cache = new Map<
+    string,
+    { data: any; timestamp: number; ttl: number }
+  >();
 
   static set(key: string, data: any, ttl: number = 5 * 60 * 1000) {
     this.cache.set(key, {
@@ -1503,7 +1513,9 @@ function useSmartRequest<T>(
         return result;
       } catch (err) {
         if (attempt < retry) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+          await new Promise(resolve =>
+            setTimeout(resolve, retryDelay * attempt)
+          );
           return executeRequest(attempt + 1);
         }
 
@@ -1522,10 +1534,13 @@ function useSmartRequest<T>(
 
 // 4. 批量请求优化
 class BatchRequestManager {
-  private static batches = new Map<string, {
-    requests: Array<{ resolve: Function; reject: Function; params: any }>;
-    timer: NodeJS.Timeout;
-  }>();
+  private static batches = new Map<
+    string,
+    {
+      requests: Array<{ resolve: Function; reject: Function; params: any }>;
+      timer: NodeJS.Timeout;
+    }
+  >();
 
   static addToBatch<T>(
     batchKey: string,
@@ -1650,12 +1665,7 @@ const PerformanceChecklist = {
     '使用Web Worker处理大数据',
   ],
 
-  network: [
-    '实现请求缓存',
-    '使用请求去重',
-    '批量API调用',
-    '预加载数据',
-  ],
+  network: ['实现请求缓存', '使用请求去重', '批量API调用', '预加载数据'],
 };
 ```
 
@@ -1684,9 +1694,9 @@ const memoizedCallback = useMemo(() => {
 
 **使用场景：**
 
-| Hook | 使用场景 | 示例 |
-|------|----------|------|
-| **useMemo** | 缓存复杂计算结果 | 过滤/排序大数组 |
+| Hook            | 使用场景         | 示例               |
+| --------------- | ---------------- | ------------------ |
+| **useMemo**     | 缓存复杂计算结果 | 过滤/排序大数组    |
 | **useCallback** | 缓存事件处理函数 | 传递给子组件的回调 |
 
 ### 3. 虚拟滚动的原理
@@ -1772,6 +1782,8 @@ function VirtualList({ items, itemHeight, containerHeight }) {
 
 ---
 
-*下一章我们将进入实战篇，学习《Next.js框架基础与SSR/SSG应用》！* 🚀
+_下一章我们将进入实战篇，学习《Next.js框架基础与SSR/SSG应用》！_ 🚀
+
 ```
+
 ```

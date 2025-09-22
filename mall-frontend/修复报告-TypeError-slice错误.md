@@ -3,18 +3,24 @@
 ## 🔍 问题诊断
 
 ### 原始错误
+
 - **错误类型**: TypeError
 - **错误信息**: "Cannot read properties of undefined (reading 'slice')"
 - **错误位置**: Home组件 (`src/app/page.tsx`)
 - **触发条件**: 首页渲染时尝试对undefined变量调用.slice()方法
 
 ### 问题分析
+
 1. **错误的Redux选择器使用**:
+
    ```typescript
    // 错误的用法
-   const { products, loading: productsLoading } = useAppSelector(selectProducts);
-   const { categories, loading: categoriesLoading } = useAppSelector(selectCategories);
+   const { products, loading: productsLoading } =
+     useAppSelector(selectProducts);
+   const { categories, loading: categoriesLoading } =
+     useAppSelector(selectCategories);
    ```
+
    - `selectProducts` 和 `selectCategories` 返回的是数组，不是对象
    - 尝试从数组中解构 `loading` 属性导致 `products` 和 `categories` 变成 `undefined`
 
@@ -30,22 +36,28 @@
 ### 1. 修复Redux选择器使用
 
 #### 修改前:
+
 ```typescript
 const { products, loading: productsLoading } = useAppSelector(selectProducts);
-const { categories, loading: categoriesLoading } = useAppSelector(selectCategories);
+const { categories, loading: categoriesLoading } =
+  useAppSelector(selectCategories);
 ```
 
 #### 修改后:
+
 ```typescript
 const products = useAppSelector(selectProducts) || [];
 const categories = useAppSelector(selectCategories) || [];
 const productsLoading = useAppSelector(selectProductLoading);
-const categoriesLoading = useAppSelector((state) => state.product.categoriesLoading);
+const categoriesLoading = useAppSelector(
+  state => state.product.categoriesLoading
+);
 ```
 
 ### 2. 添加防御性编程
 
 #### 修改前:
+
 ```typescript
 useEffect(() => {
   if (products.length > 0) {
@@ -57,6 +69,7 @@ useEffect(() => {
 ```
 
 #### 修改后:
+
 ```typescript
 useEffect(() => {
   if (products && Array.isArray(products) && products.length > 0) {
@@ -73,6 +86,7 @@ useEffect(() => {
 ```
 
 #### 分类数据的安全访问:
+
 ```typescript
 // 修改前
 categories={categories.slice(0, 6)}
@@ -84,6 +98,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ### 3. 修复Redux Reducer的安全性
 
 #### 修改前:
+
 ```typescript
 .addCase(fetchProductsAsync.fulfilled, (state, action) => {
   state.loading = false;
@@ -93,6 +108,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ```
 
 #### 修改后:
+
 ```typescript
 .addCase(fetchProductsAsync.fulfilled, (state, action) => {
   state.loading = false;
@@ -102,6 +118,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ```
 
 #### 分类数据的安全处理:
+
 ```typescript
 .addCase(fetchCategoriesAsync.fulfilled, (state, action) => {
   state.categoriesLoading = false;
@@ -112,6 +129,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ## ✅ 修复结果
 
 ### 修复的文件列表:
+
 1. **`src/app/page.tsx`** - 主要修复文件
    - ✅ 修复Redux选择器使用错误
    - ✅ 添加数组存在性检查
@@ -123,6 +141,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
    - ✅ 确保状态始终为有效数组
 
 ### 修复特性:
+
 - ✅ **类型安全**: 所有数组操作都有类型和存在性检查
 - ✅ **防御性编程**: 处理undefined、null和异常API响应
 - ✅ **优雅降级**: 数据不可用时显示空状态而不是崩溃
@@ -131,6 +150,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ## 🚀 验证方法
 
 ### 启动测试:
+
 ```bash
 # 进入前端目录
 cd mall-frontend
@@ -145,6 +165,7 @@ npm run dev
 ```
 
 ### 功能测试:
+
 1. **首页加载**: 无"Cannot read properties of undefined"错误
 2. **数据显示**: 商品和分类正常显示
 3. **加载状态**: Loading状态正确显示
@@ -155,6 +176,7 @@ npm run dev
 ### 关键修复点:
 
 #### 1. 正确的Redux选择器使用:
+
 ```typescript
 // 直接获取数组，添加默认值
 const products = useAppSelector(selectProducts) || [];
@@ -162,10 +184,13 @@ const categories = useAppSelector(selectCategories) || [];
 
 // 分别获取loading状态
 const productsLoading = useAppSelector(selectProductLoading);
-const categoriesLoading = useAppSelector((state) => state.product.categoriesLoading);
+const categoriesLoading = useAppSelector(
+  state => state.product.categoriesLoading
+);
 ```
 
 #### 2. 安全的数组操作:
+
 ```typescript
 // 检查数组存在性和类型
 if (products && Array.isArray(products) && products.length > 0) {
@@ -177,6 +202,7 @@ categories={categories && Array.isArray(categories) ? categories.slice(0, 6) : [
 ```
 
 #### 3. Redux状态的null安全:
+
 ```typescript
 // 使用可选链和默认值
 state.products = action.payload?.list || [];
@@ -197,11 +223,13 @@ state.categories = action.payload || [];
 为防止类似问题再次发生:
 
 1. **统一的数组检查模式**:
+
    ```typescript
    const safeArray = arrayData && Array.isArray(arrayData) ? arrayData : [];
    ```
 
 2. **Redux选择器的默认值**:
+
    ```typescript
    const data = useAppSelector(selector) || defaultValue;
    ```

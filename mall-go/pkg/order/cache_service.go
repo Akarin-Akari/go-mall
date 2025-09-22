@@ -8,8 +8,9 @@ import (
 
 	"mall-go/internal/model"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 // CacheService 订单缓存服务
@@ -98,6 +99,11 @@ func (cs *CacheService) GetOrderByNoWithCache(orderNo string) (*model.Order, err
 
 // GetUserOrdersWithCache 获取用户订单列表（带缓存）
 func (cs *CacheService) GetUserOrdersWithCache(userID uint, status string, page, pageSize int) ([]*model.Order, int64, error) {
+	// 如果Redis不可用，直接从数据库获取
+	if cs.rdb == nil {
+		return cs.getUserOrdersFromDB(userID, status, page, pageSize)
+	}
+
 	cacheKey := cs.getUserOrdersCacheKey(userID, status, page, pageSize)
 
 	// 尝试从缓存获取
@@ -112,8 +118,10 @@ func (cs *CacheService) GetUserOrdersWithCache(userID uint, status string, page,
 		return nil, 0, err
 	}
 
-	// 异步更新缓存
-	go cs.updateUserOrdersCache(cacheKey, orders, total)
+	// 异步更新缓存（仅在Redis可用时）
+	if cs.rdb != nil {
+		go cs.updateUserOrdersCache(cacheKey, orders, total)
+	}
 
 	return orders, total, nil
 }
@@ -235,6 +243,11 @@ func (cs *CacheService) getOrderLockKey(orderID uint) string {
 
 // getOrderFromCache 从缓存获取订单
 func (cs *CacheService) getOrderFromCache(cacheKey string) (*OrderCacheData, error) {
+	// 如果Redis不可用，返回缓存未命中
+	if cs.rdb == nil {
+		return nil, fmt.Errorf("cache not available")
+	}
+
 	data, err := cs.rdb.Get(cs.ctx, cacheKey).Result()
 	if err != nil {
 		return nil, err
@@ -266,6 +279,11 @@ func (cs *CacheService) updateOrderCache(cacheKey string, order *model.Order) {
 
 // getUserOrdersFromCache 从缓存获取用户订单列表
 func (cs *CacheService) getUserOrdersFromCache(cacheKey string) (*UserOrdersCacheData, error) {
+	// 如果Redis不可用，返回缓存未命中
+	if cs.rdb == nil {
+		return nil, fmt.Errorf("cache not available")
+	}
+
 	data, err := cs.rdb.Get(cs.ctx, cacheKey).Result()
 	if err != nil {
 		return nil, err
@@ -322,50 +340,98 @@ func (cs *CacheService) updateOrderStatsCache(cacheKey string, stats *model.Orde
 
 // getOrderFromDB 从数据库获取订单
 func (cs *CacheService) getOrderFromDB(orderID uint) (*model.Order, error) {
-	// 这里应该调用订单服务的方法
-	// 为了简化，直接返回模拟数据
-	return &model.Order{
-		ID:      orderID,
-		OrderNo: fmt.Sprintf("ORD%d", orderID),
-		Status:  model.OrderStatusPending,
-	}, nil
+	var order model.Order
+	err := cs.orderService.db.Preload("OrderItems.Product").
+		Preload("OrderItems.SKU").
+		First(&order, orderID).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("订单不存在")
+		}
+		return nil, fmt.Errorf("查询订单失败: %v", err)
+	}
+	return &order, nil
 }
 
 // getOrderByNoFromDB 从数据库根据订单号获取订单
 func (cs *CacheService) getOrderByNoFromDB(orderNo string) (*model.Order, error) {
-	// 这里应该调用订单服务的方法
-	return &model.Order{
-		OrderNo: orderNo,
-		Status:  model.OrderStatusPending,
-	}, nil
+	var order model.Order
+	err := cs.orderService.db.Preload("OrderItems.Product").
+		Preload("OrderItems.SKU").
+		Where("order_no = ?", orderNo).
+		First(&order).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("订单不存在")
+		}
+		return nil, fmt.Errorf("查询订单失败: %v", err)
+	}
+	return &order, nil
 }
 
 // getUserOrdersFromDB 从数据库获取用户订单列表
 func (cs *CacheService) getUserOrdersFromDB(userID uint, status string, page, pageSize int) ([]*model.Order, int64, error) {
-	// 这里应该调用订单服务的方法
-	orders := []*model.Order{
-		{
-			ID:     1,
-			UserID: userID,
-			Status: status,
-		},
+	var orders []*model.Order
+	var total int64
+
+	// 构建查询条件
+	query := cs.orderService.db.Model(&model.Order{}).Where("user_id = ?", userID)
+
+	// 如果指定了状态，添加状态过滤
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
 	}
-	return orders, 1, nil
+
+	// 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("查询订单总数失败: %v", err)
+	}
+
+	// 分页查询订单列表
+	offset := (page - 1) * pageSize
+	err := query.Preload("OrderItems.Product").
+		Preload("OrderItems.SKU").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&orders).Error
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("查询订单列表失败: %v", err)
+	}
+
+	return orders, total, nil
 }
 
 // getOrderStatsFromDB 从数据库获取订单统计
 func (cs *CacheService) getOrderStatsFromDB() (*model.OrderStatisticsResponse, error) {
-	// 这里应该调用订单服务的方法
-	return &model.OrderStatisticsResponse{
-		TotalOrders:     100,
-		PendingOrders:   10,
-		PaidOrders:      20,
-		ShippedOrders:   30,
-		CompletedOrders: 40,
-		TotalAmount:     decimal.NewFromFloat(10000.0),
-		TodayOrders:     5,
-		TodayAmount:     decimal.NewFromFloat(500.0),
-	}, nil
+	stats := &model.OrderStatisticsResponse{}
+
+	// 查询总订单数
+	if err := cs.orderService.db.Model(&model.Order{}).Count(&stats.TotalOrders).Error; err != nil {
+		return nil, fmt.Errorf("查询总订单数失败: %v", err)
+	}
+
+	// 查询各状态订单数
+	cs.orderService.db.Model(&model.Order{}).Where("status = ?", model.OrderStatusPending).Count(&stats.PendingOrders)
+	cs.orderService.db.Model(&model.Order{}).Where("status = ?", model.OrderStatusPaid).Count(&stats.PaidOrders)
+	cs.orderService.db.Model(&model.Order{}).Where("status = ?", model.OrderStatusShipped).Count(&stats.ShippedOrders)
+	cs.orderService.db.Model(&model.Order{}).Where("status = ?", model.OrderStatusCompleted).Count(&stats.CompletedOrders)
+
+	// 查询总金额
+	var totalAmount decimal.Decimal
+	cs.orderService.db.Model(&model.Order{}).Select("COALESCE(SUM(total_amount), 0)").Scan(&totalAmount)
+	stats.TotalAmount = totalAmount
+
+	// 查询今日订单数和金额
+	today := time.Now().Format("2006-01-02")
+	cs.orderService.db.Model(&model.Order{}).Where("DATE(created_at) = ?", today).Count(&stats.TodayOrders)
+
+	var todayAmount decimal.Decimal
+	cs.orderService.db.Model(&model.Order{}).Where("DATE(created_at) = ?", today).Select("COALESCE(SUM(total_amount), 0)").Scan(&todayAmount)
+	stats.TodayAmount = todayAmount
+
+	return stats, nil
 }
 
 // clearRelatedListCache 清除相关的列表缓存

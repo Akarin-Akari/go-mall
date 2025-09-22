@@ -7,6 +7,7 @@ import (
 	"mall-go/internal/model"
 	"mall-go/pkg/logger"
 	"mall-go/pkg/payment/alipay"
+	paymentconfig "mall-go/pkg/payment/config"
 	"mall-go/pkg/payment/wechat"
 
 	"go.uber.org/zap"
@@ -28,40 +29,46 @@ func NewService(db *gorm.DB, config *PaymentConfig) (*Service, error) {
 		configManager: NewConfigManager(db, config),
 	}
 
-	// TODO: 重新启用支付客户端初始化
+	// 初始化支付客户端 - 仅在配置完整时启用
 	// 初始化支付宝客户端
-	// if config.Alipay.Enabled {
-	// 	// 将PaymentConfig的AlipayConfig转换为config包的AlipayConfig
-	// 	alipayConfig := &config.AlipayConfig{
-	// 		AppID:        config.Alipay.AppID,
-	// 		PrivateKey:   config.Alipay.PrivateKey,
-	// 		PublicKey:    config.Alipay.PublicKey,
-	// 		SignType:     config.Alipay.SignType,
-	// 		Format:       config.Alipay.Format,
-	// 		Charset:      config.Alipay.Charset,
-	// 		GatewayURL:   config.Alipay.GatewayURL,
-	// 		Timeout:      config.Alipay.Timeout,
-	// 	}
-	// 	client, err := alipay.NewClient(alipayConfig)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("初始化支付宝客户端失败: %v", err)
-	// 	}
-	// 	service.alipayClient = client
-	// }
+	if config.Alipay.Enabled && config.Alipay.AppID != "" && config.Alipay.PrivateKey != "" {
+		// 将PaymentConfig的AlipayConfig转换为config包的AlipayConfig
+		alipayConfig := &paymentconfig.AlipayConfig{
+			AppID:        config.Alipay.AppID,
+			PrivateKey:   config.Alipay.PrivateKey,
+			PublicKey:    config.Alipay.PublicKey,
+			SignType:     config.Alipay.SignType,
+			Format:       config.Alipay.Format,
+			Charset:      config.Alipay.Charset,
+			GatewayURL:   config.Alipay.GatewayURL,
+			Timeout:      config.Alipay.Timeout,
+		}
+		client, err := alipay.NewClient(alipayConfig)
+		if err != nil {
+			return nil, fmt.Errorf("初始化支付宝客户端失败: %v", err)
+		}
+		service.alipayClient = client
+		logger.Info("支付宝客户端初始化成功")
+	} else {
+		logger.Info("支付宝客户端配置不完整，跳过初始化")
+	}
 
 	// 初始化微信支付客户端
-	// if config.Wechat.Enabled {
-	// 	// 将PaymentConfig的WechatConfig转换为config包的WechatConfig
-	// 	wechatConfig := &config.WechatConfig{
-	// 		AppID:        config.Wechat.AppID,
-	// 		MchID:        config.Wechat.MchID,
-	// 		APIKey:       config.Wechat.Key,
-	// 		SignType:     config.Wechat.SignType,
-	// 		GatewayURL:   config.Wechat.GatewayURL,
-	// 		Timeout:      config.Wechat.Timeout,
-	// 	}
-	// 	service.wechatClient = wechat.NewClient(wechatConfig)
-	// }
+	if config.Wechat.Enabled && config.Wechat.AppID != "" && config.Wechat.MchID != "" && config.Wechat.APIKey != "" {
+		// 将PaymentConfig的WechatConfig转换为config包的WechatConfig
+		wechatConfig := &paymentconfig.WechatConfig{
+			AppID:        config.Wechat.AppID,
+			MchID:        config.Wechat.MchID,
+			APIKey:       config.Wechat.APIKey,
+			SignType:     config.Wechat.SignType,
+			GatewayURL:   config.Wechat.GatewayURL,
+			Timeout:      config.Wechat.Timeout,
+		}
+		service.wechatClient = wechat.NewClient(wechatConfig)
+		logger.Info("微信支付客户端初始化成功")
+	} else {
+		logger.Info("微信支付客户端配置不完整，跳过初始化")
+	}
 
 	return service, nil
 }

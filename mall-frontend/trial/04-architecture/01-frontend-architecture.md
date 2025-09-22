@@ -1,6 +1,6 @@
 # 第1章：前端架构设计原则 🏗️
 
-> *"优秀的架构不是设计出来的，而是演进出来的！"* 🚀
+> _"优秀的架构不是设计出来的，而是演进出来的！"_ 🚀
 
 ## 📚 本章导览
 
@@ -68,19 +68,19 @@ SOLID原则是面向对象设计的五大基本原则，在前端开发中同样
 class UserProfileComponent {
   // 用户数据管理
   private userData: User;
-  
+
   // UI渲染
   render() { /* ... */ }
-  
+
   // 数据验证
   validateUserData() { /* ... */ }
-  
+
   // API调用
   async saveUser() { /* ... */ }
-  
+
   // 权限检查
   checkPermissions() { /* ... */ }
-  
+
   // 日志记录
   logUserAction() { /* ... */ }
 }
@@ -89,7 +89,7 @@ class UserProfileComponent {
 // 用户数据管理
 class UserDataManager {
   private userData: User;
-  
+
   getUserData(): User { return this.userData; }
   setUserData(data: User): void { this.userData = data; }
 }
@@ -122,11 +122,11 @@ class PermissionService {
 }
 
 // UI组件 - 只负责渲染
-function UserProfileComponent({ 
-  userManager, 
-  validator, 
-  apiService, 
-  permissionService 
+function UserProfileComponent({
+  userManager,
+  validator,
+  apiService,
+  permissionService
 }: {
   userManager: UserDataManager;
   validator: UserValidator;
@@ -134,14 +134,14 @@ function UserProfileComponent({
   permissionService: PermissionService;
 }) {
   const [user, setUser] = useState(userManager.getUserData());
-  
+
   const handleSave = async () => {
     const validation = validator.validate(user);
     if (validation.isValid) {
       await apiService.saveUser(user);
     }
   };
-  
+
   return (
     <div>
       {/* 专注于UI渲染 */}
@@ -173,10 +173,16 @@ class NotificationManager {
         throw new Error('Unsupported notification type');
     }
   }
-  
-  private sendEmail(message: string) { /* ... */ }
-  private sendSMS(message: string) { /* ... */ }
-  private sendPush(message: string) { /* ... */ }
+
+  private sendEmail(message: string) {
+    /* ... */
+  }
+  private sendSMS(message: string) {
+    /* ... */
+  }
+  private sendPush(message: string) {
+    /* ... */
+  }
 }
 
 // ✅ 遵循OCP的设计 - 通过接口扩展
@@ -214,12 +220,12 @@ class WeChatProvider implements NotificationProvider {
 
 class NotificationManager {
   private providers = new Map<string, NotificationProvider>();
-  
+
   // 注册通知提供者
   registerProvider(type: string, provider: NotificationProvider) {
     this.providers.set(type, provider);
   }
-  
+
   // 发送通知 - 无需修改
   async sendNotification(type: string, message: string) {
     const provider = this.providers.get(type);
@@ -250,18 +256,21 @@ abstract class Shape {
 }
 
 class Rectangle extends Shape {
-  constructor(private width: number, private height: number) {
+  constructor(
+    private width: number,
+    private height: number
+  ) {
     super();
   }
-  
+
   calculateArea(): number {
     return this.width * this.height;
   }
-  
+
   setWidth(width: number): void {
     this.width = width;
   }
-  
+
   setHeight(height: number): void {
     this.height = height;
   }
@@ -271,13 +280,13 @@ class Square extends Rectangle {
   constructor(side: number) {
     super(side, side);
   }
-  
+
   // 违反LSP - 改变了基类的行为
   setWidth(width: number): void {
     this.width = width;
     this.height = width; // 强制保持正方形
   }
-  
+
   setHeight(height: number): void {
     this.width = height; // 强制保持正方形
     this.height = height;
@@ -299,16 +308,19 @@ interface Drawable {
 }
 
 class Rectangle implements Drawable {
-  constructor(private width: number, private height: number) {}
-  
+  constructor(
+    private width: number,
+    private height: number
+  ) {}
+
   draw(): void {
     console.log(`Drawing rectangle: ${this.width}x${this.height}`);
   }
-  
+
   calculateArea(): number {
     return this.width * this.height;
   }
-  
+
   setDimensions(width: number, height: number): void {
     this.width = width;
     this.height = height;
@@ -317,15 +329,15 @@ class Rectangle implements Drawable {
 
 class Square implements Drawable {
   constructor(private side: number) {}
-  
+
   draw(): void {
     console.log(`Drawing square: ${this.side}x${this.side}`);
   }
-  
+
   calculateArea(): number {
     return this.side * this.side;
   }
-  
+
   setSide(side: number): void {
     this.side = side;
   }
@@ -356,13 +368,27 @@ interface Worker {
 }
 
 class Developer implements Worker {
-  work(): void { console.log('Working...'); }
-  eat(): void { console.log('Eating...'); }
-  sleep(): void { console.log('Sleeping...'); }
-  code(): void { console.log('Coding...'); }
-  design(): void { throw new Error('Developers do not design'); } // 不需要
-  test(): void { console.log('Testing...'); }
-  deploy(): void { console.log('Deploying...'); }
+  work(): void {
+    console.log('Working...');
+  }
+  eat(): void {
+    console.log('Eating...');
+  }
+  sleep(): void {
+    console.log('Sleeping...');
+  }
+  code(): void {
+    console.log('Coding...');
+  }
+  design(): void {
+    throw new Error('Developers do not design');
+  } // 不需要
+  test(): void {
+    console.log('Testing...');
+  }
+  deploy(): void {
+    console.log('Deploying...');
+  }
 }
 
 // ✅ 遵循ISP的设计 - 接口分离
@@ -395,21 +421,43 @@ interface Deployable {
 }
 
 // 开发者只实现需要的接口
-class Developer implements Workable, Eatable, Sleepable, Codeable, Testable, Deployable {
-  work(): void { console.log('Working...'); }
-  eat(): void { console.log('Eating...'); }
-  sleep(): void { console.log('Sleeping...'); }
-  code(): void { console.log('Coding...'); }
-  test(): void { console.log('Testing...'); }
-  deploy(): void { console.log('Deploying...'); }
+class Developer
+  implements Workable, Eatable, Sleepable, Codeable, Testable, Deployable
+{
+  work(): void {
+    console.log('Working...');
+  }
+  eat(): void {
+    console.log('Eating...');
+  }
+  sleep(): void {
+    console.log('Sleeping...');
+  }
+  code(): void {
+    console.log('Coding...');
+  }
+  test(): void {
+    console.log('Testing...');
+  }
+  deploy(): void {
+    console.log('Deploying...');
+  }
 }
 
 // 设计师只实现需要的接口
 class Designer implements Workable, Eatable, Sleepable, Designable {
-  work(): void { console.log('Working...'); }
-  eat(): void { console.log('Eating...'); }
-  sleep(): void { console.log('Sleeping...'); }
-  design(): void { console.log('Designing...'); }
+  work(): void {
+    console.log('Working...');
+  }
+  eat(): void {
+    console.log('Eating...');
+  }
+  sleep(): void {
+    console.log('Sleeping...');
+  }
+  design(): void {
+    console.log('Designing...');
+  }
 }
 ```
 
@@ -422,7 +470,7 @@ class MySQLDatabase {
   save(data: any): void {
     console.log('Saving to MySQL:', data);
   }
-  
+
   find(id: string): any {
     console.log('Finding in MySQL:', id);
     return { id, name: 'User' };
@@ -431,11 +479,11 @@ class MySQLDatabase {
 
 class UserService {
   private database = new MySQLDatabase(); // 直接依赖具体实现
-  
+
   createUser(userData: any): void {
     this.database.save(userData);
   }
-  
+
   getUser(id: string): any {
     return this.database.find(id);
   }
@@ -451,7 +499,7 @@ class MySQLDatabase implements Database {
   save(data: any): void {
     console.log('Saving to MySQL:', data);
   }
-  
+
   find(id: string): any {
     console.log('Finding in MySQL:', id);
     return { id, name: 'User' };
@@ -462,7 +510,7 @@ class MongoDatabase implements Database {
   save(data: any): void {
     console.log('Saving to MongoDB:', data);
   }
-  
+
   find(id: string): any {
     console.log('Finding in MongoDB:', id);
     return { id, name: 'User' };
@@ -471,11 +519,11 @@ class MongoDatabase implements Database {
 
 class UserService {
   constructor(private database: Database) {} // 依赖抽象
-  
+
   createUser(userData: any): void {
     this.database.save(userData);
   }
-  
+
   getUser(id: string): any {
     return this.database.find(id);
   }
@@ -512,7 +560,7 @@ function validateContactEmail(contact: Contact): boolean {
 // ✅ 消除重复
 class EmailValidator {
   private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
+
   static validate(email: string): boolean {
     return this.EMAIL_REGEX.test(email);
   }
@@ -533,23 +581,23 @@ class ComplexUserManager {
   private userFactories: Map<string, UserFactory> = new Map();
   private userValidators: Map<string, UserValidator> = new Map();
   private userTransformers: Map<string, UserTransformer> = new Map();
-  
+
   createUser(type: string, data: any): User {
     const factory = this.userFactories.get(type);
     const validator = this.userValidators.get(type);
     const transformer = this.userTransformers.get(type);
-    
+
     if (!factory || !validator || !transformer) {
       throw new Error('Invalid user type');
     }
-    
+
     const transformedData = transformer.transform(data);
     const validationResult = validator.validate(transformedData);
-    
+
     if (!validationResult.isValid) {
       throw new Error('Invalid user data');
     }
-    
+
     return factory.create(transformedData);
   }
 }
@@ -557,17 +605,17 @@ class ComplexUserManager {
 // ✅ 简单直接的设计
 class SimpleUserManager {
   private users: User[] = [];
-  
+
   createUser(userData: UserData): User {
     if (!this.isValidUserData(userData)) {
       throw new Error('Invalid user data');
     }
-    
+
     const user = new User(userData);
     this.users.push(user);
     return user;
   }
-  
+
   private isValidUserData(data: UserData): boolean {
     return data.email && data.name && data.email.includes('@');
   }
@@ -582,7 +630,7 @@ class OverEngineeredComponent {
   private configManager: ConfigManager = new ConfigManager();
   private themeManager: ThemeManager = new ThemeManager();
   private i18nManager: I18nManager = new I18nManager();
-  
+
   // 实际上只需要简单的渲染功能
   render() {
     return <div>Hello World</div>;
@@ -635,7 +683,9 @@ class ProductRepository implements Repository<Product> {
   }
 
   async findAll(): Promise<Product[]> {
-    const response = await this.apiClient.get<{ data: Product[] }>('/api/products');
+    const response = await this.apiClient.get<{ data: Product[] }>(
+      '/api/products'
+    );
     return response.data;
   }
 
@@ -692,7 +742,10 @@ class UserRepository implements Repository<User> {
   }
 
   async update(id: string, user: Partial<User>): Promise<User> {
-    const updatedUser = await this.apiClient.put<User>(`/api/users/${id}`, user);
+    const updatedUser = await this.apiClient.put<User>(
+      `/api/users/${id}`,
+      user
+    );
     // 更新缓存
     await this.cacheManager.set(`user:${id}`, updatedUser);
     return updatedUser;
@@ -747,7 +800,10 @@ class ProductServiceImpl implements ProductService {
     }
 
     // 记录查看事件
-    this.eventBus.emit('product:viewed', { productId: id, timestamp: new Date() });
+    this.eventBus.emit('product:viewed', {
+      productId: id,
+      timestamp: new Date(),
+    });
 
     return product;
   }
@@ -765,7 +821,7 @@ class ProductServiceImpl implements ProductService {
       sku,
       status: 'active',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     const createdProduct = await this.productRepository.create(product);
@@ -784,11 +840,14 @@ class ProductServiceImpl implements ProductService {
 
     const updatedProduct = await this.productRepository.update(id, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     // 发布事件
-    this.eventBus.emit('product:updated', { before: existingProduct, after: updatedProduct });
+    this.eventBus.emit('product:updated', {
+      before: existingProduct,
+      after: updatedProduct,
+    });
 
     return updatedProduct;
   }
@@ -810,9 +869,10 @@ class ProductServiceImpl implements ProductService {
   async searchProducts(query: string): Promise<Product[]> {
     // 搜索逻辑
     const products = await this.productRepository.findAll();
-    return products.filter(product =>
-      product.name.toLowerCase().includes(query.toLowerCase()) ||
-      product.description.toLowerCase().includes(query.toLowerCase())
+    return products.filter(
+      product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.description.toLowerCase().includes(query.toLowerCase())
     );
   }
 
@@ -823,7 +883,8 @@ class ProductServiceImpl implements ProductService {
     }
 
     // 使用推荐服务
-    const recommendedIds = await this.recommendationService.getRecommendations(userId);
+    const recommendedIds =
+      await this.recommendationService.getRecommendations(userId);
 
     const products = await Promise.all(
       recommendedIds.map(id => this.productRepository.findById(id))
@@ -832,7 +893,10 @@ class ProductServiceImpl implements ProductService {
     return products.filter(Boolean) as Product[];
   }
 
-  private applyFilters(products: Product[], filters: ProductFilters): Product[] {
+  private applyFilters(
+    products: Product[],
+    filters: ProductFilters
+  ): Product[] {
     let filtered = products;
 
     if (filters.category) {
@@ -874,7 +938,10 @@ class ProductServiceImpl implements ProductService {
     }
   }
 
-  private validateProductUpdates(existing: Product, updates: Partial<Product>): void {
+  private validateProductUpdates(
+    existing: Product,
+    updates: Partial<Product>
+  ): void {
     if (updates.price && parseFloat(updates.price) <= 0) {
       throw new Error('Product price must be greater than 0');
     }
@@ -1056,7 +1123,10 @@ class DIContainer {
   register<T>(
     identifier: ServiceIdentifier<T>,
     factory: ServiceFactory<T>,
-    options: { singleton?: boolean; dependencies?: ServiceIdentifier<any>[] } = {}
+    options: {
+      singleton?: boolean;
+      dependencies?: ServiceIdentifier<any>[];
+    } = {}
   ): void {
     const { singleton = true, dependencies = [] } = options;
 
@@ -1064,7 +1134,7 @@ class DIContainer {
       identifier,
       factory,
       singleton,
-      dependencies
+      dependencies,
     });
   }
 
@@ -1072,7 +1142,10 @@ class DIContainer {
   registerClass<T>(
     identifier: ServiceIdentifier<T>,
     constructor: Constructor<T>,
-    options: { singleton?: boolean; dependencies?: ServiceIdentifier<any>[] } = {}
+    options: {
+      singleton?: boolean;
+      dependencies?: ServiceIdentifier<any>[];
+    } = {}
   ): void {
     const { dependencies = [] } = options;
 
@@ -1128,27 +1201,29 @@ class DIContainer {
 export const container = new DIContainer();
 
 // 服务注册
-container.register('ApiClient', () => new ApiClient(process.env.NEXT_PUBLIC_API_BASE_URL!));
+container.register(
+  'ApiClient',
+  () => new ApiClient(process.env.NEXT_PUBLIC_API_BASE_URL!)
+);
 container.register('CacheManager', () => new CacheManager());
 container.register('EventBus', () => new EventBus());
 
-container.registerClass(
-  'ProductRepository',
-  ProductRepository,
-  { dependencies: ['ApiClient'] }
-);
+container.registerClass('ProductRepository', ProductRepository, {
+  dependencies: ['ApiClient'],
+});
 
-container.registerClass(
-  'UserRepository',
-  UserRepository,
-  { dependencies: ['ApiClient', 'CacheManager'] }
-);
+container.registerClass('UserRepository', UserRepository, {
+  dependencies: ['ApiClient', 'CacheManager'],
+});
 
-container.registerClass(
-  'ProductService',
-  ProductServiceImpl,
-  { dependencies: ['ProductRepository', 'UserRepository', 'RecommendationService', 'EventBus'] }
-);
+container.registerClass('ProductService', ProductServiceImpl, {
+  dependencies: [
+    'ProductRepository',
+    'UserRepository',
+    'RecommendationService',
+    'EventBus',
+  ],
+});
 
 // React Hook for dependency injection
 export function useService<T>(identifier: ServiceIdentifier<T>): T {
@@ -1165,9 +1240,14 @@ export function Injectable<T extends Constructor>(constructor: T) {
 }
 
 export function Inject(identifier: ServiceIdentifier<any>) {
-  return function (target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
+  return function (
+    target: any,
+    propertyKey: string | symbol | undefined,
+    parameterIndex: number
+  ) {
     // 装饰器元数据处理
-    const existingTokens = Reflect.getMetadata('design:paramtypes', target) || [];
+    const existingTokens =
+      Reflect.getMetadata('design:paramtypes', target) || [];
     existingTokens[parameterIndex] = identifier;
     Reflect.defineMetadata('design:paramtypes', existingTokens, target);
   };
@@ -1267,7 +1347,7 @@ export function useProductMutations() {
   const updateProduct = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Product> }) =>
       productService.updateProduct(id, updates),
-    onSuccess: (updatedProduct) => {
+    onSuccess: updatedProduct => {
       queryClient.setQueryData(['product', updatedProduct.id], updatedProduct);
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
@@ -1294,11 +1374,14 @@ export class ProductUtils {
     const num = parseFloat(price);
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
-      currency: 'CNY'
+      currency: 'CNY',
     }).format(num);
   }
 
-  static calculateDiscount(originalPrice: string, discountPrice: string): number {
+  static calculateDiscount(
+    originalPrice: string,
+    discountPrice: string
+  ): number {
     const original = parseFloat(originalPrice);
     const discount = parseFloat(discountPrice);
     return Math.round(((original - discount) / original) * 100);
@@ -1594,7 +1677,7 @@ const scalableArchitecturePrinciples = {
       '按功能划分模块',
       '明确模块边界',
       '定义清晰的接口',
-      '避免循环依赖'
+      '避免循环依赖',
     ],
     example: `
       // 模块结构
@@ -1609,71 +1692,60 @@ const scalableArchitecturePrinciples = {
           services/
           types/
           index.ts
-    `
+    `,
   },
 
   // 2. 分层架构
   layeredArchitecture: {
     layers: ['Presentation', 'Business', 'Data', 'Infrastructure'],
-    benefits: [
-      '职责分离',
-      '易于测试',
-      '便于维护',
-      '支持替换'
-    ],
+    benefits: ['职责分离', '易于测试', '便于维护', '支持替换'],
     implementation: `
       // 分层示例
       presentation/    // UI组件
       business/        // 业务逻辑
       data/           // 数据访问
       infrastructure/ // 基础设施
-    `
+    `,
   },
 
   // 3. 依赖注入
   dependencyInjection: {
-    benefits: [
-      '降低耦合度',
-      '提高可测试性',
-      '支持配置化',
-      '便于扩展'
+    benefits: ['降低耦合度', '提高可测试性', '支持配置化', '便于扩展'],
+    patterns: [
+      'Constructor Injection',
+      'Property Injection',
+      'Method Injection',
     ],
-    patterns: ['Constructor Injection', 'Property Injection', 'Method Injection']
   },
 
   // 4. 事件驱动架构
   eventDriven: {
     components: ['Event Bus', 'Event Handlers', 'Event Publishers'],
-    benefits: [
-      '松耦合',
-      '异步处理',
-      '易于扩展',
-      '支持插件化'
-    ]
-  }
+    benefits: ['松耦合', '异步处理', '易于扩展', '支持插件化'],
+  },
 };
 
 // 架构质量评估指标
 const architectureQualityMetrics = {
   maintainability: {
     metrics: ['代码复杂度', '重复代码率', '模块耦合度'],
-    tools: ['ESLint', 'SonarQube', 'CodeClimate']
+    tools: ['ESLint', 'SonarQube', 'CodeClimate'],
   },
 
   scalability: {
     metrics: ['模块数量', '依赖关系', '构建时间'],
-    strategies: ['微前端', '代码分割', '懒加载']
+    strategies: ['微前端', '代码分割', '懒加载'],
   },
 
   testability: {
     metrics: ['测试覆盖率', '单元测试数量', '集成测试数量'],
-    practices: ['TDD', 'BDD', 'Mock/Stub']
+    practices: ['TDD', 'BDD', 'Mock/Stub'],
   },
 
   performance: {
     metrics: ['首屏时间', '交互时间', '包体积'],
-    optimizations: ['Tree Shaking', 'Code Splitting', 'Caching']
-  }
+    optimizations: ['Tree Shaking', 'Code Splitting', 'Caching'],
+  },
 };
 ```
 
@@ -1952,7 +2024,7 @@ const stateManagementComparison = {
           </div>
         );
       }
-    `
+    `,
   },
 
   // 2. Context API
@@ -1971,7 +2043,7 @@ const stateManagementComparison = {
           </ThemeContext.Provider>
         );
       }
-    `
+    `,
   },
 
   // 3. Redux Toolkit
@@ -1989,7 +2061,7 @@ const stateManagementComparison = {
           }
         }
       });
-    `
+    `,
   },
 
   // 4. Zustand
@@ -2002,7 +2074,7 @@ const stateManagementComparison = {
         count: 0,
         increment: () => set((state) => ({ count: state.count + 1 }))
       }));
-    `
+    `,
   },
 
   // 5. React Query + Zustand
@@ -2016,8 +2088,8 @@ const stateManagementComparison = {
 
       // 客户端状态 - Zustand
       const { cart, addToCart } = useCartStore();
-    `
-  }
+    `,
+  },
 };
 
 // 状态管理决策树
@@ -2026,24 +2098,24 @@ const stateManagementDecisionTree = {
     {
       question: '状态是否需要在多个组件间共享？',
       no: '使用 useState/useReducer',
-      yes: '继续下一个问题'
+      yes: '继续下一个问题',
     },
     {
       question: '应用规模是否较大（>50个组件）？',
       no: '考虑 Context API 或 Zustand',
-      yes: '继续下一个问题'
+      yes: '继续下一个问题',
     },
     {
       question: '是否需要复杂的状态逻辑和调试？',
       yes: '使用 Redux Toolkit',
-      no: '继续下一个问题'
+      no: '继续下一个问题',
     },
     {
       question: '是否有大量服务端状态？',
       yes: '使用 React Query + Zustand',
-      no: '使用 Zustand'
-    }
-  ]
+      no: '使用 Zustand',
+    },
+  ],
 };
 ```
 
@@ -2056,6 +2128,7 @@ const stateManagementDecisionTree = {
 **任务**: 为Mall-Frontend设计一个模块化的架构，包括用户模块、商品模块、订单模块等。
 
 **要求**:
+
 - 使用特性模块设计模式
 - 实现模块间的依赖管理
 - 设计清晰的模块接口
@@ -2066,6 +2139,7 @@ const stateManagementDecisionTree = {
 **任务**: 实现一个轻量级的依赖注入容器，支持服务注册、解析和生命周期管理。
 
 **要求**:
+
 - 支持单例和瞬态生命周期
 - 实现循环依赖检测
 - 提供React Hook集成
@@ -2076,6 +2150,7 @@ const stateManagementDecisionTree = {
 **任务**: 基于原子设计模式构建一个可复用的组件库。
 
 **要求**:
+
 - 实现原子、分子、有机体组件
 - 提供完整的TypeScript类型定义
 - 支持主题定制
@@ -2124,7 +2199,12 @@ const stateManagementDecisionTree = {
 
 ---
 
-*下一章我们将学习《状态管理架构设计》，探索复杂应用的状态管理策略！* 🚀
+_下一章我们将学习《状态管理架构设计》，探索复杂应用的状态管理策略！_ 🚀
+
 ```
+
 ```
+
+```
+
 ```

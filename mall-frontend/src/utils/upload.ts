@@ -52,7 +52,7 @@ export class UploadManager {
     }
 
     // 检查文件类型
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(file.type as any)) {
       return {
         valid: false,
         error: `不支持的文件类型，支持的类型：${allowedTypes.join(', ')}`,
@@ -90,7 +90,7 @@ export class UploadManager {
       img.onload = () => {
         // 计算压缩后的尺寸
         let { width, height } = img;
-        
+
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
           width *= ratio;
@@ -104,7 +104,7 @@ export class UploadManager {
         ctx?.drawImage(img, 0, 0, width, height);
 
         canvas.toBlob(
-          (blob) => {
+          blob => {
             if (blob) {
               const compressedFile = new File([blob], file.name, {
                 type: file.type,
@@ -153,7 +153,7 @@ export class UploadManager {
     try {
       const response = await http.upload(API_ENDPOINTS.UPLOAD.IMAGE, formData, {
         showLoading: true,
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: progressEvent => {
           if (options.onProgress && progressEvent.total) {
             const percent = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total
@@ -188,11 +188,9 @@ export class UploadManager {
       try {
         const result = await this.uploadFile(files[i], {
           ...options,
-          onProgress: (percent) => {
+          onProgress: percent => {
             // 计算总体进度
-            const totalPercent = Math.round(
-              ((i * 100 + percent) / files.length)
-            );
+            const totalPercent = Math.round((i * 100 + percent) / files.length);
             options.onProgress?.(totalPercent);
           },
         });
@@ -253,7 +251,7 @@ export const uploadImage = (
   options?: UploadOptions
 ): Promise<{ url: string; filename: string }> => {
   return uploadManager.uploadFile(file, {
-    allowedTypes: UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES,
+    allowedTypes: [...UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES],
     compress: true,
     ...options,
   });
@@ -264,7 +262,7 @@ export const uploadImages = (
   options?: UploadOptions
 ): Promise<{ url: string; filename: string }[]> => {
   return uploadManager.uploadFiles(files, {
-    allowedTypes: UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES,
+    allowedTypes: [...UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES],
     compress: true,
     ...options,
   });
@@ -275,13 +273,13 @@ export const selectFiles = (options: {
   accept?: string;
   multiple?: boolean;
 }): Promise<File[]> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = options.accept || 'image/*';
     input.multiple = options.multiple || false;
 
-    input.onchange = (event) => {
+    input.onchange = event => {
       const files = Array.from((event.target as HTMLInputElement).files || []);
       resolve(files);
     };
@@ -335,7 +333,7 @@ export const handlePaste = (
 export const previewImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       resolve(e.target?.result as string);
     };
     reader.onerror = reject;
@@ -344,7 +342,9 @@ export const previewImage = (file: File): Promise<string> => {
 };
 
 // 获取图片信息
-export const getImageInfo = (file: File): Promise<{
+export const getImageInfo = (
+  file: File
+): Promise<{
   width: number;
   height: number;
   size: number;
@@ -375,18 +375,16 @@ export const customUploadRequest = (options: any) => {
       onSuccess,
       onError,
     })
-    .then((result) => {
+    .then(result => {
       onSuccess(result, file);
     })
-    .catch((error) => {
+    .catch(error => {
       onError(error);
     });
 };
 
 // 转换为Ant Design Upload组件需要的文件列表格式
-export const transformToUploadFileList = (
-  urls: string[]
-): UploadFile[] => {
+export const transformToUploadFileList = (urls: string[]): UploadFile[] => {
   return urls.map((url, index) => ({
     uid: `${index}`,
     name: `image-${index}`,
@@ -396,10 +394,8 @@ export const transformToUploadFileList = (
 };
 
 // 从Ant Design Upload组件的文件列表提取URL
-export const extractUrlsFromFileList = (
-  fileList: UploadFile[]
-): string[] => {
+export const extractUrlsFromFileList = (fileList: UploadFile[]): string[] => {
   return fileList
-    .filter((file) => file.status === 'done' && file.url)
-    .map((file) => file.url!);
+    .filter(file => file.status === 'done' && file.url)
+    .map(file => file.url!);
 };

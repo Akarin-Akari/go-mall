@@ -10,7 +10,7 @@ import (
 	"mall-go/pkg/payment"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -39,36 +39,18 @@ func main() {
 	// 初始化数据库
 	db := database.Init()
 
-	// 初始化Redis客户端（可选，如果Redis服务不可用则使用nil）
+	// 初始化Redis客户端（从配置文件读取配置）
 	var rdb *redis.Client
-	redisConfig := config.RedisConfig{
-		Host:         "localhost",
-		Port:         6379,
-		Password:     "",
-		DB:           0,
-		PoolSize:     10,
-		MinIdleConns: 5,
-		MaxRetries:   3,
-		DialTimeout:  5,
-		ReadTimeout:  3,
-		WriteTimeout: 3,
-		IdleTimeout:  300,
-		MaxConnAge:   3600,
-	}
+	redisConfig := config.GlobalConfig.Redis
 
-	_, err := cache.NewRedisClient(redisConfig)
+	redisClient, err := cache.NewRedisClient(redisConfig)
 	if err != nil {
 		logger.Warn("Redis服务连接失败，将在没有缓存的情况下运行", zap.Error(err))
 		rdb = nil
 	} else {
-		// 将封装的RedisClient转换为标准的redis.Client
-		// 这里需要根据实际的RedisClient实现来获取底层的redis.Client
-		// 暂时使用简单的redis.NewClient
-		rdb = redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "",
-			DB:       0,
-		})
+		// 使用封装的RedisClient获取底层的redis.Client
+		rdb = redisClient.GetClient()
+		logger.Info("Redis连接成功，缓存功能已启用")
 	}
 
 	// 初始化支付服务
@@ -94,6 +76,6 @@ func main() {
 	handler.RegisterRoutes(r, db, rdb, paymentService)
 
 	// 启动服务器
-	logger.Info("服务器启动在端口: 8080")
-	log.Fatal(r.Run(":8080"))
+	logger.Info("服务器启动在端口: 8081")
+	log.Fatal(r.Run(":8081"))
 }

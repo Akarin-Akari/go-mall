@@ -32,9 +32,17 @@ func Init() *gorm.DB {
 	if cfg.Database.Driver == "sqlite" {
 		// SQLite连接
 		DB, err = gorm.Open(sqlite.Open(cfg.Database.DBName), gormConfig)
+		if err == nil {
+			// 配置SQLite以支持并发访问
+			configureSQLiteForConcurrency(DB)
+		}
 	} else if cfg.Database.Driver == "memory" {
 		// 内存SQLite连接（用于测试）
 		DB, err = gorm.Open(sqlite.Open(":memory:"), gormConfig)
+		if err == nil {
+			// 配置SQLite以支持并发访问
+			configureSQLiteForConcurrency(DB)
+		}
 		log.Println("使用内存数据库模式（仅用于测试）")
 	} else {
 		// MySQL连接 - 先尝试连接指定数据库
@@ -105,6 +113,30 @@ func Init() *gorm.DB {
 	return DB
 }
 
+// configureSQLiteForConcurrency 配置SQLite以支持并发访问
+func configureSQLiteForConcurrency(db *gorm.DB) {
+	// 获取底层sql.DB
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Printf("获取sql.DB失败: %v", err)
+		return
+	}
+
+	// 配置SQLite连接池 - SQLite只支持单个写连接
+	sqlDB.SetMaxOpenConns(1)    // SQLite只支持单个写连接
+	sqlDB.SetMaxIdleConns(1)    // 保持连接池简单
+	sqlDB.SetConnMaxLifetime(0) // 连接不过期
+
+	// 启用WAL模式以提高并发性能
+	db.Exec("PRAGMA journal_mode=WAL")
+	db.Exec("PRAGMA synchronous=NORMAL")
+	db.Exec("PRAGMA cache_size=1000")
+	db.Exec("PRAGMA temp_store=memory")
+	db.Exec("PRAGMA busy_timeout=30000") // 30秒超时，避免database locked错误
+
+	log.Println("SQLite并发配置已启用: WAL模式, 30秒超时")
+}
+
 // InitDB 初始化数据库连接（别名，保持兼容性）
 func InitDB() (*gorm.DB, error) {
 	return Init(), nil
@@ -124,10 +156,21 @@ func autoMigrate(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&model.User{},
 		&model.Product{},
+		&model.ProductImage{}, // 添加商品图片表
 		&model.Category{},
 		&model.Order{},
 		&model.OrderItem{},
+		&model.OrderStatusLog{}, // 添加订单状态日志表
 		&model.File{},
+		// 支付相关模型
+		&model.Payment{},
+		&model.PaymentRefund{},
+		&model.PaymentLog{},
+		&model.PaymentConfig{},
+		// 其他相关模型
+		&model.Address{},
+		&model.Cart{},
+		&model.CartItem{},
 	)
 
 	if err != nil {

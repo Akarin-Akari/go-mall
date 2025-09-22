@@ -1,6 +1,6 @@
 # 第4章：监控与错误处理 📊
 
-> *"监控不是为了发现问题，而是为了预防问题！"* 🛡️
+> _"监控不是为了发现问题，而是为了预防问题！"_ 🛡️
 
 ## 📚 本章导览
 
@@ -87,43 +87,37 @@ interface ObservabilityPillars {
       '聚合性强',
       '存储成本低',
       '查询速度快',
-      '适合告警'
+      '适合告警',
     ];
     types: {
       businessMetrics: {
-        description: '业务相关指标',
+        description: '业务相关指标';
         examples: [
           '用户注册数',
           '订单转化率',
           '收入指标',
           '用户活跃度',
-          '功能使用率'
-        ]
-      },
-      
+          '功能使用率',
+        ];
+      };
+
       applicationMetrics: {
-        description: '应用性能指标',
-        examples: [
-          '响应时间',
-          '吞吐量',
-          '错误率',
-          '可用性',
-          '资源使用率'
-        ]
-      },
-      
+        description: '应用性能指标';
+        examples: ['响应时间', '吞吐量', '错误率', '可用性', '资源使用率'];
+      };
+
       infrastructureMetrics: {
-        description: '基础设施指标',
+        description: '基础设施指标';
         examples: [
           'CPU使用率',
           '内存使用率',
           '磁盘I/O',
           '网络流量',
-          '容器状态'
-        ]
-      }
+          '容器状态',
+        ];
+      };
     };
-    
+
     implementation: `
       // 自定义指标收集
       class MetricsCollector {
@@ -199,9 +193,9 @@ interface ObservabilityPillars {
       
       // 定期发送指标
       setInterval(() => metrics.flush(), 60000);
-    `
+    `;
   };
-  
+
   // 日志 (Logs)
   logs: {
     definition: '系统事件的时间序列记录';
@@ -210,39 +204,39 @@ interface ObservabilityPillars {
       '上下文丰富',
       '存储成本高',
       '查询复杂',
-      '适合调试'
+      '适合调试',
     ];
     levels: {
       error: {
-        description: '错误级别日志',
-        usage: '记录系统错误和异常',
-        example: 'API调用失败、数据库连接错误'
-      },
-      
+        description: '错误级别日志';
+        usage: '记录系统错误和异常';
+        example: 'API调用失败、数据库连接错误';
+      };
+
       warn: {
-        description: '警告级别日志',
-        usage: '记录潜在问题和异常情况',
-        example: '性能降级、配置问题'
-      },
-      
+        description: '警告级别日志';
+        usage: '记录潜在问题和异常情况';
+        example: '性能降级、配置问题';
+      };
+
       info: {
-        description: '信息级别日志',
-        usage: '记录重要的业务事件',
-        example: '用户登录、订单创建'
-      },
-      
+        description: '信息级别日志';
+        usage: '记录重要的业务事件';
+        example: '用户登录、订单创建';
+      };
+
       debug: {
-        description: '调试级别日志',
-        usage: '记录详细的执行信息',
-        example: '函数调用、变量值'
-      }
+        description: '调试级别日志';
+        usage: '记录详细的执行信息';
+        example: '函数调用、变量值';
+      };
     };
-    
+
     structure: {
       structured: {
-        description: '结构化日志（JSON格式）',
-        pros: ['易于解析', '查询高效', '字段标准化'],
-        cons: ['存储空间大', '可读性差'],
+        description: '结构化日志（JSON格式）';
+        pros: ['易于解析', '查询高效', '字段标准化'];
+        cons: ['存储空间大', '可读性差'];
         example: `
           {
             "timestamp": "2024-01-15T10:30:00Z",
@@ -255,20 +249,20 @@ interface ObservabilityPillars {
             "duration": 150,
             "tags": ["authentication", "success"]
           }
-        `
-      },
-      
+        `;
+      };
+
       unstructured: {
-        description: '非结构化日志（文本格式）',
-        pros: ['可读性好', '存储空间小', '简单直观'],
-        cons: ['解析困难', '查询复杂', '字段不统一'],
+        description: '非结构化日志（文本格式）';
+        pros: ['可读性好', '存储空间小', '简单直观'];
+        cons: ['解析困难', '查询复杂', '字段不统一'];
         example: `
           2024-01-15 10:30:00 INFO [auth] User 12345 login successful from 192.168.1.100 (150ms)
-        `
-      }
-    }
+        `;
+      };
+    };
   };
-  
+
   // 链路追踪 (Traces)
   traces: {
     definition: '请求在分布式系统中的完整执行路径';
@@ -277,20 +271,26 @@ interface ObservabilityPillars {
       '调用链完整',
       '性能分析',
       '依赖关系',
-      '故障定位'
+      '故障定位',
     ];
     concepts: {
       trace: {
-        description: '一个完整的请求链路',
-        components: ['TraceID', 'SpanID', 'ParentSpanID', 'Operation', 'Duration']
-      },
-      
+        description: '一个完整的请求链路';
+        components: [
+          'TraceID',
+          'SpanID',
+          'ParentSpanID',
+          'Operation',
+          'Duration',
+        ];
+      };
+
       span: {
-        description: '链路中的一个操作单元',
-        attributes: ['操作名称', '开始时间', '结束时间', '标签', '日志']
-      }
+        description: '链路中的一个操作单元';
+        attributes: ['操作名称', '开始时间', '结束时间', '标签', '日志'];
+      };
     };
-    
+
     implementation: `
       // 简化的链路追踪实现
       class SimpleTracer {
@@ -399,7 +399,7 @@ interface ObservabilityPillars {
         requestSpan.setTag('http.status_code', 200);
         tracer.finishSpan(requestSpan.spanId);
       }, 100);
-    `
+    `;
   };
 }
 ```
@@ -434,13 +434,13 @@ const errorTrackingPlatforms: ErrorTrackingComparison[] = [
       '用户反馈',
       '源码映射',
       '告警通知',
-      '团队协作'
+      '团队协作',
     ],
     integrations: ['React', 'Vue', 'Angular', 'Node.js', 'Python', 'Java'],
     performance: 'Excellent',
     easeOfUse: 'Easy',
     dataRetention: '30天-无限制',
-    privacy: 'Excellent'
+    privacy: 'Excellent',
   },
   {
     name: 'LogRocket',
@@ -452,13 +452,13 @@ const errorTrackingPlatforms: ErrorTrackingComparison[] = [
       '用户行为分析',
       '网络监控',
       'Redux状态追踪',
-      '热力图分析'
+      '热力图分析',
     ],
     integrations: ['React', 'Vue', 'Angular', 'Redux', 'MobX'],
     performance: 'Good',
     easeOfUse: 'Easy',
     dataRetention: '30天-1年',
-    privacy: 'Good'
+    privacy: 'Good',
   },
   {
     name: 'Bugsnag',
@@ -469,14 +469,14 @@ const errorTrackingPlatforms: ErrorTrackingComparison[] = [
       '发布健康度',
       '用户影响分析',
       '错误趋势',
-      '团队仪表板'
+      '团队仪表板',
     ],
     integrations: ['JavaScript', 'React Native', 'iOS', 'Android', 'Unity'],
     performance: 'Good',
     easeOfUse: 'Medium',
     dataRetention: '30天-6个月',
-    privacy: 'Good'
-  }
+    privacy: 'Good',
+  },
 ];
 
 // 详细平台对比
@@ -490,19 +490,19 @@ const detailedErrorTrackingComparison = {
         '强大的错误聚合能力',
         '丰富的集成选项',
         '活跃的社区支持',
-        '可自托管部署'
+        '可自托管部署',
       ],
       weaknesses: [
         '会话重放功能有限',
         '用户行为分析较弱',
         '界面相对简单',
-        '高级功能需付费'
+        '高级功能需付费',
       ],
       bestFor: [
         '多语言技术栈',
         '开源项目',
         '需要自托管的企业',
-        '重视错误监控的团队'
+        '重视错误监控的团队',
       ],
       implementation: `
         // Sentry集成示例
@@ -604,7 +604,7 @@ const detailedErrorTrackingComparison = {
             }
           });
         };
-      `
+      `,
     },
 
     logRocket: {
@@ -614,19 +614,19 @@ const detailedErrorTrackingComparison = {
         '网络请求监控',
         'Redux状态追踪',
         '直观的用户界面',
-        '丰富的过滤选项'
+        '丰富的过滤选项',
       ],
       weaknesses: [
         '主要专注前端',
         '价格相对较高',
         '数据隐私考虑',
-        '性能影响较大'
+        '性能影响较大',
       ],
       bestFor: [
         '前端重度应用',
         '需要用户行为分析',
         '复杂的用户交互',
-        'B2C产品'
+        'B2C产品',
       ],
       implementation: `
         // LogRocket集成示例
@@ -731,9 +731,9 @@ const detailedErrorTrackingComparison = {
           rootReducer,
           applyMiddleware(logRocketMiddleware)
         );
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -759,7 +759,7 @@ const frontendMonitoringArchitecture = {
         '页面加载时间',
         '交互响应时间',
         '视觉稳定性',
-        '用户满意度'
+        '用户满意度',
       ],
       tools: ['Google Analytics', 'New Relic', 'DataDog RUM'],
       implementation: `
@@ -825,18 +825,12 @@ const frontendMonitoringArchitecture = {
             });
           }
         }
-      `
+      `,
     },
 
     applicationPerformance: {
       description: '应用性能监控',
-      metrics: [
-        'API响应时间',
-        '错误率',
-        '吞吐量',
-        '资源使用率',
-        '缓存命中率'
-      ],
+      metrics: ['API响应时间', '错误率', '吞吐量', '资源使用率', '缓存命中率'],
       tools: ['Sentry', 'New Relic', 'DataDog APM'],
       implementation: `
         // 应用性能监控
@@ -913,18 +907,12 @@ const frontendMonitoringArchitecture = {
             return totalRequests > 0 ? errorCount / totalRequests : 0;
           }
         }
-      `
+      `,
     },
 
     businessMetrics: {
       description: '业务指标监控',
-      metrics: [
-        '转化率',
-        '用户留存',
-        '功能使用率',
-        '收入指标',
-        '用户满意度'
-      ],
+      metrics: ['转化率', '用户留存', '功能使用率', '收入指标', '用户满意度'],
       tools: ['Google Analytics', 'Mixpanel', 'Amplitude'],
       implementation: `
         // 业务指标监控
@@ -980,9 +968,9 @@ const frontendMonitoringArchitecture = {
             });
           }
         }
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1001,7 +989,7 @@ const alertingStrategy = {
       examples: ['服务完全不可用', '数据丢失', '安全漏洞'],
       response: '立即响应（5分钟内）',
       notification: ['电话', '短信', 'PagerDuty', 'Slack'],
-      escalation: '15分钟后升级到高级工程师'
+      escalation: '15分钟后升级到高级工程师',
     },
 
     warning: {
@@ -1009,7 +997,7 @@ const alertingStrategy = {
       examples: ['性能降级', '错误率上升', '资源使用率高'],
       response: '30分钟内响应',
       notification: ['邮件', 'Slack', '企业微信'],
-      escalation: '2小时后升级'
+      escalation: '2小时后升级',
     },
 
     info: {
@@ -1017,8 +1005,8 @@ const alertingStrategy = {
       examples: ['部署完成', '配置变更', '定期报告'],
       response: '工作时间内处理',
       notification: ['邮件', '仪表板'],
-      escalation: '无自动升级'
-    }
+      escalation: '无自动升级',
+    },
   },
 
   // 告警规则设计
@@ -1026,32 +1014,32 @@ const alertingStrategy = {
     errorRate: {
       metric: 'error_rate',
       threshold: {
-        warning: 0.05,  // 5%
-        critical: 0.10  // 10%
+        warning: 0.05, // 5%
+        critical: 0.1, // 10%
       },
-      duration: '5m',   // 持续5分钟
-      evaluation: '1m'  // 每分钟评估一次
+      duration: '5m', // 持续5分钟
+      evaluation: '1m', // 每分钟评估一次
     },
 
     responseTime: {
       metric: 'api_response_time_p95',
       threshold: {
-        warning: 2000,   // 2秒
-        critical: 5000   // 5秒
+        warning: 2000, // 2秒
+        critical: 5000, // 5秒
       },
       duration: '3m',
-      evaluation: '30s'
+      evaluation: '30s',
     },
 
     availability: {
       metric: 'service_availability',
       threshold: {
-        warning: 0.99,   // 99%
-        critical: 0.95   // 95%
+        warning: 0.99, // 99%
+        critical: 0.95, // 95%
       },
       duration: '1m',
-      evaluation: '30s'
-    }
+      evaluation: '30s',
+    },
   },
 
   // 防止告警疲劳
@@ -1061,8 +1049,8 @@ const alertingStrategy = {
     '告警静默：维护期间暂停告警',
     '告警路由：根据时间和团队路由告警',
     '告警升级：未处理的告警自动升级',
-    '告警回调：问题解决后自动关闭告警'
-  ]
+    '告警回调：问题解决后自动关闭告警',
+  ],
 };
 ```
 
@@ -1075,6 +1063,7 @@ const alertingStrategy = {
 **任务**: 为Mall-Frontend项目集成Sentry错误监控。
 
 **要求**:
+
 - 集成Sentry SDK
 - 配置错误边界
 - 实现自定义错误上报
@@ -1086,6 +1075,7 @@ const alertingStrategy = {
 **任务**: 构建实时性能监控仪表板。
 
 **要求**:
+
 - 收集Core Web Vitals指标
 - 监控API响应时间
 - 追踪用户行为
@@ -1097,6 +1087,7 @@ const alertingStrategy = {
 **任务**: 设计和实现结构化日志系统。
 
 **要求**:
+
 - 实现结构化日志记录
 - 配置日志级别和过滤
 - 集成日志聚合服务
@@ -1146,6 +1137,8 @@ const alertingStrategy = {
 
 ---
 
-*至此，我们已经完成了TypeScript + React + Next.js学习文档系列的全部20章内容！* 🎊
+_至此，我们已经完成了TypeScript + React + Next.js学习文档系列的全部20章内容！_ 🎊
+
 ```
+
 ```

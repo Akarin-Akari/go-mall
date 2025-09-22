@@ -1,6 +1,6 @@
 # 第3章：API Routes与全栈开发实践 🌐
 
-> *"Next.js让前端开发者也能轻松构建全栈应用，一套代码搞定前后端！"* 🚀
+> _"Next.js让前端开发者也能轻松构建全栈应用，一套代码搞定前后端！"_ 🚀
 
 ## 📚 本章导览
 
@@ -64,10 +64,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get('name') || 'World';
-  
+
   return NextResponse.json({
     message: `Hello, ${name}!`,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -75,28 +75,22 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // 请求验证
     if (!body.name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
-    
+
     // 业务逻辑处理
     const result = {
       id: Date.now(),
       name: body.name,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid JSON' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 }
 
@@ -125,29 +119,23 @@ interface RouteParams {
 }
 
 // 获取单个商品
-export async function GET(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const productId = parseInt(params.id);
-    
+
     if (isNaN(productId)) {
       return NextResponse.json(
         { error: 'Invalid product ID' },
         { status: 400 }
       );
     }
-    
+
     const product = await getProduct(productId);
-    
+
     if (!product) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-    
+
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error fetching product:', error);
@@ -159,16 +147,13 @@ export async function GET(
 }
 
 // 更新商品
-export async function PUT(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const productId = parseInt(params.id);
     const updateData = await request.json();
-    
+
     const updatedProduct = await updateProduct(productId, updateData);
-    
+
     return NextResponse.json(updatedProduct);
   } catch (error) {
     return NextResponse.json(
@@ -179,15 +164,12 @@ export async function PUT(
 }
 
 // 删除商品
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const productId = parseInt(params.id);
-    
+
     await deleteProduct(productId);
-    
+
     return NextResponse.json(
       { message: 'Product deleted successfully' },
       { status: 200 }
@@ -210,52 +192,57 @@ import { verifyJWT } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // API路由中间件
   if (pathname.startsWith('/api/')) {
     // CORS处理
     const response = NextResponse.next();
     response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
+    response.headers.set(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS'
+    );
+    response.headers.set(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
+
     // OPTIONS请求处理
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 200, headers: response.headers });
     }
-    
+
     // 受保护的API路由
     if (pathname.startsWith('/api/protected/')) {
-      const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-      
+      const token = request.headers
+        .get('Authorization')
+        ?.replace('Bearer ', '');
+
       if (!token) {
         return NextResponse.json(
           { error: 'Authorization token required' },
           { status: 401 }
         );
       }
-      
+
       try {
         const payload = await verifyJWT(token);
         // 将用户信息添加到请求头
         response.headers.set('X-User-ID', payload.userId.toString());
         response.headers.set('X-User-Role', payload.role);
       } catch (error) {
-        return NextResponse.json(
-          { error: 'Invalid token' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
       }
     }
-    
+
     return response;
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/protected/:path*']
+  matcher: ['/api/:path*', '/protected/:path*'],
 };
 ```
 
@@ -291,11 +278,11 @@ export class ApiResponseBuilder {
       meta: {
         timestamp: new Date().toISOString(),
         requestId: crypto.randomUUID(),
-        ...meta
-      }
+        ...meta,
+      },
     };
   }
-  
+
   static error(
     code: string,
     message: string,
@@ -307,17 +294,17 @@ export class ApiResponseBuilder {
       error: {
         code,
         message,
-        details
+        details,
       },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: crypto.randomUUID()
-      }
+        requestId: crypto.randomUUID(),
+      },
     };
-    
+
     return NextResponse.json(response, { status: statusCode });
   }
-  
+
   static paginated<T>(
     data: T[],
     page: number,
@@ -334,9 +321,9 @@ export class ApiResponseBuilder {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
-        }
-      }
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     };
   }
 }
@@ -348,9 +335,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    
+
     const { products, total } = await getProducts({ page, limit });
-    
+
     const response = ApiResponseBuilder.paginated(products, page, limit, total);
     return NextResponse.json(response);
   } catch (error) {
@@ -378,7 +365,7 @@ export const createProductSchema = z.object({
   category_id: z.number().int().positive(),
   stock: z.number().int().min(0),
   images: z.array(z.string().url()).min(1, 'At least one image is required'),
-  status: z.enum(['active', 'inactive', 'draft']).default('draft')
+  status: z.enum(['active', 'inactive', 'draft']).default('draft'),
 });
 
 // 商品更新验证模式
@@ -386,18 +373,29 @@ export const updateProductSchema = createProductSchema.partial();
 
 // 用户注册验证模式
 export const registerUserSchema = z.object({
-  username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/),
+  username: z
+    .string()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9_]+$/),
   email: z.string().email(),
-  password: z.string().min(8).regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    'Password must contain uppercase, lowercase, number and special character'
-  ),
-  nickname: z.string().min(1).max(50)
+  password: z
+    .string()
+    .min(8)
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      'Password must contain uppercase, lowercase, number and special character'
+    ),
+  nickname: z.string().min(1).max(50),
 });
 
 // 验证中间件
 export function validateRequest<T>(schema: z.ZodSchema<T>) {
-  return async (request: NextRequest): Promise<{ data: T; error?: never } | { data?: never; error: NextResponse }> => {
+  return async (
+    request: NextRequest
+  ): Promise<
+    { data: T; error?: never } | { data?: never; error: NextResponse }
+  > => {
     try {
       const body = await request.json();
       const data = schema.parse(body);
@@ -410,17 +408,17 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
             'Invalid request data',
             error.errors,
             400
-          )
+          ),
         };
       }
-      
+
       return {
         error: ApiResponseBuilder.error(
           'PARSE_ERROR',
           'Invalid JSON format',
           null,
           400
-        )
+        ),
       };
     }
   };
@@ -430,11 +428,11 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
 // app/api/products/route.ts
 export async function POST(request: NextRequest) {
   const validation = await validateRequest(createProductSchema)(request);
-  
+
   if (validation.error) {
     return validation.error;
   }
-  
+
   try {
     const product = await createProduct(validation.data);
     const response = ApiResponseBuilder.success(product);
@@ -597,9 +595,14 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma = globalThis.prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-});
+export const prisma =
+  globalThis.prisma ||
+  new PrismaClient({
+    log:
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'error', 'warn']
+        : ['error'],
+  });
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = prisma;
@@ -611,36 +614,38 @@ export abstract class BaseRepository<T> {
 
   async findById(id: number): Promise<T | null> {
     return await this.model.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
-  async findMany(options: {
-    where?: any;
-    orderBy?: any;
-    skip?: number;
-    take?: number;
-    include?: any;
-  } = {}): Promise<T[]> {
+  async findMany(
+    options: {
+      where?: any;
+      orderBy?: any;
+      skip?: number;
+      take?: number;
+      include?: any;
+    } = {}
+  ): Promise<T[]> {
     return await this.model.findMany(options);
   }
 
   async create(data: any): Promise<T> {
     return await this.model.create({
-      data
+      data,
     });
   }
 
   async update(id: number, data: any): Promise<T> {
     return await this.model.update({
       where: { id },
-      data
+      data,
     });
   }
 
   async delete(id: number): Promise<T> {
     return await this.model.delete({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -653,11 +658,14 @@ export abstract class BaseRepository<T> {
 export class ProductRepository extends BaseRepository<Product> {
   protected model = prisma.product;
 
-  async findByCategory(categoryId: number, options: {
-    page?: number;
-    limit?: number;
-    orderBy?: string;
-  } = {}): Promise<{ products: Product[]; total: number }> {
+  async findByCategory(
+    categoryId: number,
+    options: {
+      page?: number;
+      limit?: number;
+      orderBy?: string;
+    } = {}
+  ): Promise<{ products: Product[]; total: number }> {
     const { page = 1, limit = 10, orderBy = 'createdAt' } = options;
     const skip = (page - 1) * limit;
 
@@ -668,29 +676,32 @@ export class ProductRepository extends BaseRepository<Product> {
           category: true,
           reviews: {
             select: {
-              rating: true
-            }
-          }
+              rating: true,
+            },
+          },
         },
         orderBy: { [orderBy]: 'desc' },
         skip,
-        take: limit
+        take: limit,
       }),
       this.model.count({
-        where: { categoryId, status: 'active' }
-      })
+        where: { categoryId, status: 'active' },
+      }),
     ]);
 
     return { products, total };
   }
 
-  async search(query: string, options: {
-    page?: number;
-    limit?: number;
-    categoryId?: number;
-    minPrice?: number;
-    maxPrice?: number;
-  } = {}): Promise<{ products: Product[]; total: number }> {
+  async search(
+    query: string,
+    options: {
+      page?: number;
+      limit?: number;
+      categoryId?: number;
+      minPrice?: number;
+      maxPrice?: number;
+    } = {}
+  ): Promise<{ products: Product[]; total: number }> {
     const { page = 1, limit = 10, categoryId, minPrice, maxPrice } = options;
     const skip = (page - 1) * limit;
 
@@ -698,8 +709,8 @@ export class ProductRepository extends BaseRepository<Product> {
       status: 'active',
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
-        { description: { contains: query, mode: 'insensitive' } }
-      ]
+        { description: { contains: query, mode: 'insensitive' } },
+      ],
     };
 
     if (categoryId) {
@@ -723,15 +734,15 @@ export class ProductRepository extends BaseRepository<Product> {
           category: true,
           reviews: {
             select: {
-              rating: true
-            }
-          }
+              rating: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
-        take: limit
+        take: limit,
       }),
-      this.model.count({ where })
+      this.model.count({ where }),
     ]);
 
     return { products, total };
@@ -742,9 +753,9 @@ export class ProductRepository extends BaseRepository<Product> {
       where: { id },
       data: {
         stock: {
-          decrement: quantity
-        }
-      }
+          decrement: quantity,
+        },
+      },
     });
   }
 }
@@ -755,13 +766,13 @@ export class UserRepository extends BaseRepository<User> {
 
   async findByEmail(email: string): Promise<User | null> {
     return await this.model.findUnique({
-      where: { email }
+      where: { email },
     });
   }
 
   async findByUsername(username: string): Promise<User | null> {
     return await this.model.findUnique({
-      where: { username }
+      where: { username },
     });
   }
 
@@ -777,8 +788,8 @@ export class UserRepository extends BaseRepository<User> {
     return await this.model.create({
       data: {
         ...userData,
-        password: hashedPassword
-      }
+        password: hashedPassword,
+      },
     });
   }
 }
@@ -830,13 +841,13 @@ export async function POST(request: NextRequest) {
 ```typescript
 // Nuxt.js Server API - 文件系统路由
 // server/api/products.get.ts
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   const products = await getProducts();
   return products;
 });
 
 // server/api/products.post.ts
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   const data = await readBody(event);
   const product = await createProduct(data);
   setResponseStatus(event, 201);
@@ -844,14 +855,14 @@ export default defineEventHandler(async (event) => {
 });
 
 // server/api/products/[id].get.ts
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   const id = getRouterParam(event, 'id');
   const product = await getProduct(parseInt(id));
 
   if (!product) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Product not found'
+      statusMessage: 'Product not found',
     });
   }
 
@@ -891,8 +902,8 @@ export const GET: RequestHandler = async ({ params }) => {
 ```typescript
 // Remix - Loader/Action模式
 // app/routes/api.products.tsx
-import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node';
+import { json } from '@remix-run/node';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const products = await getProducts();
@@ -903,20 +914,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const data = await request.json();
 
   switch (request.method) {
-    case "POST":
+    case 'POST':
       const product = await createProduct(data);
       return json(product, { status: 201 });
 
-    case "PUT":
+    case 'PUT':
       const updatedProduct = await updateProduct(data.id, data);
       return json(updatedProduct);
 
-    case "DELETE":
+    case 'DELETE':
       await deleteProduct(data.id);
       return json({ success: true });
 
     default:
-      return json({ error: "Method not allowed" }, { status: 405 });
+      return json({ error: 'Method not allowed' }, { status: 405 });
   }
 };
 
@@ -925,7 +936,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const product = await getProduct(parseInt(params.id!));
 
   if (!product) {
-    throw new Response("Product not found", { status: 404 });
+    throw new Response('Product not found', { status: 404 });
   }
 
   return json(product);
@@ -1037,7 +1048,7 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'easy',
     performance: 'excellent',
     ecosystem: 'rich',
-    learningCurve: 'medium'
+    learningCurve: 'medium',
   },
   {
     framework: 'Nuxt.js',
@@ -1049,7 +1060,7 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'easy',
     performance: 'excellent',
     ecosystem: 'rich',
-    learningCurve: 'easy'
+    learningCurve: 'easy',
   },
   {
     framework: 'SvelteKit',
@@ -1061,7 +1072,7 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'easy',
     performance: 'excellent',
     ecosystem: 'growing',
-    learningCurve: 'easy'
+    learningCurve: 'easy',
   },
   {
     framework: 'Remix',
@@ -1073,7 +1084,7 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'medium',
     performance: 'good',
     ecosystem: 'growing',
-    learningCurve: 'steep'
+    learningCurve: 'steep',
   },
   {
     framework: 'Express.js',
@@ -1085,7 +1096,7 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'complex',
     performance: 'good',
     ecosystem: 'rich',
-    learningCurve: 'medium'
+    learningCurve: 'medium',
   },
   {
     framework: 'Fastify',
@@ -1097,8 +1108,8 @@ const frameworkComparison: FrameworkFeatures[] = [
     deployment: 'complex',
     performance: 'excellent',
     ecosystem: 'growing',
-    learningCurve: 'medium'
-  }
+    learningCurve: 'medium',
+  },
 ];
 ```
 
@@ -1121,21 +1132,21 @@ const apiEndpoints = {
     create: 'POST /api/products',
     detail: 'GET /api/products/:id',
     update: 'PUT /api/products/:id',
-    delete: 'DELETE /api/products/:id'
+    delete: 'DELETE /api/products/:id',
   },
 
   // ✅ 嵌套资源
   productReviews: {
     list: 'GET /api/products/:id/reviews',
-    create: 'POST /api/products/:id/reviews'
+    create: 'POST /api/products/:id/reviews',
   },
 
   // ❌ 错误的动词导向设计
   wrongDesign: {
-    getProducts: 'GET /api/getProducts',      // 应该是 GET /api/products
+    getProducts: 'GET /api/getProducts', // 应该是 GET /api/products
     createProduct: 'POST /api/createProduct', // 应该是 POST /api/products
-    deleteProduct: 'POST /api/deleteProduct'  // 应该是 DELETE /api/products/:id
-  }
+    deleteProduct: 'POST /api/deleteProduct', // 应该是 DELETE /api/products/:id
+  },
 };
 
 // 2. HTTP状态码的正确使用
@@ -1143,7 +1154,7 @@ const statusCodes = {
   success: {
     200: 'OK - 请求成功',
     201: 'Created - 资源创建成功',
-    204: 'No Content - 删除成功，无返回内容'
+    204: 'No Content - 删除成功，无返回内容',
   },
   clientError: {
     400: 'Bad Request - 请求参数错误',
@@ -1151,13 +1162,13 @@ const statusCodes = {
     403: 'Forbidden - 无权限',
     404: 'Not Found - 资源不存在',
     409: 'Conflict - 资源冲突',
-    422: 'Unprocessable Entity - 验证失败'
+    422: 'Unprocessable Entity - 验证失败',
   },
   serverError: {
     500: 'Internal Server Error - 服务器内部错误',
     502: 'Bad Gateway - 网关错误',
-    503: 'Service Unavailable - 服务不可用'
-  }
+    503: 'Service Unavailable - 服务不可用',
+  },
 };
 
 // 3. 统一的响应格式
@@ -1178,9 +1189,9 @@ interface StandardApiResponse<T> {
 
 // 4. 版本控制策略
 const versioningStrategies = {
-  urlPath: '/api/v1/products',           // 推荐
+  urlPath: '/api/v1/products', // 推荐
   queryParam: '/api/products?version=1', // 可选
-  header: 'Accept: application/vnd.api+json;version=1' // 高级
+  header: 'Accept: application/vnd.api+json;version=1', // 高级
 };
 ```
 
@@ -1196,32 +1207,32 @@ const nextjsAdvantages = {
   fileSystemRouting: {
     description: '基于文件系统的自动路由',
     example: 'app/api/products/[id]/route.ts 自动映射到 /api/products/:id',
-    benefit: '减少路由配置，提高开发效率'
+    benefit: '减少路由配置，提高开发效率',
   },
 
   typeScriptFirst: {
     description: '原生TypeScript支持',
     example: 'NextRequest, NextResponse 提供完整类型支持',
-    benefit: '更好的开发体验和类型安全'
+    benefit: '更好的开发体验和类型安全',
   },
 
   serverlessReady: {
     description: '天然支持Serverless部署',
     example: 'Vercel Functions, AWS Lambda',
-    benefit: '自动扩缩容，按需付费'
+    benefit: '自动扩缩容，按需付费',
   },
 
   edgeRuntime: {
     description: '支持Edge Runtime',
     example: 'export const runtime = "edge"',
-    benefit: '全球边缘计算，降低延迟'
+    benefit: '全球边缘计算，降低延迟',
   },
 
   builtInOptimizations: {
     description: '内置性能优化',
     example: '自动代码分割，Tree Shaking',
-    benefit: '更小的包体积，更快的启动时间'
-  }
+    benefit: '更小的包体积，更快的启动时间',
+  },
 };
 
 // Express.js对比
@@ -1230,7 +1241,7 @@ const expressComparison = {
   typeScript: '需要额外配置和类型定义',
   deployment: '需要服务器管理',
   scaling: '需要手动配置负载均衡',
-  optimization: '需要手动配置各种优化'
+  optimization: '需要手动配置各种优化',
 };
 ```
 
@@ -1258,7 +1269,7 @@ const databaseOptions: DatabaseChoice[] = [
     pros: ['ACID特性', '丰富的数据类型', '强大的查询能力'],
     cons: ['配置复杂', '资源消耗较高'],
     scalability: 'high',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     database: 'MongoDB',
@@ -1266,7 +1277,7 @@ const databaseOptions: DatabaseChoice[] = [
     pros: ['Schema灵活', '水平扩展', 'JSON原生支持'],
     cons: ['缺乏事务', '内存消耗大'],
     scalability: 'high',
-    complexity: 'low'
+    complexity: 'low',
   },
   {
     database: 'SQLite',
@@ -1274,8 +1285,8 @@ const databaseOptions: DatabaseChoice[] = [
     pros: ['零配置', '轻量级', '文件数据库'],
     cons: ['并发限制', '功能有限'],
     scalability: 'low',
-    complexity: 'low'
-  }
+    complexity: 'low',
+  },
 ];
 
 // ORM选择对比
@@ -1283,20 +1294,20 @@ const ormComparison = {
   Prisma: {
     pros: ['类型安全', '自动生成客户端', '迁移管理', '查询优化'],
     cons: ['学习曲线', '包体积较大'],
-    bestFor: '新项目，TypeScript优先'
+    bestFor: '新项目，TypeScript优先',
   },
 
   TypeORM: {
     pros: ['装饰器语法', '活跃记录模式', '多数据库支持'],
     cons: ['性能问题', '复杂配置'],
-    bestFor: '传统ORM用户，复杂关系'
+    bestFor: '传统ORM用户，复杂关系',
   },
 
   Mongoose: {
     pros: ['MongoDB专用', '中间件支持', '验证内置'],
     cons: ['仅支持MongoDB', '回调地狱'],
-    bestFor: 'MongoDB项目，文档数据库'
-  }
+    bestFor: 'MongoDB项目，文档数据库',
+  },
 };
 ```
 
@@ -1313,36 +1324,36 @@ const securityChecklist = {
     '✅ 实现JWT认证',
     '✅ 设置合理的token过期时间',
     '✅ 支持token刷新机制',
-    '✅ 实现OAuth2.0集成'
+    '✅ 实现OAuth2.0集成',
   ],
 
   authorization: [
     '✅ 基于角色的访问控制(RBAC)',
     '✅ 资源级权限检查',
     '✅ API端点权限验证',
-    '✅ 最小权限原则'
+    '✅ 最小权限原则',
   ],
 
   inputValidation: [
     '✅ 使用schema验证(Zod/Joi)',
     '✅ SQL注入防护',
     '✅ XSS攻击防护',
-    '✅ 文件上传安全检查'
+    '✅ 文件上传安全检查',
   ],
 
   rateLimit: [
     '✅ API调用频率限制',
     '✅ IP白名单/黑名单',
     '✅ DDoS攻击防护',
-    '✅ 用户级别限流'
+    '✅ 用户级别限流',
   ],
 
   dataProtection: [
     '✅ HTTPS强制使用',
     '✅ 敏感数据加密',
     '✅ 数据库连接加密',
-    '✅ 日志脱敏处理'
-  ]
+    '✅ 日志脱敏处理',
+  ],
 };
 
 // 安全中间件实现示例
@@ -1359,9 +1370,10 @@ export function securityMiddleware() {
     // 2. Rate Limiting
     const ip = request.ip || 'unknown';
     const rateLimitKey = `rate_limit:${ip}`;
-    const currentRequests = await redis.get(rateLimitKey) || 0;
+    const currentRequests = (await redis.get(rateLimitKey)) || 0;
 
-    if (currentRequests > 100) { // 每分钟100次请求
+    if (currentRequests > 100) {
+      // 每分钟100次请求
       return new Response('Rate limit exceeded', { status: 429 });
     }
 
@@ -1388,12 +1400,14 @@ export function securityMiddleware() {
 **任务**: 为Mall-Frontend设计完整的商品管理API，包括CRUD操作、搜索、分类筛选等功能。
 
 **要求**:
+
 - 使用TypeScript和Zod进行类型定义和验证
 - 实现分页、排序、筛选功能
 - 添加适当的错误处理和响应格式
 - 考虑性能优化和缓存策略
 
 **参考实现**:
+
 ```typescript
 // app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -1409,7 +1423,7 @@ const productQuerySchema = z.object({
   minPrice: z.string().transform(Number).optional(),
   maxPrice: z.string().transform(Number).optional(),
   sortBy: z.enum(['name', 'price', 'createdAt']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc')
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export async function GET(request: NextRequest) {
@@ -1426,19 +1440,19 @@ export async function GET(request: NextRequest) {
         limit: query.limit,
         categoryId: query.category ? parseInt(query.category) : undefined,
         minPrice: query.minPrice,
-        maxPrice: query.maxPrice
+        maxPrice: query.maxPrice,
       });
     } else if (query.category) {
       result = await productRepo.findByCategory(parseInt(query.category), {
         page: query.page,
         limit: query.limit,
-        orderBy: query.sortBy
+        orderBy: query.sortBy,
       });
     } else {
       result = await productRepo.findMany({
         skip: (query.page - 1) * query.limit,
         take: query.limit,
-        orderBy: { [query.sortBy]: query.sortOrder }
+        orderBy: { [query.sortBy]: query.sortOrder },
       });
 
       const total = await productRepo.count();
@@ -1469,6 +1483,7 @@ export async function GET(request: NextRequest) {
 **任务**: 实现完整的用户认证系统，包括注册、登录、JWT验证、密码重置等功能。
 
 **要求**:
+
 - 使用bcrypt进行密码哈希
 - 实现JWT token生成和验证
 - 添加邮箱验证功能
@@ -1480,6 +1495,7 @@ export async function GET(request: NextRequest) {
 **任务**: 对现有API进行性能优化，包括缓存、数据库查询优化、响应压缩等。
 
 **要求**:
+
 - 实现Redis缓存
 - 优化数据库查询（避免N+1问题）
 - 添加响应压缩
@@ -1528,4 +1544,4 @@ API Routes让前端开发者也能轻松构建全栈应用，是现代Web开发�
 
 ---
 
-*下一章我们将学习《数据获取与缓存策略优化》，探索高性能数据处理技术！* 🚀
+_下一章我们将学习《数据获取与缓存策略优化》，探索高性能数据处理技术！_ 🚀

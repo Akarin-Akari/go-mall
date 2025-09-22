@@ -30,27 +30,48 @@ func NewOrderService(db *gorm.DB, cartService *cart.CartService, calculationServ
 	}
 }
 
-// CreateOrder 创建订单 - 并发安全版本
+// CreateOrder 创建订单 - 优化版本，先扣库存后创建订单，避免双重事务嵌套
 func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) (*model.Order, error) {
-	// 使用事务确保数据一致性
+	// 第一步：验证购物车和获取商品项（轻量级查询）
+	var userCart model.Cart
+	if err := os.db.Where("user_id = ? AND status = ?", userID, model.CartStatusActive).First(&userCart).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("用户购物车不存在，请先添加商品到购物车")
+		}
+		return nil, fmt.Errorf("查询用户购物车失败: %v", err)
+	}
+
+	// 获取购物车商品项
+	var cartItems []model.CartItem
+	query := os.db.Where("cart_id = ?", userCart.ID).
+		Preload("Product").
+		Preload("SKU")
+
+	// 如果指定了特定的购物车商品项ID，则只查询这些项
+	if len(req.CartItemIDs) > 0 {
+		query = query.Where("id IN ?", req.CartItemIDs)
+	}
+
+	if err := query.Find(&cartItems).Error; err != nil {
+		return nil, fmt.Errorf("获取购物车商品失败: %v", err)
+	}
+
+	if len(cartItems) == 0 {
+		if len(req.CartItemIDs) > 0 {
+			return nil, fmt.Errorf("指定的购物车商品项不存在，请检查商品项ID: %v", req.CartItemIDs)
+		}
+		return nil, fmt.Errorf("购物车为空，请先添加商品到购物车")
+	}
+
+	// 第二步：先扣减库存（独立事务，避免长时间锁定）
+	if err := os.deductStockWithInventoryService(cartItems); err != nil {
+		return nil, fmt.Errorf("扣减库存失败: %v", err)
+	}
+
+	// 第三步：创建订单（短事务）
 	var order *model.Order
 	err := os.db.Transaction(func(tx *gorm.DB) error {
-		// 获取购物车商品项（使用悲观锁防止并发修改）
-		var cartItems []model.CartItem
-		if err := tx.Set("gorm:query_option", "FOR UPDATE").
-			Where("id IN ? AND cart_id IN (SELECT id FROM carts WHERE user_id = ?)",
-				req.CartItemIDs, userID).
-			Preload("Product").
-			Preload("SKU").
-			Find(&cartItems).Error; err != nil {
-			return fmt.Errorf("获取购物车商品失败: %v", err)
-		}
-
-		if len(cartItems) == 0 {
-			return fmt.Errorf("购物车商品为空")
-		}
-
-		// 预先验证所有商品和库存（在扣减前检查）
+		// 再次验证购物车商品项（防止并发修改）
 		if err := os.validateCartItemsForOrder(tx, cartItems); err != nil {
 			return err
 		}
@@ -62,11 +83,6 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 			return createErr
 		}
 
-		// 使用库存服务扣减库存（带乐观锁重试）
-		if err := os.deductStockWithInventoryService(cartItems); err != nil {
-			return fmt.Errorf("扣减库存失败: %v", err)
-		}
-
 		// 清理购物车商品项
 		if err := tx.Where("id IN ?", req.CartItemIDs).Delete(&model.CartItem{}).Error; err != nil {
 			return fmt.Errorf("清理购物车失败: %v", err)
@@ -76,10 +92,28 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 	})
 
 	if err != nil {
+		// 如果订单创建失败，需要回滚库存
+		os.rollbackStock(cartItems)
 		return nil, err
 	}
 
 	return order, nil
+}
+
+// rollbackStock 回滚库存（订单创建失败时使用）
+func (os *OrderService) rollbackStock(cartItems []model.CartItem) {
+	var requests []inventory.StockDeductionRequest
+	for _, item := range cartItems {
+		req := inventory.StockDeductionRequest{
+			ProductID: item.ProductID,
+			SKUID:     item.SKUID,
+			Quantity:  item.Quantity,
+		}
+		requests = append(requests, req)
+	}
+
+	// 尝试恢复库存，忽略错误（因为这是补偿操作）
+	os.inventoryService.RestoreStock(requests)
 }
 
 // validateCartItemsForOrder 验证购物车商品项是否可以下单

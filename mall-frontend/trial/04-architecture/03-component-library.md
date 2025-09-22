@@ -1,6 +1,6 @@
 # 第3章：组件库设计与开发 🧩
 
-> *"好的组件库是团队效率的倍增器！"* 🚀
+> _"好的组件库是团队效率的倍增器！"_ 🚀
 
 ## 📚 本章导览
 
@@ -77,7 +77,7 @@ interface DesignSystem {
     scalability: '可扩展性 - 支持业务快速发展';
     efficiency: '效率性 - 提升设计和开发效率';
   };
-  
+
   // 设计令牌 (Design Tokens)
   tokens: {
     colors: ColorTokens;
@@ -87,16 +87,16 @@ interface DesignSystem {
     borders: BorderTokens;
     animations: AnimationTokens;
   };
-  
+
   // 组件库
   components: {
-    atoms: AtomicComponents;      // 原子组件：Button, Input, Icon
+    atoms: AtomicComponents; // 原子组件：Button, Input, Icon
     molecules: MolecularComponents; // 分子组件：SearchBox, Card
-    organisms: OrganismComponents;  // 有机体组件：Header, ProductList
-    templates: TemplateComponents;  // 模板组件：PageLayout
-    pages: PageComponents;         // 页面组件：HomePage, ProductPage
+    organisms: OrganismComponents; // 有机体组件：Header, ProductList
+    templates: TemplateComponents; // 模板组件：PageLayout
+    pages: PageComponents; // 页面组件：HomePage, ProductPage
   };
-  
+
   // 模式库
   patterns: {
     navigation: NavigationPatterns;
@@ -104,7 +104,7 @@ interface DesignSystem {
     feedback: FeedbackPatterns;
     data: DataPatterns;
   };
-  
+
   // 工具和资源
   tools: {
     designTools: DesignTools;
@@ -123,13 +123,13 @@ interface ColorTokens {
     200: '#bae6fd';
     300: '#7dd3fc';
     400: '#38bdf8';
-    500: '#0ea5e9';  // 主色
+    500: '#0ea5e9'; // 主色
     600: '#0284c7';
     700: '#0369a1';
     800: '#075985';
     900: '#0c4a6e';
   };
-  
+
   // 语义色彩
   semantic: {
     success: '#10b981';
@@ -137,7 +137,7 @@ interface ColorTokens {
     error: '#ef4444';
     info: '#3b82f6';
   };
-  
+
   // 中性色彩
   neutral: {
     white: '#ffffff';
@@ -164,20 +164,20 @@ interface TypographyTokens {
     serif: ['Georgia', 'serif'];
     mono: ['Fira Code', 'monospace'];
   };
-  
+
   // 字体大小
   fontSize: {
-    xs: '0.75rem';    // 12px
-    sm: '0.875rem';   // 14px
-    base: '1rem';     // 16px
-    lg: '1.125rem';   // 18px
-    xl: '1.25rem';    // 20px
-    '2xl': '1.5rem';  // 24px
+    xs: '0.75rem'; // 12px
+    sm: '0.875rem'; // 14px
+    base: '1rem'; // 16px
+    lg: '1.125rem'; // 18px
+    xl: '1.25rem'; // 20px
+    '2xl': '1.5rem'; // 24px
     '3xl': '1.875rem'; // 30px
     '4xl': '2.25rem'; // 36px
-    '5xl': '3rem';    // 48px
+    '5xl': '3rem'; // 48px
   };
-  
+
   // 字重
   fontWeight: {
     thin: 100;
@@ -189,7 +189,7 @@ interface TypographyTokens {
     extrabold: 800;
     black: 900;
   };
-  
+
   // 行高
   lineHeight: {
     none: 1;
@@ -199,7 +199,7 @@ interface TypographyTokens {
     relaxed: 1.625;
     loose: 2;
   };
-  
+
   // 字间距
   letterSpacing: {
     tighter: '-0.05em';
@@ -214,25 +214,25 @@ interface TypographyTokens {
 interface SpacingTokens {
   // 基础间距单位 (4px)
   unit: 4;
-  
+
   // 间距比例
   scale: {
     0: '0px';
-    1: '0.25rem';  // 4px
-    2: '0.5rem';   // 8px
-    3: '0.75rem';  // 12px
-    4: '1rem';     // 16px
-    5: '1.25rem';  // 20px
-    6: '1.5rem';   // 24px
-    8: '2rem';     // 32px
-    10: '2.5rem';  // 40px
-    12: '3rem';    // 48px
-    16: '4rem';    // 64px
-    20: '5rem';    // 80px
-    24: '6rem';    // 96px
-    32: '8rem';    // 128px
+    1: '0.25rem'; // 4px
+    2: '0.5rem'; // 8px
+    3: '0.75rem'; // 12px
+    4: '1rem'; // 16px
+    5: '1.25rem'; // 20px
+    6: '1.5rem'; // 24px
+    8: '2rem'; // 32px
+    10: '2.5rem'; // 40px
+    12: '3rem'; // 48px
+    16: '4rem'; // 64px
+    20: '5rem'; // 80px
+    24: '6rem'; // 96px
+    32: '8rem'; // 128px
   };
-  
+
   // 语义间距
   semantic: {
     xs: 'var(--spacing-1)';
@@ -256,12 +256,7 @@ const atomicDesignLevels = {
   atoms: {
     definition: '不能再分解的基本UI元素',
     examples: ['Button', 'Input', 'Label', 'Icon', 'Avatar'],
-    characteristics: [
-      '单一职责',
-      '高度可复用',
-      '无业务逻辑',
-      '样式一致'
-    ],
+    characteristics: ['单一职责', '高度可复用', '无业务逻辑', '样式一致'],
     implementation: `
       // Button原子组件
       interface ButtonProps {
@@ -295,19 +290,14 @@ const atomicDesignLevels = {
           </StyledButton>
         );
       };
-    `
+    `,
   },
-  
+
   // 2. 分子 (Molecules) - 原子的组合
   molecules: {
     definition: '由多个原子组合而成的相对简单的UI组件',
     examples: ['SearchBox', 'FormField', 'Card', 'Breadcrumb'],
-    characteristics: [
-      '功能相对完整',
-      '可独立使用',
-      '有简单交互',
-      '可配置性强'
-    ],
+    characteristics: ['功能相对完整', '可独立使用', '有简单交互', '可配置性强'],
     implementation: `
       // SearchBox分子组件
       interface SearchBoxProps {
@@ -356,19 +346,14 @@ const atomicDesignLevels = {
           </SearchContainer>
         );
       };
-    `
+    `,
   },
-  
+
   // 3. 有机体 (Organisms) - 分子和原子的复杂组合
   organisms: {
     definition: '由分子和原子组成的相对复杂的UI组件',
     examples: ['Header', 'ProductList', 'UserProfile', 'ShoppingCart'],
-    characteristics: [
-      '功能完整',
-      '业务相关',
-      '可独立工作',
-      '复杂交互'
-    ],
+    characteristics: ['功能完整', '业务相关', '可独立工作', '复杂交互'],
     implementation: `
       // ProductList有机体组件
       interface ProductListProps {
@@ -426,32 +411,22 @@ const atomicDesignLevels = {
           </ProductListContainer>
         );
       };
-    `
+    `,
   },
-  
+
   // 4. 模板 (Templates) - 页面级别的组件布局
   templates: {
     definition: '定义页面结构和布局的组件模板',
     examples: ['PageLayout', 'DashboardLayout', 'AuthLayout'],
-    characteristics: [
-      '定义页面结构',
-      '提供插槽',
-      '响应式布局',
-      '导航集成'
-    ]
+    characteristics: ['定义页面结构', '提供插槽', '响应式布局', '导航集成'],
   },
-  
+
   // 5. 页面 (Pages) - 具体的页面实例
   pages: {
     definition: '模板的具体实例，包含真实内容和数据',
     examples: ['HomePage', 'ProductDetailPage', 'CheckoutPage'],
-    characteristics: [
-      '具体业务实现',
-      '数据集成',
-      '路由处理',
-      '状态管理'
-    ]
-  }
+    characteristics: ['具体业务实现', '数据集成', '路由处理', '状态管理'],
+  },
 };
 ```
 
@@ -867,14 +842,9 @@ const apiDesignPrinciples = {
       // ✅ 一致的variant属性
       alert: '<Alert variant="success" />',
       badge: '<Badge variant="success" />',
-      button: '<Button variant="success" />'
+      button: '<Button variant="success" />',
     },
-    benefits: [
-      '降低学习成本',
-      '提高开发效率',
-      '减少认知负担',
-      '增强可预测性'
-    ]
+    benefits: ['降低学习成本', '提高开发效率', '减少认知负担', '增强可预测性'],
   },
 
   // 2. 简洁性 (Simplicity)
@@ -894,8 +864,8 @@ const apiDesignPrinciples = {
           <Button>Second</Button>
           <Button>Third</Button>
         </Button.Group>
-      `
-    }
+      `,
+    },
   },
 
   // 3. 可扩展性 (Extensibility)
@@ -938,8 +908,8 @@ const apiDesignPrinciples = {
             )}
           />
         </Form>
-      `
-    }
+      `,
+    },
   },
 
   // 4. 类型安全 (Type Safety)
@@ -971,7 +941,7 @@ const apiDesignPrinciples = {
         value: T extends 'number' ? number : string;
         onChange: (value: T extends 'number' ? number : string) => void;
       };
-    `
+    `,
   },
 
   // 5. 可访问性 (Accessibility)
@@ -982,7 +952,7 @@ const apiDesignPrinciples = {
       '键盘导航支持',
       '屏幕阅读器友好',
       '焦点管理',
-      '语义化HTML'
+      '语义化HTML',
     ],
     implementation: `
       const Button = ({ children, disabled, ...props }) => {
@@ -1019,8 +989,8 @@ const apiDesignPrinciples = {
           </div>
         );
       };
-    `
-  }
+    `,
+  },
 };
 
 // 组件API设计模式
@@ -1068,7 +1038,7 @@ const componentApiPatterns = {
           />
         );
       };
-    `
+    `,
   },
 
   // 2. 复合组件模式
@@ -1158,7 +1128,7 @@ const componentApiPatterns = {
           <Tabs.Panel tabKey="tab3">Content 3</Tabs.Panel>
         </Tabs.Panels>
       </Tabs>
-    `
+    `,
   },
 
   // 3. 渲染属性模式
@@ -1214,8 +1184,8 @@ const componentApiPatterns = {
           );
         }}
       </DataFetcher>
-    `
-  }
+    `,
+  },
 };
 ```
 
@@ -1357,16 +1327,16 @@ const designTokens = {
     },
 
     fontSize: {
-      xs: '0.75rem',     // 12px
-      sm: '0.875rem',    // 14px
-      base: '1rem',      // 16px
-      lg: '1.125rem',    // 18px
-      xl: '1.25rem',     // 20px
-      '2xl': '1.5rem',   // 24px
+      xs: '0.75rem', // 12px
+      sm: '0.875rem', // 14px
+      base: '1rem', // 16px
+      lg: '1.125rem', // 18px
+      xl: '1.25rem', // 20px
+      '2xl': '1.5rem', // 24px
       '3xl': '1.875rem', // 30px
-      '4xl': '2.25rem',  // 36px
-      '5xl': '3rem',     // 48px
-      '6xl': '3.75rem',  // 60px
+      '4xl': '2.25rem', // 36px
+      '5xl': '3rem', // 48px
+      '6xl': '3.75rem', // 60px
     },
 
     fontWeight: {
@@ -1403,35 +1373,35 @@ const designTokens = {
   // 间距令牌
   spacing: {
     0: '0px',
-    1: '0.25rem',   // 4px
-    2: '0.5rem',    // 8px
-    3: '0.75rem',   // 12px
-    4: '1rem',      // 16px
-    5: '1.25rem',   // 20px
-    6: '1.5rem',    // 24px
-    7: '1.75rem',   // 28px
-    8: '2rem',      // 32px
-    9: '2.25rem',   // 36px
-    10: '2.5rem',   // 40px
-    11: '2.75rem',  // 44px
-    12: '3rem',     // 48px
-    14: '3.5rem',   // 56px
-    16: '4rem',     // 64px
-    20: '5rem',     // 80px
-    24: '6rem',     // 96px
-    28: '7rem',     // 112px
-    32: '8rem',     // 128px
-    36: '9rem',     // 144px
-    40: '10rem',    // 160px
-    44: '11rem',    // 176px
-    48: '12rem',    // 192px
-    52: '13rem',    // 208px
-    56: '14rem',    // 224px
-    60: '15rem',    // 240px
-    64: '16rem',    // 256px
-    72: '18rem',    // 288px
-    80: '20rem',    // 320px
-    96: '24rem',    // 384px
+    1: '0.25rem', // 4px
+    2: '0.5rem', // 8px
+    3: '0.75rem', // 12px
+    4: '1rem', // 16px
+    5: '1.25rem', // 20px
+    6: '1.5rem', // 24px
+    7: '1.75rem', // 28px
+    8: '2rem', // 32px
+    9: '2.25rem', // 36px
+    10: '2.5rem', // 40px
+    11: '2.75rem', // 44px
+    12: '3rem', // 48px
+    14: '3.5rem', // 56px
+    16: '4rem', // 64px
+    20: '5rem', // 80px
+    24: '6rem', // 96px
+    28: '7rem', // 112px
+    32: '8rem', // 128px
+    36: '9rem', // 144px
+    40: '10rem', // 160px
+    44: '11rem', // 176px
+    48: '12rem', // 192px
+    52: '13rem', // 208px
+    56: '14rem', // 224px
+    60: '15rem', // 240px
+    64: '16rem', // 256px
+    72: '18rem', // 288px
+    80: '20rem', // 320px
+    96: '24rem', // 384px
   },
 
   // 阴影令牌
@@ -1458,13 +1428,13 @@ const designTokens = {
 
     radius: {
       none: '0px',
-      sm: '0.125rem',   // 2px
-      base: '0.25rem',  // 4px
-      md: '0.375rem',   // 6px
-      lg: '0.5rem',     // 8px
-      xl: '0.75rem',    // 12px
-      '2xl': '1rem',    // 16px
-      '3xl': '1.5rem',  // 24px
+      sm: '0.125rem', // 2px
+      base: '0.25rem', // 4px
+      md: '0.375rem', // 6px
+      lg: '0.5rem', // 8px
+      xl: '0.75rem', // 12px
+      '2xl': '1rem', // 16px
+      '3xl': '1.5rem', // 24px
       full: '9999px',
     },
   },
@@ -1544,29 +1514,29 @@ const componentLibraryArchitecture = {
           primary: { 50: '#eff6ff', 500: '#3b82f6', 900: '#1e3a8a' },
           semantic: { success: '#10b981', error: '#ef4444' }
         };
-      `
+      `,
     },
 
     primitives: {
       layer: '原始组件层',
       responsibility: '基础UI组件',
       examples: ['Button', 'Input', 'Icon', 'Text'],
-      characteristics: ['无业务逻辑', '高度可复用', 'API简单']
+      characteristics: ['无业务逻辑', '高度可复用', 'API简单'],
     },
 
     composite: {
       layer: '复合组件层',
       responsibility: '组合型组件',
       examples: ['Form', 'Table', 'Modal', 'Navigation'],
-      characteristics: ['包含业务逻辑', '功能完整', '可配置性强']
+      characteristics: ['包含业务逻辑', '功能完整', '可配置性强'],
     },
 
     patterns: {
       layer: '模式层',
       responsibility: '设计模式和最佳实践',
       examples: ['Layout', 'DataDisplay', 'Feedback', 'Navigation'],
-      characteristics: ['解决特定问题', '提供指导', '标准化实践']
-    }
+      characteristics: ['解决特定问题', '提供指导', '标准化实践'],
+    },
   },
 
   // 2. 模块化设计
@@ -1574,26 +1544,26 @@ const componentLibraryArchitecture = {
     corePackage: {
       name: '@company/ui-core',
       contents: ['基础组件', '主题系统', '工具函数'],
-      dependencies: ['react', 'react-dom']
+      dependencies: ['react', 'react-dom'],
     },
 
     iconPackage: {
       name: '@company/ui-icons',
       contents: ['SVG图标', '图标组件'],
-      dependencies: ['@company/ui-core']
+      dependencies: ['@company/ui-core'],
     },
 
     themePackage: {
       name: '@company/ui-themes',
       contents: ['预设主题', '主题工具'],
-      dependencies: ['@company/ui-core']
+      dependencies: ['@company/ui-core'],
     },
 
     utilsPackage: {
       name: '@company/ui-utils',
       contents: ['工具函数', '类型定义', 'Hooks'],
-      dependencies: []
-    }
+      dependencies: [],
+    },
   },
 
   // 3. 版本管理策略
@@ -1601,7 +1571,7 @@ const componentLibraryArchitecture = {
     semver: {
       major: '破坏性变更 (API不兼容)',
       minor: '新功能添加 (向后兼容)',
-      patch: 'Bug修复 (向后兼容)'
+      patch: 'Bug修复 (向后兼容)',
     },
 
     deprecation: {
@@ -1609,7 +1579,7 @@ const componentLibraryArchitecture = {
         '标记为废弃 (console.warn)',
         '提供迁移指南',
         '保持向后兼容',
-        '下个主版本移除'
+        '下个主版本移除',
       ],
       example: `
         // 废弃API示例
@@ -1622,9 +1592,9 @@ const componentLibraryArchitecture = {
           }
           return <Button {...props} />;
         };
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 
 // 常见面试问题
@@ -1642,8 +1612,8 @@ const commonInterviewQuestions = {
         <Button size="md" variant="primary" />
         <Input size="md" variant="outline" />
         <Select size="md" variant="filled" />
-      `
-    }
+      `,
+    },
   },
 
   q2: {
@@ -1671,8 +1641,8 @@ const commonInterviewQuestions = {
             </ThemeContext.Provider>
           );
         };
-      `
-    }
+      `,
+    },
   },
 
   q3: {
@@ -1683,7 +1653,7 @@ const commonInterviewQuestions = {
         'Code Splitting: 组件懒加载',
         'Bundle Optimization: 优化打包体积',
         'Runtime Performance: 减少重渲染',
-        'Memory Management: 避免内存泄漏'
+        'Memory Management: 避免内存泄漏',
       ],
       implementation: `
         // 按需导入支持
@@ -1708,8 +1678,8 @@ const commonInterviewQuestions = {
 
           return <ExpensiveComponent data={memoizedData} />;
         });
-      `
-    }
+      `,
+    },
   },
 
   q4: {
@@ -1720,14 +1690,14 @@ const commonInterviewQuestions = {
         integration: '组件间的集成测试',
         visual: '视觉回归测试',
         accessibility: '可访问性测试',
-        performance: '性能测试'
+        performance: '性能测试',
       },
       tools: [
         'Jest + React Testing Library: 单元测试',
         'Storybook: 组件文档和测试',
         'Chromatic: 视觉回归测试',
         'axe-core: 可访问性测试',
-        'Lighthouse: 性能测试'
+        'Lighthouse: 性能测试',
       ],
       example: `
         // 组件测试示例
@@ -1759,9 +1729,9 @@ const commonInterviewQuestions = {
             expect(results).toHaveNoViolations();
           });
         });
-      `
-    }
-  }
+      `,
+    },
+  },
 };
 ```
 
@@ -1781,7 +1751,7 @@ const crossFrameworkComparison = {
       'Material-UI - Google Material Design',
       'Chakra UI - 简单、模块化、可访问',
       'Mantine - 功能丰富的组件库',
-      'React Bootstrap - Bootstrap的React实现'
+      'React Bootstrap - Bootstrap的React实现',
     ],
 
     characteristics: {
@@ -1789,7 +1759,7 @@ const crossFrameworkComparison = {
       stateManagement: 'useState, useReducer, Context',
       styling: 'CSS-in-JS, Styled Components, CSS Modules',
       typeScript: '优秀的TypeScript支持',
-      ecosystem: '最丰富的生态系统'
+      ecosystem: '最丰富的生态系统',
     },
 
     example: `
@@ -1848,7 +1818,7 @@ const crossFrameworkComparison = {
           </table>
         );
       };
-    `
+    `,
   },
 
   // Vue生态
@@ -1858,7 +1828,7 @@ const crossFrameworkComparison = {
       'Ant Design Vue - Ant Design的Vue实现',
       'Vuetify - Material Design组件框架',
       'Quasar - 跨平台Vue组件库',
-      'Naive UI - 较为完整的Vue 3组件库'
+      'Naive UI - 较为完整的Vue 3组件库',
     ],
 
     characteristics: {
@@ -1866,7 +1836,7 @@ const crossFrameworkComparison = {
       stateManagement: 'ref, reactive, Pinia, Vuex',
       styling: 'Scoped CSS, CSS Modules, CSS-in-JS',
       typeScript: '良好的TypeScript支持',
-      ecosystem: '快速发展的生态系统'
+      ecosystem: '快速发展的生态系统',
     },
 
     example: `
@@ -1925,7 +1895,7 @@ const crossFrameworkComparison = {
         @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
       }
       </style>
-    `
+    `,
   },
 
   // Angular生态
@@ -1935,7 +1905,7 @@ const crossFrameworkComparison = {
       'NG-ZORRO - Ant Design的Angular实现',
       'PrimeNG - 丰富的UI组件集合',
       'Clarity - VMware的设计系统',
-      'Ionic - 移动端UI组件库'
+      'Ionic - 移动端UI组件库',
     ],
 
     characteristics: {
@@ -1943,7 +1913,7 @@ const crossFrameworkComparison = {
       stateManagement: 'Services, RxJS, NgRx',
       styling: 'Component Styles, Global Styles, CSS Modules',
       typeScript: '原生TypeScript支持',
-      ecosystem: '企业级生态系统'
+      ecosystem: '企业级生态系统',
     },
 
     example: `
@@ -2045,7 +2015,7 @@ const crossFrameworkComparison = {
           }
         }
       }
-    `
+    `,
   },
 
   // 框架对比总结
@@ -2053,27 +2023,27 @@ const crossFrameworkComparison = {
     learningCurve: {
       react: 'Medium - Hooks概念需要理解',
       vue: 'Easy - 渐进式学习',
-      angular: 'Hard - 完整的框架概念'
+      angular: 'Hard - 完整的框架概念',
     },
 
     performance: {
       react: 'Good - 虚拟DOM + Fiber',
       vue: 'Excellent - 响应式系统 + 编译优化',
-      angular: 'Good - Zone.js + AOT编译'
+      angular: 'Good - Zone.js + AOT编译',
     },
 
     ecosystem: {
       react: 'Largest - 最丰富的第三方库',
       vue: 'Growing - 快速发展的生态',
-      angular: 'Mature - 企业级完整解决方案'
+      angular: 'Mature - 企业级完整解决方案',
     },
 
     typescript: {
       react: 'Excellent - 社区驱动的类型支持',
       vue: 'Good - 官方TypeScript支持',
-      angular: 'Native - 原生TypeScript框架'
-    }
-  }
+      angular: 'Native - 原生TypeScript框架',
+    },
+  },
 };
 ```
 
@@ -2086,6 +2056,7 @@ const crossFrameworkComparison = {
 **任务**: 为Mall-Frontend设计一套基础组件库，包含Button、Input、Card等核心组件。
 
 **要求**:
+
 - 使用TypeScript编写
 - 支持主题定制
 - 提供完整的API文档
@@ -2096,6 +2067,7 @@ const crossFrameworkComparison = {
 **任务**: 实现一个复合的Table组件，支持排序、筛选、分页等功能。
 
 **要求**:
+
 - 使用复合组件模式
 - 支持自定义渲染
 - 提供丰富的配置选项
@@ -2106,6 +2078,7 @@ const crossFrameworkComparison = {
 **任务**: 构建一个完整的主题系统，支持多主题切换和自定义主题。
 
 **要求**:
+
 - 基于设计令牌
 - 支持运行时切换
 - 提供主题编辑器
@@ -2154,7 +2127,12 @@ const crossFrameworkComparison = {
 
 ---
 
-*下一章我们将学习《微前端架构实践》，探索大型应用的架构拆分和治理！* 🚀
+_下一章我们将学习《微前端架构实践》，探索大型应用的架构拆分和治理！_ 🚀
+
 ```
+
 ```
+
+```
+
 ```

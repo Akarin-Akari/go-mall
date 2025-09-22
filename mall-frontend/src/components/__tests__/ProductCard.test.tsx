@@ -126,12 +126,12 @@ describe('ProductCard组件测试', () => {
   test('应该显示自定义Badge', () => {
     render(
       <Provider store={mockStore}>
-        <ProductCard 
-          product={mockProduct} 
+        <ProductCard
+          product={mockProduct}
           onAddToCart={mockOnAddToCart}
           onViewDetail={mockOnViewDetail}
-          showBadge="热销"
-          badgeColor="#ff4d4f"
+          showBadge='热销'
+          badgeColor='#ff4d4f'
         />
       </Provider>
     );
@@ -186,7 +186,9 @@ describe('ProductCard组件测试', () => {
   });
 
   test('应该正确处理加载状态', async () => {
-    const slowOnAddToCart = jest.fn(() => new Promise(resolve => setTimeout(resolve, 50)));
+    const slowOnAddToCart = jest.fn(
+      () => new Promise(resolve => setTimeout(resolve, 50))
+    );
 
     render(
       <Provider store={mockStore}>
@@ -210,8 +212,11 @@ describe('ProductCard组件测试', () => {
     expect(slowOnAddToCart).toHaveBeenCalledWith(mockProduct);
 
     // 等待加载完成
-    await waitFor(() => {
-      expect(addButton).not.toHaveClass('ant-btn-loading');
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(addButton).not.toHaveClass('ant-btn-loading');
+      },
+      { timeout: 1000 }
+    );
   });
 });

@@ -7,7 +7,7 @@ import (
 
 	"mall-go/internal/model"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -43,45 +43,11 @@ type StockDeductionResult struct {
 	Error     string `json:"error,omitempty"`
 }
 
-// DeductStockWithOptimisticLock 使用乐观锁扣减库存
+// DeductStockWithOptimisticLock 使用乐观锁扣减库存（优化版 - 移除Redis锁，避免双重事务）
 func (is *InventoryService) DeductStockWithOptimisticLock(requests []StockDeductionRequest) ([]StockDeductionResult, error) {
 	results := make([]StockDeductionResult, len(requests))
 
-	// 获取分布式锁
-	lockKeys := make([]string, 0)
-	lockValues := make([]string, 0)
-
-	for _, req := range requests {
-		var lockKey string
-		if req.SKUID > 0 {
-			lockKey = fmt.Sprintf("inventory_lock:sku:%d", req.SKUID)
-		} else {
-			lockKey = fmt.Sprintf("inventory_lock:product:%d", req.ProductID)
-		}
-
-		lockValue := fmt.Sprintf("%d", time.Now().UnixNano())
-		success, err := is.rdb.SetNX(is.ctx, lockKey, lockValue, 30*time.Second).Result()
-		if err != nil || !success {
-			// 释放已获取的锁
-			is.releaseLocks(lockKeys, lockValues)
-			return results, fmt.Errorf("获取库存锁失败")
-		}
-
-		lockKeys = append(lockKeys, lockKey)
-		lockValues = append(lockValues, lockValue)
-	}
-
-	// 确保释放锁
-	defer is.releaseLocks(lockKeys, lockValues)
-
-	// 开始事务
-	tx := is.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
+	// 直接使用数据库乐观锁，不使用Redis分布式锁，避免双重锁定
 	for i, req := range requests {
 		result := StockDeductionResult{
 			ProductID: req.ProductID,
@@ -91,17 +57,20 @@ func (is *InventoryService) DeductStockWithOptimisticLock(requests []StockDeduct
 
 		var err error
 		if req.SKUID > 0 {
-			// 扣减SKU库存
-			err = is.deductSKUStockWithRetry(tx, req.SKUID, req.Quantity, 3)
+			// 扣减SKU库存 - 使用独立事务
+			err = is.deductSKUStockWithRetry(is.db, req.SKUID, req.Quantity, 3)
 		} else {
-			// 扣减商品库存
-			err = is.deductProductStockWithRetry(tx, req.ProductID, req.Quantity, 3)
+			// 扣减商品库存 - 使用独立事务
+			err = is.deductProductStockWithRetry(is.db, req.ProductID, req.Quantity, 3)
 		}
 
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
-			tx.Rollback()
+			// 如果某个商品扣减失败，需要回滚之前成功的扣减
+			if i > 0 {
+				is.rollbackPreviousDeductions(requests[:i])
+			}
 			return results, fmt.Errorf("库存扣减失败: %v", err)
 		}
 
@@ -109,54 +78,72 @@ func (is *InventoryService) DeductStockWithOptimisticLock(requests []StockDeduct
 		results[i] = result
 	}
 
-	// 提交事务
-	if err := tx.Commit().Error; err != nil {
-		return results, fmt.Errorf("提交事务失败: %v", err)
-	}
-
 	return results, nil
 }
 
-// deductProductStockWithRetry 使用乐观锁扣减商品库存（带重试）
-func (is *InventoryService) deductProductStockWithRetry(tx *gorm.DB, productID uint, quantity int, maxRetries int) error {
+// rollbackPreviousDeductions 回滚之前成功的库存扣减
+func (is *InventoryService) rollbackPreviousDeductions(requests []StockDeductionRequest) {
+	for _, req := range requests {
+		if req.SKUID > 0 {
+			is.restoreSKUStock(is.db, req.SKUID, req.Quantity)
+		} else {
+			is.restoreProductStock(is.db, req.ProductID, req.Quantity)
+		}
+	}
+}
+
+// deductProductStockWithRetry 使用乐观锁扣减商品库存（带重试）- 优化版，使用独立事务
+func (is *InventoryService) deductProductStockWithRetry(db *gorm.DB, productID uint, quantity int, maxRetries int) error {
 	for retries := 0; retries < maxRetries; retries++ {
-		// 获取当前商品信息
-		var product model.Product
-		if err := tx.Where("id = ?", productID).First(&product).Error; err != nil {
-			return fmt.Errorf("商品不存在: %v", err)
-		}
+		// 使用独立的短事务，减少锁持有时间
+		err := db.Transaction(func(tx *gorm.DB) error {
+			// 获取当前商品信息
+			var product model.Product
+			if err := tx.Where("id = ?", productID).First(&product).Error; err != nil {
+				return fmt.Errorf("商品不存在: %v", err)
+			}
 
-		// 检查库存是否足够
-		if product.Stock < quantity {
-			return fmt.Errorf("商品库存不足，当前库存：%d，需要：%d", product.Stock, quantity)
-		}
+			// 检查库存是否足够
+			if product.Stock < quantity {
+				return fmt.Errorf("商品库存不足，当前库存：%d，需要：%d", product.Stock, quantity)
+			}
 
-		// 使用乐观锁更新库存
-		result := tx.Model(&product).
-			Where("id = ? AND version = ?", product.ID, product.Version).
-			Updates(map[string]interface{}{
-				"stock":      product.Stock - quantity,
-				"sold_count": product.SoldCount + quantity,
-				"version":    product.Version + 1,
-				"updated_at": time.Now(),
-			})
+			// 使用乐观锁更新库存
+			result := tx.Model(&product).
+				Where("id = ? AND version = ?", product.ID, product.Version).
+				Updates(map[string]interface{}{
+					"stock":      product.Stock - quantity,
+					"sold_count": product.SoldCount + quantity,
+					"version":    product.Version + 1,
+					"updated_at": time.Now(),
+				})
 
-		if result.Error != nil {
-			return fmt.Errorf("更新商品库存失败: %v", result.Error)
-		}
+			if result.Error != nil {
+				return fmt.Errorf("更新商品库存失败: %v", result.Error)
+			}
 
-		// 更新成功
-		if result.RowsAffected > 0 {
+			// 检查是否更新成功
+			if result.RowsAffected == 0 {
+				return fmt.Errorf("版本冲突，需要重试")
+			}
+
+			return nil
+		})
+
+		// 如果成功，直接返回
+		if err == nil {
 			return nil
 		}
 
-		// 更新失败，说明版本号已变化，需要重试
-		if retries == maxRetries-1 {
-			return fmt.Errorf("库存更新失败，并发冲突过多，请重试")
+		// 如果是版本冲突，进行重试
+		if retries < maxRetries-1 && (err.Error() == "版本冲突，需要重试") {
+			// 短暂等待后重试，使用指数退避
+			time.Sleep(time.Millisecond * time.Duration(5*(1<<retries)))
+			continue
 		}
 
-		// 短暂等待后重试
-		time.Sleep(time.Millisecond * time.Duration(10*(retries+1)))
+		// 其他错误或达到最大重试次数，直接返回错误
+		return err
 	}
 
 	return fmt.Errorf("库存更新失败，超过最大重试次数")

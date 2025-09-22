@@ -36,11 +36,14 @@ const queryClient = new QueryClient({
 });
 
 // Ant Design主题配置组件
-const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const currentTheme = useAppSelector(selectTheme);
 
   const antdTheme = {
-    algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    algorithm:
+      currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
     token: {
       colorPrimary: '#1890ff',
       borderRadius: 6,
@@ -59,14 +62,8 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={antdTheme}
-      componentSize="middle"
-    >
-      <App>
-        {children}
-      </App>
+    <ConfigProvider locale={zhCN} theme={antdTheme} componentSize='middle'>
+      <App>{children}</App>
     </ConfigProvider>
   );
 };
@@ -80,14 +77,12 @@ const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
     <ErrorBoundary>
       <Provider store={store}>
-        <PersistGate 
-          loading={<Loading fullScreen text="正在加载应用..." />} 
+        <PersistGate
+          loading={<Loading fullScreen text='正在加载应用...' />}
           persistor={persistor}
         >
           <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-              {children}
-            </ThemeProvider>
+            <ThemeProvider>{children}</ThemeProvider>
             {/* {process.env.NODE_ENV === 'development' && (
               <ReactQueryDevtools initialIsOpen={false} />
             )} */}

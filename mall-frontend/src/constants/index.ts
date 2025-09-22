@@ -8,15 +8,15 @@ export const API_ENDPOINTS = {
     PROFILE: '/api/v1/users/profile',
     REFRESH_TOKEN: '/api/v1/auth/refresh',
   },
-  
+
   // 用户相关
   USERS: {
     LIST: '/api/v1/users',
     DETAIL: (id: number) => `/api/v1/users/${id}`,
-    UPDATE: (id: number) => `/api/v1/users/${id}`,
+    UPDATE: '/api/v1/users/profile', // 根据Go后端路由调整
     DELETE: (id: number) => `/api/v1/users/${id}`,
   },
-  
+
   // 商品相关
   PRODUCTS: {
     LIST: '/api/v1/products',
@@ -26,48 +26,57 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `/api/v1/products/${id}`,
     CATEGORIES: '/api/v1/products/categories',
   },
-  
-  // 购物车相关
+
+  // 购物车相关 ✅ 已在Go后端routes.go中添加路由注册
   CART: {
     LIST: '/api/v1/cart',
     ADD: '/api/v1/cart/add',
-    UPDATE: '/api/v1/cart/update',
-    REMOVE: '/api/v1/cart/remove',
+    UPDATE: (id: number) => `/api/v1/cart/${id}`, // PUT /api/v1/cart/:id
+    REMOVE: (id: number) => `/api/v1/cart/${id}`, // DELETE /api/v1/cart/:id
     CLEAR: '/api/v1/cart/clear',
     SYNC: '/api/v1/cart/sync',
+    BATCH_UPDATE: '/api/v1/cart/batch',
+    SELECT_ALL: '/api/v1/cart/select-all',
+    COUNT: '/api/v1/cart/count',
   },
-  
+
   // 订单相关
   ORDERS: {
     LIST: '/api/v1/orders',
     DETAIL: (id: number) => `/api/v1/orders/${id}`,
     CREATE: '/api/v1/orders',
     UPDATE_STATUS: (id: number) => `/api/v1/orders/${id}/status`,
-    CANCEL: (id: number) => `/api/v1/orders/${id}/cancel`,
+    CANCEL: (id: number) => `/api/v1/orders/${id}/cancel`, // ✅ 已添加到后端
   },
-  
-  // 支付相关
+
+  // 支付相关 ✅ 已在Go后端routes.go中添加路由注册
   PAYMENT: {
-    CREATE: '/api/v1/payment/create',
-    QUERY: (id: number) => `/api/v1/payment/${id}`,
-    CALLBACK: '/api/v1/payment/callback',
-    REFUND: '/api/v1/payment/refund',
+    CREATE: '/api/v1/payments', // POST /api/v1/payments
+    LIST: '/api/v1/payments', // GET /api/v1/payments
+    DETAIL: (id: number) => `/api/v1/payments/${id}`, // GET /api/v1/payments/:id
+    QUERY: '/api/v1/payments/query', // GET /api/v1/payments/query
+    CALLBACK: {
+      ALIPAY: '/api/v1/payments/callback/alipay', // POST /api/v1/payments/callback/alipay
+      WECHAT: '/api/v1/payments/callback/wechat', // POST /api/v1/payments/callback/wechat
+    },
+    REFUND: '/api/v1/payments/refund', // ✅ 已添加到后端
   },
-  
+
   // 文件上传
   UPLOAD: {
-    IMAGE: '/api/v1/files/upload/image',
+    IMAGE: '/api/v1/files/upload', // Go后端统一使用upload端点
     FILE: '/api/v1/files/upload',
     DELETE: (id: string) => `/api/v1/files/${id}`,
   },
-  
-  // 地址管理
+
+  // 地址管理 ✅ 已完整实现后端功能
   ADDRESS: {
-    LIST: '/api/v1/address',
-    CREATE: '/api/v1/address',
-    UPDATE: (id: number) => `/api/v1/address/${id}`,
-    DELETE: (id: number) => `/api/v1/address/${id}`,
-    SET_DEFAULT: (id: number) => `/api/v1/address/${id}/default`,
+    LIST: '/api/v1/addresses',
+    CREATE: '/api/v1/addresses',
+    UPDATE: (id: number) => `/api/v1/addresses/${id}`,
+    DELETE: (id: number) => `/api/v1/addresses/${id}`,
+    SET_DEFAULT: (id: number) => `/api/v1/addresses/${id}/default`,
+    REGIONS: '/api/v1/addresses/regions',
   },
 } as const;
 
@@ -130,7 +139,11 @@ export const PAGINATION = {
 export const UPLOAD_CONFIG = {
   MAX_SIZE: 10 * 1024 * 1024, // 10MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  ALLOWED_FILE_TYPES: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  ALLOWED_FILE_TYPES: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ],
 } as const;
 
 // 表单验证规则
@@ -173,35 +186,35 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   PROFILE: '/profile',
-  
+
   // 商品相关
   PRODUCTS: '/products',
   PRODUCT_DETAIL: (id: number) => `/products/${id}`,
   CATEGORIES: '/categories',
-  
+
   // 购物车和订单
   CART: '/cart',
   CHECKOUT: '/checkout',
   ORDERS: '/orders',
   ORDER_DETAIL: (id: number) => `/orders/${id}`,
-  
+
   // 用户中心
   USER_CENTER: '/user',
   USER_ORDERS: '/user/orders',
   USER_ADDRESS: '/user/address',
   USER_SETTINGS: '/user/settings',
-  
+
   // 管理后台
   ADMIN: '/admin',
   ADMIN_PRODUCTS: '/admin/products',
   ADMIN_ORDERS: '/admin/orders',
   ADMIN_USERS: '/admin/users',
-  
+
   // 支付相关
   PAYMENT: '/payment',
   PAYMENT_SUCCESS: '/payment/success',
   PAYMENT_FAILED: '/payment/failed',
-  
+
   // 错误页面
   NOT_FOUND: '/404',
   SERVER_ERROR: '/500',
@@ -295,7 +308,8 @@ export const DATE_FORMATS = {
 export const REGEX = {
   PHONE: /^1[3-9]\d{9}$/,
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  ID_CARD: /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/,
+  ID_CARD:
+    /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/,
   POSTAL_CODE: /^\d{6}$/,
   URL: /^https?:\/\/.+/,
   NUMBER: /^\d+$/,

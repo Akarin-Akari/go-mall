@@ -3,13 +3,16 @@
 ## 🔍 问题诊断
 
 ### 原始错误
+
 - **错误类型**: Runtime ReferenceError
 - **错误信息**: "Cannot access 'storage' before initialization"
 - **错误位置**: `src/utils/auth.ts` line 25
 - **根本原因**: 循环依赖和初始化顺序问题
 
 ### 问题分析
+
 1. **循环依赖链**:
+
    ```
    auth.ts → utils/index.ts → auth.ts (通过export * from './auth')
    ```
@@ -26,26 +29,36 @@
 ### 1. 解决循环依赖问题
 
 #### 修改前:
+
 ```typescript
 // auth.ts
 import { tokenManager, storage } from './index';
 
 // utils/index.ts
-export * from './auth';  // 导致循环依赖
+export * from './auth'; // 导致循环依赖
 ```
 
 #### 修改后:
+
 ```typescript
 // auth.ts - 独立实现storage和tokenManager
 const storage = {
-  get: (key: string): string | null => { /* 实现 */ },
-  set: (key: string, value: string): void => { /* 实现 */ },
+  get: (key: string): string | null => {
+    /* 实现 */
+  },
+  set: (key: string, value: string): void => {
+    /* 实现 */
+  },
   // ... 其他方法
 };
 
 const tokenManager = {
-  getToken: (): string | null => { /* 实现 */ },
-  setToken: (token: string, remember = false): void => { /* 实现 */ },
+  getToken: (): string | null => {
+    /* 实现 */
+  },
+  setToken: (token: string, remember = false): void => {
+    /* 实现 */
+  },
   // ... 其他方法
 };
 
@@ -58,21 +71,23 @@ export * from './upload';
 ### 2. 修复初始化顺序问题
 
 #### 修改前:
+
 ```typescript
 export class AuthManager {
   private constructor() {
-    this.loadUserFromStorage();  // 立即调用，可能导致错误
+    this.loadUserFromStorage(); // 立即调用，可能导致错误
   }
 }
 ```
 
 #### 修改后:
+
 ```typescript
 export class AuthManager {
   private initialized: boolean = false;
 
   private constructor() {
-    this.initializeAsync();  // 异步初始化
+    this.initializeAsync(); // 异步初始化
   }
 
   private initializeAsync(): void {
@@ -91,6 +106,7 @@ export class AuthManager {
 ### 3. 添加防御性编程
 
 #### 安全检查:
+
 ```typescript
 private loadUserFromStorage(): void {
   try {
@@ -116,16 +132,19 @@ private loadUserFromStorage(): void {
 ### 4. 修复相关文件
 
 #### request.ts:
+
 - 移除对 `utils/index.ts` 中 `tokenManager` 的依赖
 - 实现本地的 `getToken()` 函数
 
 #### authSlice.ts:
+
 - 将 `tokenManager` 调用替换为 `AuthManager` 调用
 - 使用统一的认证管理接口
 
 ## ✅ 修复结果
 
 ### 修复的文件列表:
+
 1. **`src/utils/auth.ts`** - 主要修复文件
    - ✅ 解决循环依赖
    - ✅ 修复初始化顺序
@@ -144,6 +163,7 @@ private loadUserFromStorage(): void {
    - ✅ 统一认证管理接口
 
 ### 修复特性:
+
 - ✅ **零循环依赖**: 完全消除模块间循环依赖
 - ✅ **安全初始化**: 异步初始化，避免竞态条件
 - ✅ **错误处理**: 完整的try-catch和null检查
@@ -153,6 +173,7 @@ private loadUserFromStorage(): void {
 ## 🚀 验证方法
 
 ### 启动测试:
+
 ```bash
 # 进入前端目录
 cd mall-frontend
@@ -160,13 +181,14 @@ cd mall-frontend
 # 启动开发服务器
 npm run dev
 
-# 预期结果: 
+# 预期结果:
 # - 无初始化错误
 # - 应用正常启动
 # - 访问 http://localhost:3001 正常显示
 ```
 
 ### 功能测试:
+
 1. **页面加载**: 首页正常显示轮播图和商品
 2. **用户认证**: 注册/登录功能正常
 3. **状态管理**: Redux状态正常工作
@@ -177,6 +199,7 @@ npm run dev
 ### 关键修复点:
 
 #### 1. 异步初始化模式:
+
 ```typescript
 // 使用setTimeout确保所有模块加载完成
 setTimeout(() => {
@@ -186,13 +209,19 @@ setTimeout(() => {
 ```
 
 #### 2. 独立模块设计:
+
 ```typescript
 // 每个模块实现自己需要的工具函数，避免交叉依赖
-const storage = { /* 本地实现 */ };
-const tokenManager = { /* 本地实现 */ };
+const storage = {
+  /* 本地实现 */
+};
+const tokenManager = {
+  /* 本地实现 */
+};
 ```
 
 #### 3. 错误边界处理:
+
 ```typescript
 try {
   // 核心逻辑

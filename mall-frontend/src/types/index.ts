@@ -1,4 +1,4 @@
-// 通用类型定义
+﻿// 閫氱敤绫诲瀷瀹氫箟
 export interface ApiResponse<T = any> {
   code: number;
   message: string;
@@ -18,7 +18,7 @@ export interface PaginationParams {
   keyword?: string;
 }
 
-// 用户相关类型
+// 鐢ㄦ埛鐩稿叧绫诲瀷
 export interface User {
   id: number;
   username: string;
@@ -33,7 +33,7 @@ export interface User {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
   remember?: boolean;
 }
@@ -51,20 +51,21 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
+  error: string | null;
 }
 
-// 商品相关类型
+// 鍟嗗搧鐩稿叧绫诲瀷
 export interface Product {
   id: number;
   name: string;
   description: string;
   price: string;
-  discount_price?: string; // 折扣价格
-  original_price?: string; // 原价（兼容）
+  discount_price?: string; // 鎶樻墸浠锋牸
+  original_price?: string; // 鍘熶环锛堝吋瀹癸級
   stock: number;
-  sold_count?: number; // 已售数量（兼容）
-  sales_count?: number; // 销售数量
-  rating?: number; // 评分
+  sold_count?: number; // 宸插敭鏁伴噺锛堝吋瀹癸級
+  sales_count?: number; // 閿€鍞暟閲?
+  rating?: number; // 璇勫垎
   category_id: number;
   category_name?: string;
   images: string[];
@@ -92,10 +93,12 @@ export interface Category {
   parent_id?: number;
   sort_order: number;
   status: 'active' | 'inactive';
+  icon?: string;
+  product_count?: number;
   children?: Category[];
 }
 
-// 购物车相关类型
+// 璐墿杞︾浉鍏崇被鍨?
 export interface CartItem {
   id: number;
   product_id: number;
@@ -114,12 +117,18 @@ export interface Cart {
   total_quantity: number;
 }
 
-// 订单相关类型
+// 璁㈠崟鐩稿叧绫诲瀷
 export interface Order {
   id: number;
   order_no: string;
   user_id: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'completed' | 'cancelled';
+  status:
+    | 'pending'
+    | 'paid'
+    | 'shipped'
+    | 'delivered'
+    | 'completed'
+    | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   shipping_status: 'pending' | 'shipped' | 'delivered';
   total_amount: string;
@@ -157,7 +166,20 @@ export interface Address {
   is_default: boolean;
 }
 
-// 支付相关类型
+export interface CreateOrderRequest {
+  cart_item_ids: number[];
+  receiver_name: string;
+  receiver_phone: string;
+  receiver_address: string;
+  province: string;
+  city: string;
+  district: string;
+  shipping_method: string;
+  payment_method: string;
+  buyer_message?: string;
+}
+
+// 鏀粯鐩稿叧绫诲瀷
 export interface Payment {
   id: number;
   order_id: number;
@@ -177,7 +199,7 @@ export interface PaymentRequest {
   notify_url?: string;
 }
 
-// 文件上传相关类型
+// 鏂囦欢涓婁紶鐩稿叧绫诲瀷
 export interface UploadFile {
   uid: string;
   name: string;
@@ -186,14 +208,14 @@ export interface UploadFile {
   response?: any;
 }
 
-// 通用组件Props类型
+// 閫氱敤缁勪欢Props绫诲瀷
 export interface BaseComponentProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
 }
 
-// 表单相关类型
+// 琛ㄥ崟鐩稿叧绫诲瀷
 export interface FormFieldError {
   field: string;
   message: string;
@@ -206,7 +228,7 @@ export interface FormState<T = any> {
   touched: Record<string, boolean>;
 }
 
-// 路由相关类型
+// 璺敱鐩稿叧绫诲瀷
 export interface RouteConfig {
   path: string;
   component: React.ComponentType;
@@ -217,7 +239,7 @@ export interface RouteConfig {
   icon?: string;
 }
 
-// 菜单相关类型
+// 鑿滃崟鐩稿叧绫诲瀷
 export interface MenuItem {
   key: string;
   label: string;
@@ -227,14 +249,14 @@ export interface MenuItem {
   roles?: string[];
 }
 
-// 主题相关类型
+// 涓婚鐩稿叧绫诲瀷
 export interface ThemeConfig {
   primaryColor: string;
   borderRadius: number;
   colorBgContainer: string;
 }
 
-// 应用状态类型
+// 搴旂敤鐘舵€佺被鍨?
 export interface AppState {
   theme: 'light' | 'dark';
   collapsed: boolean;
@@ -242,14 +264,14 @@ export interface AppState {
   locale: 'zh-CN' | 'en-US';
 }
 
-// 错误类型
+// 閿欒绫诲瀷
 export interface AppError {
   code: string;
   message: string;
   details?: any;
 }
 
-// 环境变量类型
+// 鐜鍙橀噺绫诲瀷
 export interface EnvConfig {
   API_BASE_URL: string;
   APP_NAME: string;
@@ -258,7 +280,7 @@ export interface EnvConfig {
   LOG_LEVEL: string;
 }
 
-// 外卖相关类型（为未来扩展准备）
+// 澶栧崠鐩稿叧绫诲瀷锛堜负鏈潵鎵╁睍鍑嗗锛?
 export interface Restaurant {
   id: number;
   name: string;
@@ -280,7 +302,7 @@ export interface DeliveryAddress extends Address {
   distance?: number;
 }
 
-// React Native兼容类型（为跨平台准备）
+// React Native鍏煎绫诲瀷锛堜负璺ㄥ钩鍙板噯澶囷級
 export interface PlatformConfig {
   isWeb: boolean;
   isMobile: boolean;

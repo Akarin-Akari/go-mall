@@ -1,6 +1,6 @@
 # 第2章：SSR/SSG渲染策略深度解析 🎭
 
-> *"选择正确的渲染策略，是构建高性能Web应用的关键决策！"* ⚡
+> _"选择正确的渲染策略，是构建高性能Web应用的关键决策！"_ ⚡
 
 ## 📚 本章导览
 
@@ -70,15 +70,15 @@ const renderingModes: RenderingMode[] = [
     seo: 'excellent',
     performance: 'fast',
     interactivity: 'delayed',
-    complexity: 'low'
+    complexity: 'low',
   },
   {
     name: 'SSR (Server-Side Rendering)',
     timing: 'request',
-    seo: 'excellent', 
+    seo: 'excellent',
     performance: 'medium',
     interactivity: 'delayed',
-    complexity: 'high'
+    complexity: 'high',
   },
   {
     name: 'ISR (Incremental Static Regeneration)',
@@ -86,7 +86,7 @@ const renderingModes: RenderingMode[] = [
     seo: 'excellent',
     performance: 'fast',
     interactivity: 'progressive',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     name: 'CSR (Client-Side Rendering)',
@@ -94,8 +94,8 @@ const renderingModes: RenderingMode[] = [
     seo: 'poor',
     performance: 'slow',
     interactivity: 'immediate',
-    complexity: 'low'
-  }
+    complexity: 'low',
+  },
 ];
 ```
 
@@ -115,26 +115,26 @@ const nextjsLifecycle: RenderingLifecycle[] = [
     phase: 'Build Time',
     location: 'build',
     description: '静态页面生成，路由预渲染',
-    example: 'generateStaticParams(), 静态资源优化'
+    example: 'generateStaticParams(), 静态资源优化',
   },
   {
     phase: 'Request Time',
     location: 'server',
     description: '服务端渲染，动态内容生成',
-    example: 'Server Components, API Routes'
+    example: 'Server Components, API Routes',
   },
   {
     phase: 'Edge Runtime',
     location: 'edge',
     description: '边缘计算，就近响应',
-    example: 'Middleware, Edge API Routes'
+    example: 'Middleware, Edge API Routes',
   },
   {
     phase: 'Client Hydration',
     location: 'client',
     description: '客户端激活，交互功能启用',
-    example: 'Client Components, useState, useEffect'
-  }
+    example: 'Client Components, useState, useEffect',
+  },
 ];
 ```
 
@@ -154,39 +154,39 @@ const mallFrontendStrategies: PageRenderingStrategy[] = [
     route: '/',
     strategy: 'ISR',
     reason: '首页需要SEO，但内容会更新（促销、推荐商品）',
-    revalidate: 3600 // 1小时
+    revalidate: 3600, // 1小时
   },
   {
     route: '/products',
     strategy: 'SSR',
-    reason: '商品列表需要实时库存和价格信息'
+    reason: '商品列表需要实时库存和价格信息',
   },
   {
     route: '/products/[id]',
     strategy: 'ISR',
     reason: '商品详情页需要SEO，但库存价格需要定期更新',
-    revalidate: 1800 // 30分钟
+    revalidate: 1800, // 30分钟
   },
   {
     route: '/cart',
     strategy: 'CSR',
-    reason: '购物车是用户私有数据，无需SEO'
+    reason: '购物车是用户私有数据，无需SEO',
   },
   {
     route: '/user/profile',
     strategy: 'CSR',
-    reason: '用户资料页面，私有数据，需要认证'
+    reason: '用户资料页面，私有数据，需要认证',
   },
   {
     route: '/about',
     strategy: 'SSG',
-    reason: '关于页面内容静态，很少变化'
+    reason: '关于页面内容静态，很少变化',
   },
   {
     route: '/blog/[slug]',
     strategy: 'SSG',
-    reason: '博客文章内容静态，SEO重要'
-  }
+    reason: '博客文章内容静态，SEO重要',
+  },
 ];
 ```
 
@@ -224,7 +224,7 @@ export async function generateMetadata() {
 // 服务端组件 - 在服务端渲染
 async function PromotionBanner() {
   const promotions = await getPromotions();
-  
+
   return (
     <div className="promotion-banner">
       {promotions.map(promo => (
@@ -250,10 +250,10 @@ export default async function HomePage() {
       <Suspense fallback={<div>加载促销信息...</div>}>
         <PromotionBanner />
       </Suspense>
-      
+
       {/* 英雄区域 */}
       <HeroSection />
-      
+
       {/* 特色商品网格 */}
       <section className="featured-products">
         <h2>特色商品</h2>
@@ -283,7 +283,7 @@ export const revalidate = 1800; // 30分钟
 export async function generateStaticParams() {
   // 只预渲染热门商品，其他按需生成
   const popularProducts = await getPopularProducts();
-  
+
   return popularProducts.map((product) => ({
     id: product.id.toString(),
   }));
@@ -292,7 +292,7 @@ export async function generateStaticParams() {
 // 动态元数据生成
 export async function generateMetadata({ params }: ProductPageProps) {
   const product = await getProduct(params.id);
-  
+
   if (!product) {
     return {
       title: '商品未找到',
@@ -313,7 +313,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
 // 商品详情页组件
 export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProduct(params.id);
-  
+
   if (!product) {
     notFound();
   }
@@ -326,11 +326,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="product-container">
         {/* 服务端渲染的商品详情 */}
         <ProductDetails product={product} />
-        
+
         {/* 客户端组件 - 交互功能 */}
         <AddToCartButton productId={product.id} />
       </div>
-      
+
       {/* 相关商品推荐 */}
       <section className="related-products">
         <h3>相关商品</h3>
@@ -374,7 +374,7 @@ export function AddToCartButton({ productId }: AddToCartButtonProps) {
   };
 
   return (
-    <Button 
+    <Button
       onClick={handleAddToCart}
       disabled={isLoading}
       className="add-to-cart-btn"
@@ -399,8 +399,8 @@ export function ProductGrid({ products }: ProductGridProps) {
   return (
     <div className="product-grid">
       {products.map(product => (
-        <ProductCard 
-          key={product.id} 
+        <ProductCard
+          key={product.id}
           product={product}
         />
       ))}
@@ -434,7 +434,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
     <div className="products-page">
       <div className="products-header">
         <h1>商品列表</h1>
-        
+
         {/* 立即渲染分类筛选 */}
         <Suspense fallback={<div>加载分类...</div>}>
           <CategoryFilterWrapper />
@@ -443,7 +443,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
 
       {/* 流式渲染商品列表 */}
       <Suspense fallback={<ProductListSkeleton />}>
-        <ProductListWrapper 
+        <ProductListWrapper
           category={category}
           search={search}
           page={parseInt(page)}
@@ -460,10 +460,10 @@ async function CategoryFilterWrapper() {
 }
 
 // 商品列表包装器
-async function ProductListWrapper({ 
-  category, 
-  search, 
-  page 
+async function ProductListWrapper({
+  category,
+  search,
+  page
 }: {
   category?: string;
   search?: string;
@@ -515,17 +515,17 @@ export default async function ProductsPage() {
 definePageMeta({
   ssr: true, // 启用SSR
   prerender: false, // 禁用预渲染
-})
+});
 
 // ISR配置
 const { data: products } = await $fetch('/api/products', {
   server: true, // 服务端获取
   default: () => [],
-  refresh: 'manual' // 手动刷新
-})
+  refresh: 'manual', // 手动刷新
+});
 
 // 缓存配置
-setResponseHeader('Cache-Control', 's-maxage=3600')
+setResponseHeader('Cache-Control', 's-maxage=3600');
 </script>
 ```
 
@@ -634,7 +634,7 @@ const frameworkComparison: FrameworkRenderingFeatures[] = [
     partialHydration: true,
     edgeRuntime: true,
     bundleSize: 'large',
-    hydrationSpeed: 'medium'
+    hydrationSpeed: 'medium',
   },
   {
     framework: 'Nuxt.js 3',
@@ -645,7 +645,7 @@ const frameworkComparison: FrameworkRenderingFeatures[] = [
     partialHydration: false,
     edgeRuntime: true,
     bundleSize: 'medium',
-    hydrationSpeed: 'fast'
+    hydrationSpeed: 'fast',
   },
   {
     framework: 'SvelteKit 2',
@@ -656,7 +656,7 @@ const frameworkComparison: FrameworkRenderingFeatures[] = [
     partialHydration: false,
     edgeRuntime: true,
     bundleSize: 'small',
-    hydrationSpeed: 'fast'
+    hydrationSpeed: 'fast',
   },
   {
     framework: 'Remix 2',
@@ -667,7 +667,7 @@ const frameworkComparison: FrameworkRenderingFeatures[] = [
     partialHydration: false,
     edgeRuntime: true,
     bundleSize: 'medium',
-    hydrationSpeed: 'medium'
+    hydrationSpeed: 'medium',
   },
   {
     framework: 'Astro 4',
@@ -678,8 +678,8 @@ const frameworkComparison: FrameworkRenderingFeatures[] = [
     partialHydration: true,
     edgeRuntime: false,
     bundleSize: 'small',
-    hydrationSpeed: 'fast'
-  }
+    hydrationSpeed: 'fast',
+  },
 ];
 ```
 
@@ -707,7 +707,7 @@ const devExperienceComparison: DeveloperExperience[] = [
     devServer: 'fast',
     buildTime: 'medium',
     ecosystem: 'rich',
-    learningCurve: 'medium'
+    learningCurve: 'medium',
   },
   {
     framework: 'Nuxt.js',
@@ -717,7 +717,7 @@ const devExperienceComparison: DeveloperExperience[] = [
     devServer: 'fast',
     buildTime: 'fast',
     ecosystem: 'rich',
-    learningCurve: 'easy'
+    learningCurve: 'easy',
   },
   {
     framework: 'SvelteKit',
@@ -727,7 +727,7 @@ const devExperienceComparison: DeveloperExperience[] = [
     devServer: 'fast',
     buildTime: 'fast',
     ecosystem: 'growing',
-    learningCurve: 'easy'
+    learningCurve: 'easy',
   },
   {
     framework: 'Remix',
@@ -737,8 +737,8 @@ const devExperienceComparison: DeveloperExperience[] = [
     devServer: 'medium',
     buildTime: 'medium',
     ecosystem: 'growing',
-    learningCurve: 'steep'
-  }
+    learningCurve: 'steep',
+  },
 ];
 ```
 
@@ -764,7 +764,7 @@ const deploymentComparison: DeploymentSupport[] = [
     cloudflare: 'supported',
     aws: 'supported',
     selfHosted: 'medium',
-    edgeSupport: true
+    edgeSupport: true,
   },
   {
     framework: 'Nuxt.js',
@@ -773,7 +773,7 @@ const deploymentComparison: DeploymentSupport[] = [
     cloudflare: 'native',
     aws: 'supported',
     selfHosted: 'easy',
-    edgeSupport: true
+    edgeSupport: true,
   },
   {
     framework: 'SvelteKit',
@@ -782,8 +782,8 @@ const deploymentComparison: DeploymentSupport[] = [
     cloudflare: 'supported',
     aws: 'manual',
     selfHosted: 'easy',
-    edgeSupport: true
-  }
+    edgeSupport: true,
+  },
 ];
 ```
 
@@ -984,7 +984,7 @@ class CacheManager {
   async set<T>(key: string, data: T, ttl: number): Promise<void> {
     this.memoryCache.set(key, {
       data,
-      expires: Date.now() + ttl * 1000
+      expires: Date.now() + ttl * 1000,
     });
   }
 
@@ -1004,7 +1004,8 @@ class CacheManager {
     };
 
     if (config.staleWhileRevalidate) {
-      headers['Cache-Control'] += `, stale-while-revalidate=${config.staleWhileRevalidate}`;
+      headers['Cache-Control'] +=
+        `, stale-while-revalidate=${config.staleWhileRevalidate}`;
     }
 
     if (config.tags) {
@@ -1043,7 +1044,7 @@ export async function GET(request: NextRequest) {
     key: cacheKey,
     ttl: 1800,
     staleWhileRevalidate: 3600,
-    tags: ['products', category || 'all']
+    tags: ['products', category || 'all'],
   });
 
   return NextResponse.json(products, { headers });
@@ -1081,14 +1082,14 @@ const environmentConfigs: Record<string, EnvironmentConfig> = {
       defaultMode: 'SSR',
       enableStreaming: false,
       enableEdgeRuntime: false,
-      cacheStrategy: 'minimal'
+      cacheStrategy: 'minimal',
     },
     performance: {
       enablePreloading: false,
       enableImageOptimization: false,
       enableFontOptimization: false,
-      bundleAnalysis: true
-    }
+      bundleAnalysis: true,
+    },
   },
   staging: {
     environment: 'staging',
@@ -1096,14 +1097,14 @@ const environmentConfigs: Record<string, EnvironmentConfig> = {
       defaultMode: 'ISR',
       enableStreaming: true,
       enableEdgeRuntime: true,
-      cacheStrategy: 'moderate'
+      cacheStrategy: 'moderate',
     },
     performance: {
       enablePreloading: true,
       enableImageOptimization: true,
       enableFontOptimization: true,
-      bundleAnalysis: true
-    }
+      bundleAnalysis: true,
+    },
   },
   production: {
     environment: 'production',
@@ -1111,15 +1112,15 @@ const environmentConfigs: Record<string, EnvironmentConfig> = {
       defaultMode: 'ISR',
       enableStreaming: true,
       enableEdgeRuntime: true,
-      cacheStrategy: 'aggressive'
+      cacheStrategy: 'aggressive',
     },
     performance: {
       enablePreloading: true,
       enableImageOptimization: true,
       enableFontOptimization: true,
-      bundleAnalysis: false
-    }
-  }
+      bundleAnalysis: false,
+    },
+  },
 };
 
 export function getRenderingConfig(): EnvironmentConfig {
@@ -1136,10 +1137,10 @@ interface RenderingMetrics {
   pageUrl: string;
   renderMode: 'SSR' | 'SSG' | 'ISR' | 'CSR';
   ttfb: number; // Time to First Byte
-  fcp: number;  // First Contentful Paint
-  lcp: number;  // Largest Contentful Paint
-  cls: number;  // Cumulative Layout Shift
-  fid: number;  // First Input Delay
+  fcp: number; // First Contentful Paint
+  lcp: number; // Largest Contentful Paint
+  cls: number; // Cumulative Layout Shift
+  fid: number; // First Input Delay
   hydrationTime: number;
   cacheHit: boolean;
 }
@@ -1167,7 +1168,7 @@ class RenderingAnalytics {
       fid: 0,
       hydrationTime: 0,
       cacheHit: false,
-      ...metrics
+      ...metrics,
     };
 
     this.metrics.push(fullMetrics);
@@ -1201,7 +1202,7 @@ class RenderingAnalytics {
         await fetch('/api/analytics/rendering', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(metrics)
+          body: JSON.stringify(metrics),
         });
       } catch (error) {
         console.warn('Failed to send rendering metrics:', error);
@@ -1222,21 +1223,24 @@ class RenderingAnalytics {
     return {
       averageMetrics,
       renderModeDistribution,
-      slowestPages
+      slowestPages,
     };
   }
 
   private calculateAverages(): Partial<RenderingMetrics> {
     if (this.metrics.length === 0) return {};
 
-    const sums = this.metrics.reduce((acc, metric) => ({
-      ttfb: acc.ttfb + metric.ttfb,
-      fcp: acc.fcp + metric.fcp,
-      lcp: acc.lcp + metric.lcp,
-      cls: acc.cls + metric.cls,
-      fid: acc.fid + metric.fid,
-      hydrationTime: acc.hydrationTime + metric.hydrationTime
-    }), { ttfb: 0, fcp: 0, lcp: 0, cls: 0, fid: 0, hydrationTime: 0 });
+    const sums = this.metrics.reduce(
+      (acc, metric) => ({
+        ttfb: acc.ttfb + metric.ttfb,
+        fcp: acc.fcp + metric.fcp,
+        lcp: acc.lcp + metric.lcp,
+        cls: acc.cls + metric.cls,
+        fid: acc.fid + metric.fid,
+        hydrationTime: acc.hydrationTime + metric.hydrationTime,
+      }),
+      { ttfb: 0, fcp: 0, lcp: 0, cls: 0, fid: 0, hydrationTime: 0 }
+    );
 
     const count = this.metrics.length;
     return {
@@ -1245,27 +1249,28 @@ class RenderingAnalytics {
       lcp: sums.lcp / count,
       cls: sums.cls / count,
       fid: sums.fid / count,
-      hydrationTime: sums.hydrationTime / count
+      hydrationTime: sums.hydrationTime / count,
     };
   }
 
   private getRenderModeDistribution(): Record<string, number> {
-    return this.metrics.reduce((acc, metric) => {
-      acc[metric.renderMode] = (acc[metric.renderMode] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    return this.metrics.reduce(
+      (acc, metric) => {
+        acc[metric.renderMode] = (acc[metric.renderMode] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }
 
   private getSlowestPages(): RenderingMetrics[] {
-    return this.metrics
-      .sort((a, b) => b.lcp - a.lcp)
-      .slice(0, 10);
+    return this.metrics.sort((a, b) => b.lcp - a.lcp).slice(0, 10);
   }
 }
 
 // 客户端性能监控
 // components/PerformanceMonitor.tsx
-'use client';
+('use client');
 
 import { useEffect } from 'react';
 import { RenderingAnalytics } from '@/lib/analytics';
@@ -1277,7 +1282,7 @@ export function PerformanceMonitor() {
     // 监控Web Vitals
     if (typeof window !== 'undefined' && 'performance' in window) {
       // FCP监控
-      new PerformanceObserver((list) => {
+      new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           if (entry.name === 'first-contentful-paint') {
             analytics.recordMetrics({ fcp: entry.startTime });
@@ -1286,14 +1291,14 @@ export function PerformanceMonitor() {
       }).observe({ entryTypes: ['paint'] });
 
       // LCP监控
-      new PerformanceObserver((list) => {
+      new PerformanceObserver(list => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
         analytics.recordMetrics({ lcp: lastEntry.startTime });
       }).observe({ entryTypes: ['largest-contentful-paint'] });
 
       // CLS监控
-      new PerformanceObserver((list) => {
+      new PerformanceObserver(list => {
         let clsValue = 0;
         for (const entry of list.getEntries()) {
           if (!entry.hadRecentInput) {
@@ -1304,9 +1309,11 @@ export function PerformanceMonitor() {
       }).observe({ entryTypes: ['layout-shift'] });
 
       // FID监控
-      new PerformanceObserver((list) => {
+      new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
-          analytics.recordMetrics({ fid: entry.processingStart - entry.startTime });
+          analytics.recordMetrics({
+            fid: entry.processingStart - entry.startTime,
+          });
         }
       }).observe({ entryTypes: ['first-input'] });
     }
@@ -1440,12 +1447,12 @@ export default async function ProductsPage() {
 
 **A: 四种渲染模式对比分析：**
 
-| 渲染模式 | 工作原理 | 适用场景 | 优势 | 劣势 |
-|----------|----------|----------|------|------|
-| **SSR** | 每次请求时在服务器渲染 | 动态内容、个性化页面 | SEO友好、首屏快 | 服务器负载高、TTFB慢 |
-| **SSG** | 构建时预渲染静态页面 | 静态内容、文档站点 | 性能最佳、CDN友好 | 内容更新需重新构建 |
-| **ISR** | 静态生成+按需重新验证 | 半静态内容、电商网站 | 兼顾性能和实时性 | 复杂度高、缓存策略复杂 |
-| **CSR** | 客户端JavaScript渲染 | 交互密集、私有数据 | 交互性强、服务器负载低 | SEO差、首屏慢 |
+| 渲染模式 | 工作原理               | 适用场景             | 优势                   | 劣势                   |
+| -------- | ---------------------- | -------------------- | ---------------------- | ---------------------- |
+| **SSR**  | 每次请求时在服务器渲染 | 动态内容、个性化页面 | SEO友好、首屏快        | 服务器负载高、TTFB慢   |
+| **SSG**  | 构建时预渲染静态页面   | 静态内容、文档站点   | 性能最佳、CDN友好      | 内容更新需重新构建     |
+| **ISR**  | 静态生成+按需重新验证  | 半静态内容、电商网站 | 兼顾性能和实时性       | 复杂度高、缓存策略复杂 |
+| **CSR**  | 客户端JavaScript渲染   | 交互密集、私有数据   | 交互性强、服务器负载低 | SEO差、首屏慢          |
 
 ```typescript
 // 实际应用场景示例
@@ -1454,27 +1461,27 @@ const renderingStrategies = {
   homepage: {
     strategy: 'ISR',
     revalidate: 3600, // 1小时更新
-    reason: '需要SEO，但促销内容会变化'
+    reason: '需要SEO，但促销内容会变化',
   },
 
   // 商品详情 - ISR
   productDetail: {
     strategy: 'ISR',
     revalidate: 1800, // 30分钟更新
-    reason: 'SEO重要，库存价格需要更新'
+    reason: 'SEO重要，库存价格需要更新',
   },
 
   // 用户仪表板 - CSR
   dashboard: {
     strategy: 'CSR',
-    reason: '私有数据，无需SEO，交互密集'
+    reason: '私有数据，无需SEO，交互密集',
   },
 
   // 关于页面 - SSG
   about: {
     strategy: 'SSG',
-    reason: '静态内容，很少变化，SEO重要'
-  }
+    reason: '静态内容，很少变化，SEO重要',
+  },
 };
 ```
 
@@ -1550,44 +1557,23 @@ const frameworkComparison = {
       'React生态最成熟',
       'Vercel原生支持',
       'App Router创新',
-      '企业级特性完整'
+      '企业级特性完整',
     ],
-    劣势: [
-      '学习曲线陡峭',
-      '构建体积较大',
-      '配置复杂'
-    ],
-    适用场景: '大型企业应用、复杂交互'
+    劣势: ['学习曲线陡峭', '构建体积较大', '配置复杂'],
+    适用场景: '大型企业应用、复杂交互',
   },
 
   'Nuxt.js': {
-    优势: [
-      'Vue生态集成好',
-      '开发体验优秀',
-      '构建速度快',
-      '配置简单'
-    ],
-    劣势: [
-      'Vue生态相对小',
-      '企业级特性较少'
-    ],
-    适用场景: '中小型项目、快速开发'
+    优势: ['Vue生态集成好', '开发体验优秀', '构建速度快', '配置简单'],
+    劣势: ['Vue生态相对小', '企业级特性较少'],
+    适用场景: '中小型项目、快速开发',
   },
 
-  'SvelteKit': {
-    优势: [
-      '性能最佳',
-      '包体积最小',
-      '学习曲线平缓',
-      '编译时优化'
-    ],
-    劣势: [
-      '生态系统较新',
-      '企业级案例少',
-      '第三方库支持有限'
-    ],
-    适用场景: '性能敏感应用、小型项目'
-  }
+  SvelteKit: {
+    优势: ['性能最佳', '包体积最小', '学习曲线平缓', '编译时优化'],
+    劣势: ['生态系统较新', '企业级案例少', '第三方库支持有限'],
+    适用场景: '性能敏感应用、小型项目',
+  },
 };
 ```
 
@@ -1603,16 +1589,16 @@ const performanceMetrics = {
   // Core Web Vitals
   LCP: '< 2.5s', // Largest Contentful Paint
   FID: '< 100ms', // First Input Delay
-  CLS: '< 0.1',   // Cumulative Layout Shift
+  CLS: '< 0.1', // Cumulative Layout Shift
 
   // 其他重要指标
   TTFB: '< 600ms', // Time to First Byte
-  FCP: '< 1.8s',   // First Contentful Paint
-  TTI: '< 3.8s',   // Time to Interactive
+  FCP: '< 1.8s', // First Contentful Paint
+  TTI: '< 3.8s', // Time to Interactive
 
   // 自定义指标
   hydrationTime: '< 1s',
-  routeChangeTime: '< 200ms'
+  routeChangeTime: '< 200ms',
 };
 
 // 性能优化检查清单
@@ -1624,7 +1610,7 @@ const optimizationChecklist = [
   '✅ 使用Suspense实现流式渲染',
   '✅ 优化Bundle大小',
   '✅ 启用压缩和CDN',
-  '✅ 监控Core Web Vitals'
+  '✅ 监控Core Web Vitals',
 ];
 ```
 
@@ -1643,33 +1629,34 @@ const optimizationChecklist = [
 5. **实时聊天页面** - 客服聊天功能
 
 **参考答案**:
+
 ```typescript
 const renderingChoices = {
   homepage: {
     strategy: 'ISR',
     revalidate: 3600,
-    reason: '需要SEO，促销内容定期更新，可以接受短暂的内容延迟'
+    reason: '需要SEO，促销内容定期更新，可以接受短暂的内容延迟',
   },
 
   searchPage: {
     strategy: 'SSR',
-    reason: '搜索结果需要实时性，SEO重要，内容高度动态'
+    reason: '搜索结果需要实时性，SEO重要，内容高度动态',
   },
 
   orderHistory: {
     strategy: 'CSR',
-    reason: '用户私有数据，无需SEO，需要认证，交互性强'
+    reason: '用户私有数据，无需SEO，需要认证，交互性强',
   },
 
   helpDocs: {
     strategy: 'SSG',
-    reason: '内容完全静态，很少更新，SEO重要，性能要求高'
+    reason: '内容完全静态，很少更新，SEO重要，性能要求高',
   },
 
   chatPage: {
     strategy: 'CSR',
-    reason: '实时交互，WebSocket连接，无需SEO，用户私有'
-  }
+    reason: '实时交互，WebSocket连接，无需SEO，用户私有',
+  },
 };
 ```
 
@@ -1702,6 +1689,7 @@ export default async function ProductsPage() {
 ```
 
 **优化后的代码**:
+
 ```typescript
 import { Suspense } from 'react';
 import Image from 'next/image';
@@ -1810,5 +1798,8 @@ export default function ProductsPage() {
 
 ---
 
-*下一章我们将学习《API Routes与全栈开发实践》，探索Next.js的全栈开发能力！* 🚀
+_下一章我们将学习《API Routes与全栈开发实践》，探索Next.js的全栈开发能力！_ 🚀
+
+```
+
 ```

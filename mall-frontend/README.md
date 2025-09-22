@@ -5,25 +5,30 @@
 ## 🚀 技术栈
 
 ### 核心框架
+
 - **React 18** - 现代化React框架，支持并发特性
 - **Next.js 15** - 全栈React框架，支持SSR/SSG
 - **TypeScript 5.0+** - 类型安全的JavaScript超集
 - **Tailwind CSS** - 原子化CSS框架
 
 ### UI组件库
+
 - **Ant Design 5.0** - 企业级UI组件库
 - **Ant Design Icons** - 丰富的图标库
 
 ### 状态管理
+
 - **Redux Toolkit** - 现代化Redux状态管理
 - **Redux Persist** - 状态持久化
 - **Zustand** - 轻量级状态管理（备选）
 
 ### 数据获取
+
 - **TanStack Query** - 强大的数据获取和缓存库
 - **Axios** - HTTP客户端
 
 ### 开发工具
+
 - **ESLint** - 代码质量检查
 - **Prettier** - 代码格式化
 - **Husky** - Git钩子管理
@@ -72,11 +77,13 @@ mall-frontend/
 ## 🛠️ 开发环境配置
 
 ### 环境要求
+
 - Node.js >= 18.0.0
 - npm >= 9.0.0 或 yarn >= 1.22.0
-- Go后端服务运行在 http://localhost:8080
+- Go后端服务运行在 http://localhost:8081
 
 ### 安装依赖
+
 ```bash
 npm install
 # 或
@@ -84,15 +91,18 @@ yarn install
 ```
 
 ### 环境变量配置
+
 复制环境变量示例文件并配置：
+
 ```bash
 cp .env.example .env.local
 ```
 
 编辑 `.env.local` 文件，配置以下变量：
+
 ```env
 # API配置
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
 NEXT_PUBLIC_API_TIMEOUT=10000
 
 # 应用配置
@@ -105,6 +115,7 @@ NEXT_PUBLIC_REFRESH_TOKEN_KEY=mall_refresh_token
 ```
 
 ### 启动开发服务器
+
 ```bash
 npm run dev
 # 或

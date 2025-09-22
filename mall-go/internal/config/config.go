@@ -92,7 +92,7 @@ func Load() {
 
 // setDefaults 设置默认配置
 func setDefaults() {
-	viper.SetDefault("server.port", 8080)
+	viper.SetDefault("server.port", 8081)
 	viper.SetDefault("server.mode", "debug")
 	viper.SetDefault("database.driver", "mysql")
 	viper.SetDefault("database.host", "localhost")

@@ -1,0 +1,80 @@
+{
+  "environment": "dev",
+  "debug": true,
+  "log_level": "debug",
+  "default_currency": "CNY",
+  "default_timeout": 30000000000,
+  "max_retries": 3,
+  "alipay": {
+    "enabled": true,
+    "app_id": "2021000000000000",
+    "private_key": "",
+    "public_key": "",
+    "sign_type": "RSA2",
+    "format": "JSON",
+    "charset": "utf-8",
+    "gateway_url": "https://openapi.alipaydev.com/gateway.do",
+    "notify_url": "http://localhost:8080/api/v1/payment/alipay/notify",
+    "return_url": "http://localhost:3000/payment/success",
+    "timeout": 30000000000
+  },
+  "wechat": {
+    "enabled": true,
+    "app_id": "wx1234567890abcdef",
+    "mch_id": "1234567890",
+    "api_key": "",
+    "cert_path": "",
+    "key_path": "",
+    "sign_type": "MD5",
+    "gateway_url": "https://api.mch.weixin.qq.com",
+    "notify_url": "http://localhost:8080/api/v1/payment/wechat/notify",
+    "timeout": 30000000000
+  },
+  "unionpay": {
+    "enabled": false,
+    "merchant_id": "",
+    "cert_path": "",
+    "key_path": "",
+    "gateway_url": "https://gateway.test.95516.com",
+    "notify_url": "",
+    "timeout": 30000000000
+  },
+  "callback": {
+    "max_retries": 3,
+    "retry_interval": 5000000000,
+    "timeout": 10000000000,
+    "verify_signature": true,
+    "allowed_ips": []
+  },
+  "security": {
+    "enable_signature": true,
+    "enable_encrypt": false,
+    "secret_key": "",
+    "token_expiry": 86400000000000,
+    "max_request_size": 1048576,
+    "rate_limit_rps": 1000,
+    "allowed_ips": null
+  },
+  "limits": {
+    "min_amount": "0.01",
+    "max_amount": "10000",
+    "daily_max_amount": "50000",
+    "daily_max_count": 500,
+    "monthly_max_amount": "200000",
+    "monthly_max_count": 5000,
+    "method_limits": {
+      "alipay": {
+        "min_amount": "0.01",
+        "max_amount": "10000",
+        "daily_max_amount": "50000",
+        "daily_max_count": 500
+      },
+      "wechat": {
+        "min_amount": "0.01",
+        "max_amount": "10000",
+        "daily_max_amount": "50000",
+        "daily_max_count": 500
+      }
+    }
+  }
+}
