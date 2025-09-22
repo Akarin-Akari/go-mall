@@ -36,10 +36,10 @@ func TestUploadConfig_Validate(t *testing.T) {
 		{
 			name: "最大文件大小为0",
 			config: &UploadConfig{
-				MaxFileSize: 0,
-				MaxFiles:    1,
+				MaxFileSize:  0,
+				MaxFiles:     1,
 				AllowedTypes: []string{"image/jpeg"},
-				StorageType: StorageTypeLocal,
+				StorageType:  StorageTypeLocal,
 				Local: LocalConfig{
 					UploadPath: "/tmp",
 				},
@@ -50,10 +50,10 @@ func TestUploadConfig_Validate(t *testing.T) {
 		{
 			name: "最大文件数为0",
 			config: &UploadConfig{
-				MaxFileSize: 1024,
-				MaxFiles:    0,
+				MaxFileSize:  1024,
+				MaxFiles:     0,
 				AllowedTypes: []string{"image/jpeg"},
-				StorageType: StorageTypeLocal,
+				StorageType:  StorageTypeLocal,
 				Local: LocalConfig{
 					UploadPath: "/tmp",
 				},
@@ -64,10 +64,10 @@ func TestUploadConfig_Validate(t *testing.T) {
 		{
 			name: "本地存储路径为空",
 			config: &UploadConfig{
-				MaxFileSize: 1024,
-				MaxFiles:    1,
+				MaxFileSize:  1024,
+				MaxFiles:     1,
 				AllowedTypes: []string{"image/jpeg"},
-				StorageType: StorageTypeLocal,
+				StorageType:  StorageTypeLocal,
 				Local: LocalConfig{
 					UploadPath: "",
 				},
@@ -78,10 +78,10 @@ func TestUploadConfig_Validate(t *testing.T) {
 		{
 			name: "OSS配置不完整",
 			config: &UploadConfig{
-				MaxFileSize: 1024,
-				MaxFiles:    1,
+				MaxFileSize:  1024,
+				MaxFiles:     1,
 				AllowedTypes: []string{"image/jpeg"},
-				StorageType: StorageTypeOSS,
+				StorageType:  StorageTypeOSS,
 				OSS: OSSConfig{
 					Endpoint: "oss-cn-hangzhou.aliyuncs.com",
 					// 缺少其他必需字段
@@ -201,10 +201,10 @@ func TestUploadConfig_GenerateFileName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.originalName, func(t *testing.T) {
 			fileName := config.GenerateFileName(tt.originalName)
-			
+
 			assert.NotEmpty(t, fileName)
 			assert.NotEqual(t, tt.originalName, fileName) // 应该生成新的文件名
-			
+
 			if tt.expectExt != "" {
 				assert.True(t, len(fileName) > len(tt.expectExt))
 				assert.Equal(t, tt.expectExt, fileName[len(fileName)-len(tt.expectExt):])
@@ -216,13 +216,13 @@ func TestUploadConfig_GenerateFileName(t *testing.T) {
 func TestLoadConfigFromEnv(t *testing.T) {
 	// 保存原始环境变量
 	originalEnv := map[string]string{
-		"UPLOAD_STORAGE_TYPE":   os.Getenv("UPLOAD_STORAGE_TYPE"),
-		"UPLOAD_MAX_FILE_SIZE":  os.Getenv("UPLOAD_MAX_FILE_SIZE"),
-		"UPLOAD_MAX_FILES":      os.Getenv("UPLOAD_MAX_FILES"),
-		"UPLOAD_ALLOWED_TYPES":  os.Getenv("UPLOAD_ALLOWED_TYPES"),
-		"UPLOAD_LOCAL_PATH":     os.Getenv("UPLOAD_LOCAL_PATH"),
-		"OSS_ENDPOINT":          os.Getenv("OSS_ENDPOINT"),
-		"OSS_ACCESS_KEY_ID":     os.Getenv("OSS_ACCESS_KEY_ID"),
+		"UPLOAD_STORAGE_TYPE":  os.Getenv("UPLOAD_STORAGE_TYPE"),
+		"UPLOAD_MAX_FILE_SIZE": os.Getenv("UPLOAD_MAX_FILE_SIZE"),
+		"UPLOAD_MAX_FILES":     os.Getenv("UPLOAD_MAX_FILES"),
+		"UPLOAD_ALLOWED_TYPES": os.Getenv("UPLOAD_ALLOWED_TYPES"),
+		"UPLOAD_LOCAL_PATH":    os.Getenv("UPLOAD_LOCAL_PATH"),
+		"OSS_ENDPOINT":         os.Getenv("OSS_ENDPOINT"),
+		"OSS_ACCESS_KEY_ID":    os.Getenv("OSS_ACCESS_KEY_ID"),
 	}
 
 	// 清理环境变量
@@ -349,7 +349,7 @@ func TestUploadConfig_GetUploadPath(t *testing.T) {
 // BenchmarkGenerateFileName 性能测试
 func BenchmarkGenerateFileName(b *testing.B) {
 	config := DefaultUploadConfig()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		fileName := config.GenerateFileName("test.jpg")
@@ -360,7 +360,7 @@ func BenchmarkGenerateFileName(b *testing.B) {
 // BenchmarkIsAllowedType 性能测试
 func BenchmarkIsAllowedType(b *testing.B) {
 	config := DefaultUploadConfig()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		allowed := config.IsAllowedType("image/jpeg")

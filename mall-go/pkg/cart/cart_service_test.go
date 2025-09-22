@@ -163,7 +163,7 @@ func (suite *CartServiceTestSuite) TestCartService_AddToCartDuplicate() {
 	// 第二次添加相同商品
 	cartItem2, err := suite.cartService.AddToCart(1, "", req)
 	suite.NoError(err)
-	suite.Equal(4, cartItem2.Quantity) // 数量应该累加
+	suite.Equal(4, cartItem2.Quantity)      // 数量应该累加
 	suite.Equal(cartItem1.ID, cartItem2.ID) // 应该是同一个商品项
 }
 

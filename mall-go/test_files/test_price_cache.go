@@ -103,7 +103,7 @@ func createTestPriceProduct(id uint, price float64) *model.Product {
 		CostPrice:   decimal.NewFromFloat(price * 0.6),
 		Version:     1,
 		Status:      "active",
-		
+
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -134,7 +134,7 @@ func testBasicPriceCRUD(priceCache *cache.PriceCacheService) {
 		return
 	}
 	if cachedPrice != nil {
-		fmt.Printf("  ✅ 获取价格缓存成功: ProductID=%d, Price=%s, OriginPrice=%s, Status=%s\n", 
+		fmt.Printf("  ✅ 获取价格缓存成功: ProductID=%d, Price=%s, OriginPrice=%s, Status=%s\n",
 			cachedPrice.ProductID, cachedPrice.Price, cachedPrice.OriginPrice, cachedPrice.PriceStatus)
 	} else {
 		fmt.Println("  ❌ 价格缓存未命中")
@@ -187,7 +187,7 @@ func testPriceUpdate(priceCache *cache.PriceCacheService) {
 	}
 
 	if updatedPrice != nil {
-		fmt.Printf("  ✅ 价格更新验证: Price=%s, OriginPrice=%s, ChangeCount=%d\n", 
+		fmt.Printf("  ✅ 价格更新验证: Price=%s, OriginPrice=%s, ChangeCount=%d\n",
 			updatedPrice.Price, updatedPrice.OriginPrice, updatedPrice.PriceChangeCount)
 	}
 }
@@ -214,7 +214,7 @@ func testPromotionPriceManagement(priceCache *cache.PriceCacheService) {
 		fmt.Printf("  ❌ 设置促销价格失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置促销价格成功: %s → %s (促销类型: %s)\n", 
+	fmt.Printf("  ✅ 设置促销价格成功: %s → %s (促销类型: %s)\n",
 		"99.99", promotionRequest.PromotionPrice.String(), promotionRequest.PromotionType)
 
 	// 验证促销价格
@@ -225,8 +225,8 @@ func testPromotionPriceManagement(priceCache *cache.PriceCacheService) {
 	}
 
 	if promotionPrice != nil && promotionPrice.IsPromotion {
-		fmt.Printf("  ✅ 促销价格验证: 促销价=%s, 状态=%s, 结束时间=%v\n", 
-			promotionPrice.PromotionPrice, promotionPrice.PriceStatus, 
+		fmt.Printf("  ✅ 促销价格验证: 促销价=%s, 状态=%s, 结束时间=%v\n",
+			promotionPrice.PromotionPrice, promotionPrice.PriceStatus,
 			promotionPrice.PromotionEndTime.Format("2006-01-02 15:04:05"))
 	}
 
@@ -241,7 +241,7 @@ func testPromotionPriceManagement(priceCache *cache.PriceCacheService) {
 	// 验证清除结果
 	normalPrice, err := priceCache.GetPrice(501)
 	if err == nil && normalPrice != nil && !normalPrice.IsPromotion {
-		fmt.Printf("  ✅ 促销清除验证: 状态=%s, 促销价格=%s\n", 
+		fmt.Printf("  ✅ 促销清除验证: 状态=%s, 促销价格=%s\n",
 			normalPrice.PriceStatus, normalPrice.PromotionPrice)
 	}
 }
@@ -317,7 +317,7 @@ func testBatchPriceOperations(priceCache *cache.PriceCacheService) {
 
 	// 显示获取结果
 	for id, price := range cachedPrices {
-		fmt.Printf("    - ProductID=%d, Price=%s, OriginPrice=%s\n", 
+		fmt.Printf("    - ProductID=%d, Price=%s, OriginPrice=%s\n",
 			id, price.Price, price.OriginPrice)
 	}
 
@@ -353,13 +353,13 @@ func testPriceHistory(priceCache *cache.PriceCacheService) {
 			Price:     decimal.NewFromFloat(update.price),
 			Reason:    update.reason,
 		}
-		
+
 		err := priceCache.UpdatePrice(updateRequest)
 		if err != nil {
 			fmt.Printf("  ❌ 价格更新失败: %v\n", err)
 			continue
 		}
-		
+
 		time.Sleep(100 * time.Millisecond) // 小延迟确保时间戳不同
 	}
 
@@ -372,8 +372,8 @@ func testPriceHistory(priceCache *cache.PriceCacheService) {
 
 	fmt.Printf("  ✅ 价格历史记录数量: %d\n", len(history))
 	for i, record := range history {
-		fmt.Printf("    %d. %s → %s (%s) - %s\n", 
-			i+1, record.OldPrice.String(), record.NewPrice.String(), 
+		fmt.Printf("    %d. %s → %s (%s) - %s\n",
+			i+1, record.OldPrice.String(), record.NewPrice.String(),
 			record.ChangeType, record.Reason)
 	}
 

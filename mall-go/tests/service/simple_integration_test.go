@@ -136,7 +136,7 @@ func TestSimpleServiceIntegration(t *testing.T) {
 			assert.True(t, found, "应该在购物车中找到添加的商品")
 		}
 
-		t.Logf("✅ 用户-商品-购物车集成流程测试通过 - 用户: %s, 商品: %s, 购物车商品数: %d", 
+		t.Logf("✅ 用户-商品-购物车集成流程测试通过 - 用户: %s, 商品: %s, 购物车商品数: %d",
 			user.Username, product.Name, len(cartResponse.Cart.Items))
 	})
 

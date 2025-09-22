@@ -39,12 +39,12 @@ type StatusUpdateRequest struct {
 
 // StatusUpdateResult 状态更新结果
 type StatusUpdateResult struct {
-	Success      bool   `json:"success"`
-	OrderID      uint   `json:"order_id"`
-	FromStatus   string `json:"from_status"`
-	ToStatus     string `json:"to_status"`
-	Error        string `json:"error,omitempty"`
-	RetryCount   int    `json:"retry_count"`
+	Success    bool   `json:"success"`
+	OrderID    uint   `json:"order_id"`
+	FromStatus string `json:"from_status"`
+	ToStatus   string `json:"to_status"`
+	Error      string `json:"error,omitempty"`
+	RetryCount int    `json:"retry_count"`
 }
 
 // UpdateOrderStatusWithLock 使用分布式锁和乐观锁更新订单状态
@@ -57,7 +57,7 @@ func (osm *OrderStatusManager) UpdateOrderStatusWithLock(req *StatusUpdateReques
 	// 获取分布式锁
 	lockKey := fmt.Sprintf("order_status_lock:%d", req.OrderID)
 	lockValue := fmt.Sprintf("%d", time.Now().UnixNano())
-	
+
 	success, err := osm.rdb.SetNX(osm.ctx, lockKey, lockValue, 30*time.Second).Result()
 	if err != nil || !success {
 		result.Error = "获取订单状态锁失败"
@@ -71,7 +71,7 @@ func (osm *OrderStatusManager) UpdateOrderStatusWithLock(req *StatusUpdateReques
 	maxRetries := 3
 	for retries := 0; retries < maxRetries; retries++ {
 		result.RetryCount = retries + 1
-		
+
 		updateResult, err := osm.updateOrderStatusWithOptimisticLock(req)
 		if err == nil {
 			result.Success = true
@@ -339,7 +339,7 @@ func (osm *OrderStatusManager) releaseLock(lockKey, lockValue string) {
 // BatchUpdateOrderStatus 批量更新订单状态
 func (osm *OrderStatusManager) BatchUpdateOrderStatus(requests []*StatusUpdateRequest) ([]*StatusUpdateResult, error) {
 	results := make([]*StatusUpdateResult, len(requests))
-	
+
 	for i, req := range requests {
 		result, err := osm.UpdateOrderStatusWithLock(req)
 		if err != nil {
@@ -348,7 +348,7 @@ func (osm *OrderStatusManager) BatchUpdateOrderStatus(requests []*StatusUpdateRe
 		}
 		results[i] = result
 	}
-	
+
 	return results, nil
 }
 

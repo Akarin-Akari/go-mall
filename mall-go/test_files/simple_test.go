@@ -42,7 +42,7 @@ func main() {
 
 	// 创建测试数据
 	fmt.Println("🧪 创建测试数据...")
-	
+
 	// 创建分类
 	category := model.Category{
 		Name:        "电子产品",

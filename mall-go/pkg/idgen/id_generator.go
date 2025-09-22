@@ -41,40 +41,40 @@ func (g *UUIDGenerator) GenerateID() int64 {
 
 // SnowflakeGenerator 雪花算法生成器
 type SnowflakeGenerator struct {
-	mutex       sync.Mutex
-	machineID   int64 // 机器ID (0-1023)
-	sequence    int64 // 序列号 (0-4095)
-	lastTime    int64 // 上次生成时间戳
-	
+	mutex     sync.Mutex
+	machineID int64 // 机器ID (0-1023)
+	sequence  int64 // 序列号 (0-4095)
+	lastTime  int64 // 上次生成时间戳
+
 	// 雪花算法配置
-	epoch       int64 // 起始时间戳 (2020-01-01 00:00:00)
-	machineBits int64 // 机器ID位数
+	epoch        int64 // 起始时间戳 (2020-01-01 00:00:00)
+	machineBits  int64 // 机器ID位数
 	sequenceBits int64 // 序列号位数
-	
+
 	// 位移量
 	machineShift int64
 	timeShift    int64
-	
+
 	// 最大值
-	maxMachine   int64
-	maxSequence  int64
+	maxMachine  int64
+	maxSequence int64
 }
 
 // NewSnowflakeGenerator 创建雪花算法生成器
 func NewSnowflakeGenerator(machineID int64) (*SnowflakeGenerator, error) {
 	// 2020-01-01 00:00:00 UTC
 	epoch := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC).UnixMilli()
-	
-	machineBits := int64(10) // 支持1024台机器
+
+	machineBits := int64(10)  // 支持1024台机器
 	sequenceBits := int64(12) // 每毫秒支持4096个序列号
-	
+
 	maxMachine := int64(-1) ^ (int64(-1) << machineBits)
 	maxSequence := int64(-1) ^ (int64(-1) << sequenceBits)
-	
+
 	if machineID < 0 || machineID > maxMachine {
 		return nil, fmt.Errorf("机器ID必须在0-%d之间", maxMachine)
 	}
-	
+
 	return &SnowflakeGenerator{
 		machineID:    machineID,
 		epoch:        epoch,
@@ -91,15 +91,15 @@ func NewSnowflakeGenerator(machineID int64) (*SnowflakeGenerator, error) {
 func (g *SnowflakeGenerator) GenerateID() int64 {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	
+
 	now := time.Now().UnixMilli()
-	
+
 	if now < g.lastTime {
 		// 时钟回拨，等待到上次时间
 		time.Sleep(time.Duration(g.lastTime-now) * time.Millisecond)
 		now = time.Now().UnixMilli()
 	}
-	
+
 	if now == g.lastTime {
 		// 同一毫秒内，序列号递增
 		g.sequence = (g.sequence + 1) & g.maxSequence
@@ -113,14 +113,14 @@ func (g *SnowflakeGenerator) GenerateID() int64 {
 		// 新的毫秒，序列号重置
 		g.sequence = 0
 	}
-	
+
 	g.lastTime = now
-	
+
 	// 组装ID: 时间戳(41位) + 机器ID(10位) + 序列号(12位)
 	id := ((now - g.epoch) << g.timeShift) |
 		(g.machineID << g.machineShift) |
 		g.sequence
-	
+
 	return id
 }
 
@@ -171,17 +171,17 @@ func (g *RandomIDGenerator) GenerateID() int64 {
 	// 生成8字节随机数
 	bytes := make([]byte, 8)
 	rand.Read(bytes)
-	
+
 	var id int64
 	for i := 0; i < 8; i++ {
 		id = (id << 8) | int64(bytes[i])
 	}
-	
+
 	// 确保为正数
 	if id < 0 {
 		id = -id
 	}
-	
+
 	return id
 }
 

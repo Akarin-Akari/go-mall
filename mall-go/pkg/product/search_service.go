@@ -34,7 +34,7 @@ type SearchRequest struct {
 	IsNew       *bool    `form:"is_new"`
 	IsRecommend *bool    `form:"is_recommend"`
 	InStock     *bool    `form:"in_stock"`
-	SortBy      string   `form:"sort_by"`  // relevance, price_asc, price_desc, sales_desc, rating_desc, created_desc
+	SortBy      string   `form:"sort_by"` // relevance, price_asc, price_desc, sales_desc, rating_desc, created_desc
 	Page        int      `form:"page" binding:"min=1"`
 	PageSize    int      `form:"page_size" binding:"min=1,max=100"`
 }
@@ -102,7 +102,7 @@ type SearchHistory struct {
 	Keyword   string `gorm:"size:100;not null" json:"keyword"`
 	Results   int64  `gorm:"default:0" json:"results"`
 	CreatedAt string `json:"created_at"`
-	
+
 	// 关联关系
 	User *model.User `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
@@ -120,11 +120,11 @@ func (ss *SearchService) SearchProducts(req *SearchRequest) (*SearchResponse, er
 	if req.Keyword != "" {
 		// 记录搜索关键词
 		ss.recordSearchKeyword(req.Keyword)
-		
+
 		// 多字段模糊搜索
 		keywords := strings.Fields(req.Keyword)
 		for _, keyword := range keywords {
-			query = query.Where("(name LIKE ? OR description LIKE ? OR seo_keywords LIKE ?)", 
+			query = query.Where("(name LIKE ? OR description LIKE ? OR seo_keywords LIKE ?)",
 				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 		}
 	}
@@ -203,7 +203,7 @@ func (ss *SearchService) SearchProducts(req *SearchRequest) (*SearchResponse, er
 
 	// 构建响应
 	totalPages := int((total + int64(req.PageSize) - 1) / int64(req.PageSize))
-	
+
 	response := &SearchResponse{
 		Products:   products,
 		Total:      total,
@@ -322,7 +322,7 @@ func (ss *SearchService) GetRelatedProducts(productID uint, limit int) ([]*model
 	var products []*model.Product
 
 	// 优先推荐同分类商品
-	if err := ss.db.Where("category_id = ? AND id != ? AND status = ?", 
+	if err := ss.db.Where("category_id = ? AND id != ? AND status = ?",
 		product.CategoryID, productID, model.ProductStatusActive).
 		Preload("Images", func(db *gorm.DB) *gorm.DB {
 			return db.Where("is_main = ?", true).Order("sort ASC").Limit(1)
@@ -337,13 +337,13 @@ func (ss *SearchService) GetRelatedProducts(productID uint, limit int) ([]*model
 	if len(products) < limit && product.BrandID > 0 {
 		var brandProducts []*model.Product
 		remaining := limit - len(products)
-		
+
 		existingIDs := []uint{productID}
 		for _, p := range products {
 			existingIDs = append(existingIDs, p.ID)
 		}
 
-		if err := ss.db.Where("brand_id = ? AND id NOT IN ? AND status = ?", 
+		if err := ss.db.Where("brand_id = ? AND id NOT IN ? AND status = ?",
 			product.BrandID, existingIDs, model.ProductStatusActive).
 			Preload("Images", func(db *gorm.DB) *gorm.DB {
 				return db.Where("is_main = ?", true).Order("sort ASC").Limit(1)
@@ -408,11 +408,11 @@ func (ss *SearchService) buildSearchFilters(req *SearchRequest) (*SearchFilters,
 
 	// 构建基础查询
 	baseQuery := ss.db.Model(&model.Product{}).Where("status = ?", model.ProductStatusActive)
-	
+
 	if req.Keyword != "" {
 		keywords := strings.Fields(req.Keyword)
 		for _, keyword := range keywords {
-			baseQuery = baseQuery.Where("(name LIKE ? OR description LIKE ? OR seo_keywords LIKE ?)", 
+			baseQuery = baseQuery.Where("(name LIKE ? OR description LIKE ? OR seo_keywords LIKE ?)",
 				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 		}
 	}

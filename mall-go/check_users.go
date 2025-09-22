@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fmt.Println("🔍 检查数据库中的用户数据")
-	
+
 	// 初始化配置
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
@@ -34,14 +34,14 @@ func main() {
 
 	fmt.Printf("数据库中共有 %d 个用户:\n", len(users))
 	fmt.Println("================================================================================")
-	
+
 	for _, user := range users {
 		fmt.Printf("ID: %d | Username: %s | Email: %s | Role: %s | Status: %s | Created: %s\n",
 			user.ID, user.Username, user.Email, user.Role, user.Status, user.CreatedAt.Format("2006-01-02 15:04:05"))
 	}
-	
+
 	fmt.Println("================================================================================")
-	
+
 	// 特别检查admin用户
 	var adminUsers []model.User
 	if err := db.Where("username = ?", "admin").Find(&adminUsers).Error; err != nil {

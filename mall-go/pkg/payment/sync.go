@@ -15,29 +15,29 @@ import (
 
 // SyncManager 同步管理器
 type SyncManager struct {
-	db          *gorm.DB
-	eventQueue  chan *SyncEvent
-	workers     int
-	retryQueue  chan *SyncEvent
-	maxRetries  int
-	retryDelay  time.Duration
-	wg          sync.WaitGroup
-	ctx         context.Context
-	cancel      context.CancelFunc
+	db         *gorm.DB
+	eventQueue chan *SyncEvent
+	workers    int
+	retryQueue chan *SyncEvent
+	maxRetries int
+	retryDelay time.Duration
+	wg         sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 // SyncEvent 同步事件
 type SyncEvent struct {
-	ID          string                 `json:"id"`
-	Type        SyncEventType          `json:"type"`
-	PaymentID   uint                   `json:"payment_id"`
-	OrderID     uint                   `json:"order_id"`
-	UserID      uint                   `json:"user_id"`
-	Data        map[string]interface{} `json:"data"`
-	Timestamp   time.Time              `json:"timestamp"`
-	RetryCount  int                    `json:"retry_count"`
-	MaxRetries  int                    `json:"max_retries"`
-	NextRetry   time.Time              `json:"next_retry"`
+	ID         string                 `json:"id"`
+	Type       SyncEventType          `json:"type"`
+	PaymentID  uint                   `json:"payment_id"`
+	OrderID    uint                   `json:"order_id"`
+	UserID     uint                   `json:"user_id"`
+	Data       map[string]interface{} `json:"data"`
+	Timestamp  time.Time              `json:"timestamp"`
+	RetryCount int                    `json:"retry_count"`
+	MaxRetries int                    `json:"max_retries"`
+	NextRetry  time.Time              `json:"next_retry"`
 }
 
 // SyncEventType 同步事件类型
@@ -62,24 +62,24 @@ type SyncResult struct {
 // NewSyncManager 创建同步管理器
 func NewSyncManager(db *gorm.DB, workers int) *SyncManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	sm := &SyncManager{
-		db:          db,
-		eventQueue:  make(chan *SyncEvent, 1000),
-		workers:     workers,
-		retryQueue:  make(chan *SyncEvent, 500),
-		maxRetries:  3,
-		retryDelay:  time.Second * 30,
-		ctx:         ctx,
-		cancel:      cancel,
+		db:         db,
+		eventQueue: make(chan *SyncEvent, 1000),
+		workers:    workers,
+		retryQueue: make(chan *SyncEvent, 500),
+		maxRetries: 3,
+		retryDelay: time.Second * 30,
+		ctx:        ctx,
+		cancel:     cancel,
 	}
-	
+
 	// 启动工作协程
 	sm.startWorkers()
-	
+
 	// 启动重试协程
 	sm.startRetryWorker()
-	
+
 	return sm
 }
 
@@ -100,9 +100,9 @@ func (sm *SyncManager) startRetryWorker() {
 // worker 工作协程
 func (sm *SyncManager) worker(id int) {
 	defer sm.wg.Done()
-	
+
 	logger.Info("同步工作协程启动", zap.Int("worker_id", id))
-	
+
 	for {
 		select {
 		case <-sm.ctx.Done():
@@ -117,12 +117,12 @@ func (sm *SyncManager) worker(id int) {
 // retryWorker 重试工作协程
 func (sm *SyncManager) retryWorker() {
 	defer sm.wg.Done()
-	
+
 	logger.Info("重试工作协程启动")
-	
+
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-sm.ctx.Done():
@@ -151,10 +151,10 @@ func (sm *SyncManager) processEvent(event *SyncEvent, workerID int) {
 		zap.String("event_type", string(event.Type)),
 		zap.Uint("payment_id", event.PaymentID),
 		zap.Int("worker_id", workerID))
-	
+
 	var result *SyncResult
 	var err error
-	
+
 	// 根据事件类型处理
 	switch event.Type {
 	case SyncEventPaymentSuccess:
@@ -170,13 +170,13 @@ func (sm *SyncManager) processEvent(event *SyncEvent, workerID int) {
 	default:
 		err = fmt.Errorf("未知的事件类型: %s", event.Type)
 	}
-	
+
 	// 处理结果
 	if err != nil {
 		logger.Error("同步事件处理失败",
 			zap.String("event_id", event.ID),
 			zap.Error(err))
-		
+
 		// 重试逻辑
 		if event.RetryCount < sm.maxRetries {
 			event.RetryCount++
@@ -208,7 +208,7 @@ func (sm *SyncManager) handlePaymentSuccess(event *SyncEvent) (*SyncResult, erro
 			tx.Rollback()
 		}
 	}()
-	
+
 	// 更新订单状态
 	err := tx.Model(&model.Order{}).Where("id = ?", event.OrderID).Updates(map[string]interface{}{
 		"status":         model.OrderStatusPaid,
@@ -216,12 +216,12 @@ func (sm *SyncManager) handlePaymentSuccess(event *SyncEvent) (*SyncResult, erro
 		"payment_method": event.Data["payment_method"],
 		"paid_at":        time.Now(),
 	}).Error
-	
+
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("更新订单状态失败: %v", err)
 	}
-	
+
 	// 更新商品库存（如果需要）
 	if shouldUpdateStock(event) {
 		if err := sm.updateProductStock(tx, event); err != nil {
@@ -229,7 +229,7 @@ func (sm *SyncManager) handlePaymentSuccess(event *SyncEvent) (*SyncResult, erro
 			return nil, fmt.Errorf("更新商品库存失败: %v", err)
 		}
 	}
-	
+
 	// TODO: 创建订单日志功能需要实现OrderLog模型
 	// orderLog := &model.OrderLog{
 	// 	OrderID:     event.OrderID,
@@ -238,17 +238,17 @@ func (sm *SyncManager) handlePaymentSuccess(event *SyncEvent) (*SyncResult, erro
 	// 	Description: "支付成功",
 	// 	CreatedAt:   time.Now(),
 	// }
-	
+
 	// if err := tx.Create(orderLog).Error; err != nil {
 	// 	logger.Error("创建订单日志失败", zap.Error(err))
 	// 	// 不影响主流程
 	// }
-	
+
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		return nil, fmt.Errorf("提交事务失败: %v", err)
 	}
-	
+
 	return &SyncResult{
 		Success:   true,
 		Message:   "订单状态同步成功",
@@ -265,11 +265,11 @@ func (sm *SyncManager) handlePaymentFailed(event *SyncEvent) (*SyncResult, error
 		"payment_status": model.PaymentStatusFailed,
 		"cancelled_at":   time.Now(),
 	}).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("更新订单状态失败: %v", err)
 	}
-	
+
 	return &SyncResult{
 		Success:   true,
 		Message:   "支付失败状态同步成功",
@@ -286,11 +286,11 @@ func (sm *SyncManager) handlePaymentCanceled(event *SyncEvent) (*SyncResult, err
 		"payment_status": model.PaymentStatusCancelled,
 		"cancelled_at":   time.Now(),
 	}).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("更新订单状态失败: %v", err)
 	}
-	
+
 	return &SyncResult{
 		Success:   true,
 		Message:   "支付取消状态同步成功",
@@ -308,19 +308,19 @@ func (sm *SyncManager) handleRefundSuccess(event *SyncEvent) (*SyncResult, error
 			tx.Rollback()
 		}
 	}()
-	
+
 	// 更新订单状态
 	err := tx.Model(&model.Order{}).Where("id = ?", event.OrderID).Updates(map[string]interface{}{
 		"status":         model.OrderStatusRefunded,
 		"payment_status": model.PaymentStatusRefunded,
 		"refunded_at":    time.Now(),
 	}).Error
-	
+
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("更新订单状态失败: %v", err)
 	}
-	
+
 	// 恢复商品库存（如果需要）
 	if shouldRestoreStock(event) {
 		if err := sm.restoreProductStock(tx, event); err != nil {
@@ -328,12 +328,12 @@ func (sm *SyncManager) handleRefundSuccess(event *SyncEvent) (*SyncResult, error
 			return nil, fmt.Errorf("恢复商品库存失败: %v", err)
 		}
 	}
-	
+
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		return nil, fmt.Errorf("提交事务失败: %v", err)
 	}
-	
+
 	return &SyncResult{
 		Success:   true,
 		Message:   "退款成功状态同步成功",
@@ -348,7 +348,7 @@ func (sm *SyncManager) handleRefundFailed(event *SyncEvent) (*SyncResult, error)
 	logger.Error("退款失败",
 		zap.Uint("order_id", event.OrderID),
 		zap.Uint("payment_id", event.PaymentID))
-	
+
 	return &SyncResult{
 		Success:   true,
 		Message:   "退款失败状态记录成功",
@@ -370,7 +370,7 @@ func (sm *SyncManager) PublishEvent(eventType SyncEventType, paymentID, orderID,
 		RetryCount: 0,
 		MaxRetries: sm.maxRetries,
 	}
-	
+
 	select {
 	case sm.eventQueue <- event:
 		logger.Info("同步事件已发布",

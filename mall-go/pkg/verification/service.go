@@ -33,9 +33,9 @@ func (vs *VerificationService) SendEmailVerification(email, codeType string, use
 
 	// 检查是否存在未过期的验证码
 	var existingCode model.UserVerificationCode
-	err = vs.db.Where("email = ? AND type = ? AND used = false AND expires_at > ?", 
+	err = vs.db.Where("email = ? AND type = ? AND used = false AND expires_at > ?",
 		email, codeType, time.Now()).First(&existingCode).Error
-	
+
 	if err == nil {
 		// 如果存在未过期的验证码，更新它
 		existingCode.Code = code
@@ -44,13 +44,13 @@ func (vs *VerificationService) SendEmailVerification(email, codeType string, use
 		if err != nil {
 			return nil, fmt.Errorf("更新验证码失败: %v", err)
 		}
-		
+
 		// 发送邮件
 		err = vs.sendEmail(email, code, codeType)
 		if err != nil {
 			return nil, fmt.Errorf("发送邮件失败: %v", err)
 		}
-		
+
 		return &existingCode, nil
 	}
 
@@ -88,9 +88,9 @@ func (vs *VerificationService) SendSMSVerification(phone, codeType string, userI
 
 	// 检查是否存在未过期的验证码
 	var existingCode model.UserVerificationCode
-	err = vs.db.Where("phone = ? AND type = ? AND used = false AND expires_at > ?", 
+	err = vs.db.Where("phone = ? AND type = ? AND used = false AND expires_at > ?",
 		phone, codeType, time.Now()).First(&existingCode).Error
-	
+
 	if err == nil {
 		// 如果存在未过期的验证码，更新它
 		existingCode.Code = code
@@ -99,13 +99,13 @@ func (vs *VerificationService) SendSMSVerification(phone, codeType string, userI
 		if err != nil {
 			return nil, fmt.Errorf("更新验证码失败: %v", err)
 		}
-		
+
 		// 发送短信
 		err = vs.sendSMS(phone, code, codeType)
 		if err != nil {
 			return nil, fmt.Errorf("发送短信失败: %v", err)
 		}
-		
+
 		return &existingCode, nil
 	}
 
@@ -136,9 +136,9 @@ func (vs *VerificationService) SendSMSVerification(phone, codeType string, userI
 // VerifyEmailCode 验证邮箱验证码
 func (vs *VerificationService) VerifyEmailCode(email, code, codeType string) (*model.UserVerificationCode, error) {
 	var verificationCode model.UserVerificationCode
-	err := vs.db.Where("email = ? AND code = ? AND type = ? AND used = false AND expires_at > ?", 
+	err := vs.db.Where("email = ? AND code = ? AND type = ? AND used = false AND expires_at > ?",
 		email, code, codeType, time.Now()).First(&verificationCode).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("验证码无效或已过期")
@@ -159,9 +159,9 @@ func (vs *VerificationService) VerifyEmailCode(email, code, codeType string) (*m
 // VerifyPhoneCode 验证手机验证码
 func (vs *VerificationService) VerifyPhoneCode(phone, code, codeType string) (*model.UserVerificationCode, error) {
 	var verificationCode model.UserVerificationCode
-	err := vs.db.Where("phone = ? AND code = ? AND type = ? AND used = false AND expires_at > ?", 
+	err := vs.db.Where("phone = ? AND code = ? AND type = ? AND used = false AND expires_at > ?",
 		phone, code, codeType, time.Now()).First(&verificationCode).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("验证码无效或已过期")
@@ -188,7 +188,7 @@ func (vs *VerificationService) CleanupExpiredCodes() error {
 func (vs *VerificationService) generateCode(length int) (string, error) {
 	const digits = "0123456789"
 	code := make([]byte, length)
-	
+
 	for i := range code {
 		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
 		if err != nil {
@@ -196,7 +196,7 @@ func (vs *VerificationService) generateCode(length int) (string, error) {
 		}
 		code[i] = digits[num.Int64()]
 	}
-	
+
 	return string(code), nil
 }
 
@@ -204,7 +204,7 @@ func (vs *VerificationService) generateCode(length int) (string, error) {
 func (vs *VerificationService) sendEmail(email, code, codeType string) error {
 	// TODO: 集成真实的邮件服务（如阿里云邮件推送、SendGrid等）
 	// 这里只是模拟发送
-	
+
 	var subject, content string
 	switch codeType {
 	case model.VerificationTypeRegister:
@@ -220,10 +220,10 @@ func (vs *VerificationService) sendEmail(email, code, codeType string) error {
 		subject = "验证码"
 		content = fmt.Sprintf("您的验证码是：%s，有效期10分钟。", code)
 	}
-	
+
 	// 模拟发送邮件
 	fmt.Printf("发送邮件到 %s: %s - %s\n", email, subject, content)
-	
+
 	return nil
 }
 
@@ -231,7 +231,7 @@ func (vs *VerificationService) sendEmail(email, code, codeType string) error {
 func (vs *VerificationService) sendSMS(phone, code, codeType string) error {
 	// TODO: 集成真实的短信服务（如阿里云短信、腾讯云短信等）
 	// 这里只是模拟发送
-	
+
 	var content string
 	switch codeType {
 	case model.VerificationTypeRegister:
@@ -243,10 +243,10 @@ func (vs *VerificationService) sendSMS(phone, code, codeType string) error {
 	default:
 		content = fmt.Sprintf("【商城】您的验证码是：%s，有效期5分钟。", code)
 	}
-	
+
 	// 模拟发送短信
 	fmt.Printf("发送短信到 %s: %s\n", phone, content)
-	
+
 	return nil
 }
 
@@ -254,11 +254,11 @@ func (vs *VerificationService) sendSMS(phone, code, codeType string) error {
 func (vs *VerificationService) GetVerificationCodesByUser(userID uint, limit int) ([]model.UserVerificationCode, error) {
 	var codes []model.UserVerificationCode
 	query := vs.db.Where("user_id = ?", userID).Order("created_at DESC")
-	
+
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
-	
+
 	err := query.Find(&codes).Error
 	return codes, err
 }

@@ -12,22 +12,22 @@ import (
 type StorageInterface interface {
 	// Upload 上传文件
 	Upload(filePath string, reader io.Reader, size int64) error
-	
+
 	// Download 下载文件
 	Download(filePath string) (io.ReadCloser, error)
-	
+
 	// Delete 删除文件
 	Delete(filePath string) error
-	
+
 	// Exists 检查文件是否存在
 	Exists(filePath string) (bool, error)
-	
+
 	// GetFileInfo 获取文件信息
 	GetFileInfo(filePath string) (*FileInfo, error)
-	
+
 	// GetURL 获取文件访问URL
 	GetURL(filePath string) string
-	
+
 	// ListFiles 列出文件
 	ListFiles(prefix string, limit int) ([]*FileInfo, error)
 }
@@ -142,7 +142,7 @@ func NewLocalStorage(config *UploadConfig) (*LocalStorage, error) {
 // Upload 上传文件到本地
 func (ls *LocalStorage) Upload(filePath string, reader io.Reader, size int64) error {
 	fullPath := filepath.Join(ls.config.Local.UploadPath, filePath)
-	
+
 	// 确保目录存在
 	dir := filepath.Dir(fullPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -170,7 +170,7 @@ func (ls *LocalStorage) Upload(filePath string, reader io.Reader, size int64) er
 // Download 从本地下载文件
 func (ls *LocalStorage) Download(filePath string) (io.ReadCloser, error) {
 	fullPath := filepath.Join(ls.config.Local.UploadPath, filePath)
-	
+
 	file, err := os.Open(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -185,7 +185,7 @@ func (ls *LocalStorage) Download(filePath string) (io.ReadCloser, error) {
 // Delete 删除本地文件
 func (ls *LocalStorage) Delete(filePath string) error {
 	fullPath := filepath.Join(ls.config.Local.UploadPath, filePath)
-	
+
 	err := os.Remove(fullPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("删除文件失败: %v", err)
@@ -197,7 +197,7 @@ func (ls *LocalStorage) Delete(filePath string) error {
 // Exists 检查本地文件是否存在
 func (ls *LocalStorage) Exists(filePath string) (bool, error) {
 	fullPath := filepath.Join(ls.config.Local.UploadPath, filePath)
-	
+
 	_, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -212,7 +212,7 @@ func (ls *LocalStorage) Exists(filePath string) (bool, error) {
 // GetFileInfo 获取本地文件信息
 func (ls *LocalStorage) GetFileInfo(filePath string) (*FileInfo, error) {
 	fullPath := filepath.Join(ls.config.Local.UploadPath, filePath)
-	
+
 	stat, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -240,7 +240,7 @@ func (ls *LocalStorage) GetURL(filePath string) string {
 // ListFiles 列出本地文件
 func (ls *LocalStorage) ListFiles(prefix string, limit int) ([]*FileInfo, error) {
 	searchPath := filepath.Join(ls.config.Local.UploadPath, prefix)
-	
+
 	var files []*FileInfo
 	count := 0
 

@@ -87,7 +87,7 @@ func (suite *ValidatorTestSuite) TestFileValidator_ValidateFile() {
 					suite.NotNil(result)
 					suite.False(result.Valid)
 					suite.NotEmpty(result.Errors)
-					
+
 					found := false
 					for _, errMsg := range result.Errors {
 						if strings.Contains(errMsg, tt.expectError) {
@@ -201,7 +201,7 @@ func (suite *ValidatorTestSuite) TestFileValidator_ImageValidation() {
 	suite.NotNil(result)
 	suite.True(result.Valid)
 	suite.Equal("image/png", result.ContentType)
-	
+
 	// 注意：由于我们的PNG数据不完整，图片解析可能会失败
 	// 这里主要测试验证器的基本功能
 }
@@ -322,7 +322,7 @@ func (suite *ValidatorTestSuite) TestFileValidator_ContentTypeValidation() {
 
 			suite.NoError(err)
 			suite.NotNil(result)
-			
+
 			// 注意：这里的验证结果取决于文件扩展名和内容类型的匹配
 			// 实际结果可能因为类型不匹配而产生警告
 		})
@@ -383,9 +383,9 @@ func TestValidationResult(t *testing.T) {
 func BenchmarkFileValidator_ValidateFile(b *testing.B) {
 	config := DefaultUploadConfig()
 	validator := NewFileValidator(config)
-	
+
 	content := strings.Repeat("test content ", 1000) // 约12KB
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		reader := strings.NewReader(content)
@@ -411,7 +411,7 @@ func TestGlobalValidator(t *testing.T) {
 	content := "test content"
 	reader := strings.NewReader(content)
 	result, err := ValidateUploadFile("test.jpg", reader, int64(len(content)))
-	
+
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 }

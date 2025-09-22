@@ -82,7 +82,7 @@ func main() {
 
 	// 测试配置获取
 	config := cpm.GetConfig()
-	fmt.Printf("📊 防护配置: Level=%d, Strategies=%v\n", 
+	fmt.Printf("📊 防护配置: Level=%d, Strategies=%v\n",
 		config.Level, config.Strategies)
 
 	// 测试防护功能
@@ -132,12 +132,12 @@ func testProtectionManagerInterface() {
 func testProtectionFeatures(cpm *cache.CacheProtectionManager) {
 	// 测试受保护的缓存获取
 	testKey := "test:protection:key"
-	
+
 	// 定义数据加载器
 	loader := func() (interface{}, error) {
 		return "protected_data", nil
 	}
-	
+
 	// 执行受保护的获取
 	result, err := cpm.ProtectedGet(testKey, loader)
 	if err != nil {
@@ -145,7 +145,7 @@ func testProtectionFeatures(cpm *cache.CacheProtectionManager) {
 	} else {
 		fmt.Printf("  ✅ 受保护获取成功: %v\n", result)
 	}
-	
+
 	// 测试空值缓存防护
 	fmt.Println("  ✅ 空值缓存防护机制已实现")
 	fmt.Println("  ✅ 随机TTL防雪崩机制已实现")
@@ -169,7 +169,7 @@ func testMetricsFeatures(cpm *cache.CacheProtectionManager) {
 	fmt.Printf("  📊 最大响应时间: %v\n", metrics.MaxResponseTime)
 	fmt.Printf("  📊 最小响应时间: %v\n", metrics.MinResponseTime)
 	fmt.Printf("  📊 最后更新时间: %v\n", metrics.LastUpdated.Format("2006-01-02 15:04:05"))
-	
+
 	// 测试指标重置
 	cpm.ResetMetrics()
 	newMetrics := cpm.GetMetrics()
@@ -178,23 +178,23 @@ func testMetricsFeatures(cpm *cache.CacheProtectionManager) {
 
 func testBloomFilterFeatures(cpm *cache.CacheProtectionManager) {
 	testKey := "test:bloom:key"
-	
+
 	// 测试添加到布隆过滤器
 	if err := cpm.AddToBloomFilter(testKey); err != nil {
 		fmt.Printf("  ❌ 添加到布隆过滤器失败: %v\n", err)
 	} else {
 		fmt.Println("  ✅ 添加到布隆过滤器成功")
 	}
-	
+
 	// 测试检查布隆过滤器
 	exists := cpm.CheckBloomFilter(testKey)
 	fmt.Printf("  📊 布隆过滤器检查结果: %v\n", exists)
-	
+
 	// 测试不存在的键
 	notExistsKey := "test:bloom:not:exists"
 	notExists := cpm.CheckBloomFilter(notExistsKey)
 	fmt.Printf("  📊 不存在键的检查结果: %v\n", notExists)
-	
+
 	fmt.Println("  ✅ 布隆过滤器功能验证完成")
 }
 
@@ -209,20 +209,20 @@ func testDistributedLockFeatures(cpm *cache.CacheProtectionManager) {
 
 func testAdvancedFeatures(cpm *cache.CacheProtectionManager) {
 	fmt.Println("\n🚀 测试高级防护功能:")
-	
+
 	// 测试多重防护策略
 	fmt.Println("  ✅ 多重防护策略组合")
 	fmt.Println("  ✅ 自适应防护级别")
 	fmt.Println("  ✅ 实时监控和告警")
 	fmt.Println("  ✅ 防护效果统计")
 	fmt.Println("  ✅ 性能影响最小化")
-	
+
 	// 测试防护配置
 	config := cpm.GetConfig()
 	fmt.Printf("  📊 防护级别: %d\n", config.Level)
 	fmt.Printf("  📊 启用策略数量: %d\n", len(config.Strategies))
 	fmt.Printf("  📊 监控启用: %v\n", config.MonitoringEnabled)
 	fmt.Printf("  📊 告警阈值: %.2f%%\n", config.AlertThreshold*100)
-	
+
 	fmt.Println("  ✅ 高级防护功能验证完成")
 }

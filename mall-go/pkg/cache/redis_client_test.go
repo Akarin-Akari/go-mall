@@ -28,7 +28,7 @@ func TestNewRedisClient(t *testing.T) {
 
 	// 创建Redis客户端
 	client, err := NewRedisClient(cfg)
-	
+
 	// 如果Redis服务未启动，跳过测试
 	if err != nil {
 		t.Skipf("Redis服务未启动，跳过测试: %v", err)
@@ -86,7 +86,7 @@ func TestRedisClientConcurrency(t *testing.T) {
 	for i := 0; i < concurrency; i++ {
 		go func(id int) {
 			defer func() { done <- true }()
-			
+
 			// 执行ping操作
 			err := client.Ping()
 			assert.NoError(t, err, "Goroutine %d ping failed", id)
@@ -105,9 +105,9 @@ func TestRedisClientConcurrency(t *testing.T) {
 
 	// 检查连接池状态
 	stats := client.GetConnectionStats()
-	t.Logf("并发测试后连接池统计: 总连接数=%d, 空闲连接数=%d, 命中数=%d, 未命中数=%d", 
+	t.Logf("并发测试后连接池统计: 总连接数=%d, 空闲连接数=%d, 命中数=%d, 未命中数=%d",
 		stats.TotalConns, stats.IdleConns, stats.Hits, stats.Misses)
-	
+
 	// 验证连接池没有泄漏
 	assert.True(t, stats.TotalConns <= 50, "连接数不应超过池大小")
 }
@@ -137,7 +137,7 @@ func TestInitRedis(t *testing.T) {
 
 	// 验证全局客户端
 	assert.NotNil(t, GlobalRedisClient)
-	
+
 	// 测试全局客户端
 	client := GetRedisClient()
 	assert.NotNil(t, client)

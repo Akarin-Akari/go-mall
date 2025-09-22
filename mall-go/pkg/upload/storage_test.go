@@ -311,7 +311,7 @@ func TestNewStorageManager(t *testing.T) {
 // TestGetContentType 测试内容类型检测
 func TestGetContentType(t *testing.T) {
 	tests := []struct {
-		filename    string
+		filename     string
 		expectedType string
 	}{
 		{"test.jpg", "image/jpeg"},
@@ -406,13 +406,13 @@ func BenchmarkLocalStorage_Download(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		
+
 		// 读取所有数据
 		_, err = io.ReadAll(downloadReader)
 		if err != nil {
 			b.Fatal(err)
 		}
-		
+
 		downloadReader.Close()
 	}
 }

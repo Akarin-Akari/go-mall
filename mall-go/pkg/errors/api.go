@@ -32,23 +32,23 @@ func (controller *ErrorAPIController) RegisterRoutes(r *gin.RouterGroup) {
 		errorGroup.GET("/metrics", controller.GetMetrics)
 		errorGroup.GET("/metrics/export", controller.ExportMetrics)
 		errorGroup.POST("/metrics/reset", controller.ResetMetrics)
-		
+
 		// 错误码相关
 		errorGroup.GET("/codes", controller.GetErrorCodes)
 		errorGroup.GET("/codes/:code", controller.GetErrorCodeInfo)
-		
+
 		// 国际化相关
 		errorGroup.GET("/messages", controller.GetMessages)
 		errorGroup.GET("/messages/:lang", controller.GetMessagesByLanguage)
 		errorGroup.GET("/languages", controller.GetSupportedLanguages)
-		
+
 		// 熔断器相关
 		errorGroup.GET("/circuit-breakers", controller.GetCircuitBreakers)
 		errorGroup.POST("/circuit-breakers/:operation/reset", controller.ResetCircuitBreaker)
-		
+
 		// 健康检查
 		errorGroup.GET("/health", controller.HealthCheck)
-		
+
 		// 错误测试（仅开发环境）
 		errorGroup.POST("/test", controller.TestError)
 	}
@@ -57,13 +57,13 @@ func (controller *ErrorAPIController) RegisterRoutes(r *gin.RouterGroup) {
 // GetMetrics 获取错误指标
 func (controller *ErrorAPIController) GetMetrics(c *gin.Context) {
 	metrics := controller.monitor.GetMetrics()
-	
+
 	// 检查是否需要特定时间范围的数据
 	if timeRange := c.Query("time_range"); timeRange != "" {
 		// 这里可以根据时间范围过滤数据
 		// 简化实现，返回所有数据
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    metrics,
@@ -77,7 +77,7 @@ func (controller *ErrorAPIController) ExportMetrics(c *gin.Context) {
 		AbortWithBusinessError(c, ErrCodeSystemInternal, "导出指标失败")
 		return
 	}
-	
+
 	format := c.DefaultQuery("format", "json")
 	switch format {
 	case "json":
@@ -98,9 +98,9 @@ func (controller *ErrorAPIController) ResetMetrics(c *gin.Context) {
 	if !RequirePermission(c, "system:metrics:reset") {
 		return
 	}
-	
+
 	controller.monitor.ResetMetrics()
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "错误指标已重置",
@@ -111,10 +111,10 @@ func (controller *ErrorAPIController) ResetMetrics(c *gin.Context) {
 func (controller *ErrorAPIController) GetErrorCodes(c *gin.Context) {
 	category := c.Query("category")
 	level := c.Query("level")
-	
+
 	// 构建错误码列表
 	errorCodes := []map[string]interface{}{}
-	
+
 	// 这里可以根据分类和级别过滤错误码
 	allCodes := []ErrorCode{
 		ErrCodeSystemInternal, ErrCodeSystemTimeout, ErrCodeSystemOverload,
@@ -125,12 +125,12 @@ func (controller *ErrorAPIController) GetErrorCodes(c *gin.Context) {
 		ErrCodeDatabaseConnection, ErrCodeDatabaseNotFound,
 		ErrCodePaymentInvalidMethod, ErrCodePaymentInsufficientFunds,
 	}
-	
+
 	for _, code := range allCodes {
 		// 根据错误码获取分类和级别信息
 		codeCategory := GetErrorCategory(NewError(code, "", ErrorLevelInfo, CategorySystem))
 		codeLevel := GetErrorLevel(NewError(code, "", ErrorLevelInfo, CategorySystem))
-		
+
 		// 应用过滤条件
 		if category != "" && string(codeCategory) != category {
 			continue
@@ -138,15 +138,15 @@ func (controller *ErrorAPIController) GetErrorCodes(c *gin.Context) {
 		if level != "" && string(codeLevel) != level {
 			continue
 		}
-		
+
 		errorCodes = append(errorCodes, map[string]interface{}{
-			"code":        code,
-			"category":    codeCategory,
-			"level":       codeLevel,
-			"formatted":   FormatErrorCode(code),
+			"code":      code,
+			"category":  codeCategory,
+			"level":     codeLevel,
+			"formatted": FormatErrorCode(code),
 		})
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
@@ -160,18 +160,18 @@ func (controller *ErrorAPIController) GetErrorCodes(c *gin.Context) {
 func (controller *ErrorAPIController) GetErrorCodeInfo(c *gin.Context) {
 	codeStr := c.Param("code")
 	lang := Language(c.DefaultQuery("lang", "zh-cn"))
-	
+
 	code, valid := ParseErrorCode(codeStr)
 	if !valid {
 		AbortWithValidationError(c, "code", "无效的错误码格式")
 		return
 	}
-	
+
 	// 获取错误信息
 	message := controller.i18nManager.GetMessage(code, lang)
 	category := GetErrorCategory(NewError(code, "", ErrorLevelInfo, CategorySystem))
 	level := GetErrorLevel(NewError(code, "", ErrorLevelInfo, CategorySystem))
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
@@ -191,24 +191,24 @@ func (controller *ErrorAPIController) GetErrorCodeInfo(c *gin.Context) {
 func (controller *ErrorAPIController) GetMessages(c *gin.Context) {
 	lang := Language(c.DefaultQuery("lang", "zh-cn"))
 	category := c.Query("category")
-	
+
 	// 获取所有错误码的消息
 	messages := []map[string]interface{}{}
-	
+
 	allCodes := []ErrorCode{
 		ErrCodeSystemInternal, ErrCodeSystemTimeout, ErrCodeSystemOverload,
 		ErrCodeBusinessLogic, ErrCodeValidationRequired, ErrCodeAuthRequired,
 		ErrCodePermissionDenied, ErrCodePaymentInvalidMethod,
 	}
-	
+
 	for _, code := range allCodes {
 		codeCategory := GetErrorCategory(NewError(code, "", ErrorLevelInfo, CategorySystem))
-		
+
 		// 应用分类过滤
 		if category != "" && string(codeCategory) != category {
 			continue
 		}
-		
+
 		message := controller.i18nManager.GetMessage(code, lang)
 		messages = append(messages, map[string]interface{}{
 			"code":       code,
@@ -218,7 +218,7 @@ func (controller *ErrorAPIController) GetMessages(c *gin.Context) {
 			"suggestion": message.Suggestion,
 		})
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
@@ -232,7 +232,7 @@ func (controller *ErrorAPIController) GetMessages(c *gin.Context) {
 // GetMessagesByLanguage 获取指定语言的错误消息
 func (controller *ErrorAPIController) GetMessagesByLanguage(c *gin.Context) {
 	lang := Language(c.Param("lang"))
-	
+
 	// 验证语言是否支持
 	supportedLangs := controller.i18nManager.GetSupportedLanguages()
 	supported := false
@@ -242,12 +242,12 @@ func (controller *ErrorAPIController) GetMessagesByLanguage(c *gin.Context) {
 			break
 		}
 	}
-	
+
 	if !supported {
 		AbortWithValidationError(c, "lang", "不支持的语言")
 		return
 	}
-	
+
 	// 重定向到GetMessages，并设置语言参数
 	c.Request.URL.RawQuery = "lang=" + string(lang)
 	controller.GetMessages(c)
@@ -257,11 +257,11 @@ func (controller *ErrorAPIController) GetMessagesByLanguage(c *gin.Context) {
 func (controller *ErrorAPIController) GetSupportedLanguages(c *gin.Context) {
 	languages := controller.i18nManager.GetSupportedLanguages()
 	stats := controller.i18nManager.GetStatistics()
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
-			"languages": languages,
+			"languages":  languages,
 			"statistics": stats,
 		},
 	})
@@ -273,24 +273,24 @@ func (controller *ErrorAPIController) GetCircuitBreakers(c *gin.Context) {
 	// 简化实现，返回模拟数据
 	circuitBreakers := []map[string]interface{}{
 		{
-			"operation": "database",
-			"state":     "closed",
+			"operation":     "database",
+			"state":         "closed",
 			"failure_count": 0,
 			"request_count": 100,
 		},
 		{
-			"operation": "third_party",
-			"state":     "open",
+			"operation":     "third_party",
+			"state":         "open",
 			"failure_count": 5,
 			"request_count": 10,
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
 			"circuit_breakers": circuitBreakers,
-			"total":           len(circuitBreakers),
+			"total":            len(circuitBreakers),
 		},
 	})
 }
@@ -301,16 +301,16 @@ func (controller *ErrorAPIController) ResetCircuitBreaker(c *gin.Context) {
 	if !RequirePermission(c, "system:circuit-breaker:reset") {
 		return
 	}
-	
+
 	operation := c.Param("operation")
 	if operation == "" {
 		AbortWithValidationError(c, "operation", "操作名称不能为空")
 		return
 	}
-	
+
 	// 这里应该重置具体的熔断器
 	// 简化实现
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "熔断器已重置",
@@ -325,20 +325,20 @@ func (controller *ErrorAPIController) HealthCheck(c *gin.Context) {
 	// 检查各个组件的健康状态
 	health := map[string]interface{}{
 		"error_monitor": map[string]interface{}{
-			"status": "healthy",
+			"status":         "healthy",
 			"metrics_loaded": controller.monitor != nil,
 		},
 		"i18n_manager": map[string]interface{}{
-			"status": "healthy",
-			"loaded": controller.i18nManager.IsLoaded(),
+			"status":    "healthy",
+			"loaded":    controller.i18nManager.IsLoaded(),
 			"languages": len(controller.i18nManager.GetSupportedLanguages()),
 		},
 		"recovery_manager": map[string]interface{}{
-			"status": "healthy",
+			"status":  "healthy",
 			"enabled": controller.recovery != nil,
 		},
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    health,
@@ -352,46 +352,46 @@ func (controller *ErrorAPIController) TestError(c *gin.Context) {
 		AbortWithPermissionError(c, "error_test", "access")
 		return
 	}
-	
+
 	var request struct {
-		ErrorCode ErrorCode `json:"error_code" binding:"required"`
-		Language  Language  `json:"language"`
+		ErrorCode ErrorCode              `json:"error_code" binding:"required"`
+		Language  Language               `json:"language"`
 		Context   map[string]interface{} `json:"context"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		AbortWithValidationError(c, "request", "请求参数格式错误")
 		return
 	}
-	
+
 	if request.Language == "" {
 		request.Language = LangZHCN
 	}
-	
+
 	// 创建测试错误
 	testErr := GetBusinessErrorByCode(request.ErrorCode)
 	if testErr == nil {
 		testErr = NewSystemError(request.ErrorCode, "测试错误")
 	}
-	
+
 	// 添加上下文
 	for k, v := range request.Context {
 		testErr.WithContext(k, v)
 	}
-	
+
 	// 本地化错误
 	localizedErr := controller.i18nManager.LocalizeError(testErr, request.Language)
-	
+
 	// 记录到监控系统
 	controller.monitor.RecordError(localizedErr, c.Request.URL.Path, c.Request.Method, c.ClientIP(), c.Request.UserAgent())
-	
+
 	// 返回错误信息（不使用HandleError，避免实际触发错误处理）
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "测试错误已创建",
 		"data": map[string]interface{}{
-			"error":     localizedErr,
-			"recorded":  true,
+			"error":    localizedErr,
+			"recorded": true,
 		},
 	})
 }
@@ -401,10 +401,10 @@ func ErrorMiddleware(monitor *ErrorMonitor) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		// 记录请求
 		monitor.RecordRequest()
-		
+
 		// 处理请求
 		c.Next()
-		
+
 		// 检查是否有错误
 		if len(c.Errors) > 0 {
 			for _, ginErr := range c.Errors {
@@ -422,7 +422,7 @@ func GetAcceptLanguage(c *gin.Context) Language {
 	if acceptLang == "" {
 		return LangZHCN
 	}
-	
+
 	// 简单解析Accept-Language头
 	// 实际实现可能需要更复杂的解析逻辑
 	if strings.Contains(acceptLang, "en") {
@@ -434,7 +434,7 @@ func GetAcceptLanguage(c *gin.Context) Language {
 	if strings.Contains(acceptLang, "zh-TW") || strings.Contains(acceptLang, "zh-tw") {
 		return LangZHTW
 	}
-	
+
 	return LangZHCN
 }
 
@@ -443,13 +443,13 @@ func LocalizedHandleError(c *gin.Context, err error) {
 	if err == nil {
 		return
 	}
-	
+
 	// 获取用户语言偏好
 	lang := GetAcceptLanguage(c)
 	if langParam := c.Query("lang"); langParam != "" {
 		lang = Language(langParam)
 	}
-	
+
 	var businessErr *BusinessError
 	if be, ok := err.(*BusinessError); ok {
 		businessErr = GlobalI18nManager.LocalizeError(be, lang)
@@ -457,10 +457,10 @@ func LocalizedHandleError(c *gin.Context, err error) {
 		businessErr = WrapError(err, ErrCodeSystemInternal, "系统内部错误", CategorySystem)
 		businessErr = GlobalI18nManager.LocalizeError(businessErr, lang)
 	}
-	
+
 	// 记录到监控系统
 	GlobalErrorMonitor.RecordError(businessErr, c.Request.URL.Path, c.Request.Method, c.ClientIP(), c.Request.UserAgent())
-	
+
 	// 处理错误
 	HandleError(c, businessErr)
 }

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"mall-go/internal/model"
 	"gorm.io/gorm"
+	"mall-go/internal/model"
 )
 
 // InventoryService 库存服务
@@ -24,7 +24,7 @@ func (s *InventoryService) CheckStock(ctx context.Context, productID uint, quant
 	if err := s.db.Where("id = ?", productID).First(&product).Error; err != nil {
 		return false, err
 	}
-	
+
 	return product.Stock >= quantity, nil
 }
 
@@ -35,11 +35,11 @@ func (s *InventoryService) DeductStock(ctx context.Context, productID uint, quan
 		if err := tx.Where("id = ?", productID).First(&product).Error; err != nil {
 			return err
 		}
-		
+
 		if product.Stock < quantity {
 			return model.ErrInvalidOperation
 		}
-		
+
 		return tx.Model(&product).Update("stock", product.Stock-quantity).Error
 	})
 }

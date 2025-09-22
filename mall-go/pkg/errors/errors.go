@@ -52,32 +52,32 @@ const (
 	ErrCodeSystemResourceLimit ErrorCode = "10006" // 系统资源限制
 
 	// 业务错误 (20000-29999)
-	ErrCodeBusinessLogic       ErrorCode = "20001" // 业务逻辑错误
+	ErrCodeBusinessLogic         ErrorCode = "20001" // 业务逻辑错误
 	ErrCodeBusinessRuleViolation ErrorCode = "20002" // 业务规则违反
-	ErrCodeBusinessStateError  ErrorCode = "20003" // 业务状态错误
-	ErrCodeBusinessQuotaExceed ErrorCode = "20004" // 业务配额超限
-	ErrCodeBusinessOperation   ErrorCode = "20005" // 业务操作错误
+	ErrCodeBusinessStateError    ErrorCode = "20003" // 业务状态错误
+	ErrCodeBusinessQuotaExceed   ErrorCode = "20004" // 业务配额超限
+	ErrCodeBusinessOperation     ErrorCode = "20005" // 业务操作错误
 
 	// 验证错误 (30000-39999)
-	ErrCodeValidationRequired  ErrorCode = "30001" // 必填字段验证失败
-	ErrCodeValidationFormat    ErrorCode = "30002" // 格式验证失败
-	ErrCodeValidationLength    ErrorCode = "30003" // 长度验证失败
-	ErrCodeValidationRange     ErrorCode = "30004" // 范围验证失败
-	ErrCodeValidationUnique    ErrorCode = "30005" // 唯一性验证失败
-	ErrCodeValidationRegex     ErrorCode = "30006" // 正则验证失败
+	ErrCodeValidationRequired ErrorCode = "30001" // 必填字段验证失败
+	ErrCodeValidationFormat   ErrorCode = "30002" // 格式验证失败
+	ErrCodeValidationLength   ErrorCode = "30003" // 长度验证失败
+	ErrCodeValidationRange    ErrorCode = "30004" // 范围验证失败
+	ErrCodeValidationUnique   ErrorCode = "30005" // 唯一性验证失败
+	ErrCodeValidationRegex    ErrorCode = "30006" // 正则验证失败
 
 	// 认证错误 (40000-49999)
-	ErrCodeAuthRequired        ErrorCode = "40001" // 需要认证
-	ErrCodeAuthInvalidToken    ErrorCode = "40002" // 无效的令牌
-	ErrCodeAuthTokenExpired    ErrorCode = "40003" // 令牌已过期
+	ErrCodeAuthRequired           ErrorCode = "40001" // 需要认证
+	ErrCodeAuthInvalidToken       ErrorCode = "40002" // 无效的令牌
+	ErrCodeAuthTokenExpired       ErrorCode = "40003" // 令牌已过期
 	ErrCodeAuthInvalidCredentials ErrorCode = "40004" // 无效的凭据
-	ErrCodeAuthAccountLocked   ErrorCode = "40005" // 账户被锁定
-	ErrCodeAuthAccountDisabled ErrorCode = "40006" // 账户被禁用
+	ErrCodeAuthAccountLocked      ErrorCode = "40005" // 账户被锁定
+	ErrCodeAuthAccountDisabled    ErrorCode = "40006" // 账户被禁用
 
 	// 权限错误 (50000-59999)
-	ErrCodePermissionDenied    ErrorCode = "50001" // 权限被拒绝
+	ErrCodePermissionDenied             ErrorCode = "50001" // 权限被拒绝
 	ErrCodePermissionInsufficientRights ErrorCode = "50002" // 权限不足
-	ErrCodePermissionResourceAccess ErrorCode = "50003" // 资源访问权限错误
+	ErrCodePermissionResourceAccess     ErrorCode = "50003" // 资源访问权限错误
 	ErrCodePermissionOperationForbidden ErrorCode = "50004" // 操作被禁止
 
 	// 数据库错误 (60000-69999)
@@ -89,45 +89,45 @@ const (
 	ErrCodeDatabaseDuplicate   ErrorCode = "60006" // 重复记录
 
 	// 网络错误 (70000-79999)
-	ErrCodeNetworkTimeout      ErrorCode = "70001" // 网络超时
-	ErrCodeNetworkConnection   ErrorCode = "70002" // 网络连接错误
-	ErrCodeNetworkUnavailable  ErrorCode = "70003" // 网络不可用
-	ErrCodeNetworkDNS          ErrorCode = "70004" // DNS解析错误
+	ErrCodeNetworkTimeout     ErrorCode = "70001" // 网络超时
+	ErrCodeNetworkConnection  ErrorCode = "70002" // 网络连接错误
+	ErrCodeNetworkUnavailable ErrorCode = "70003" // 网络不可用
+	ErrCodeNetworkDNS         ErrorCode = "70004" // DNS解析错误
 
 	// 第三方服务错误 (80000-89999)
-	ErrCodeThirdPartyUnavailable ErrorCode = "80001" // 第三方服务不可用
-	ErrCodeThirdPartyTimeout     ErrorCode = "80002" // 第三方服务超时
+	ErrCodeThirdPartyUnavailable     ErrorCode = "80001" // 第三方服务不可用
+	ErrCodeThirdPartyTimeout         ErrorCode = "80002" // 第三方服务超时
 	ErrCodeThirdPartyInvalidResponse ErrorCode = "80003" // 第三方服务响应无效
-	ErrCodeThirdPartyQuotaExceed ErrorCode = "80004" // 第三方服务配额超限
+	ErrCodeThirdPartyQuotaExceed     ErrorCode = "80004" // 第三方服务配额超限
 
 	// 支付错误 (90000-99999)
-	ErrCodePaymentInvalidMethod   ErrorCode = "90001" // 无效的支付方式
-	ErrCodePaymentInvalidAmount   ErrorCode = "90002" // 无效的支付金额
-	ErrCodePaymentInsufficientFunds ErrorCode = "90003" // 余额不足
-	ErrCodePaymentExpired         ErrorCode = "90004" // 支付已过期
-	ErrCodePaymentAlreadyPaid     ErrorCode = "90005" // 支付已完成
-	ErrCodePaymentRefundFailed    ErrorCode = "90006" // 退款失败
-	ErrCodePaymentSignatureInvalid ErrorCode = "90007" // 支付签名无效
+	ErrCodePaymentInvalidMethod      ErrorCode = "90001" // 无效的支付方式
+	ErrCodePaymentInvalidAmount      ErrorCode = "90002" // 无效的支付金额
+	ErrCodePaymentInsufficientFunds  ErrorCode = "90003" // 余额不足
+	ErrCodePaymentExpired            ErrorCode = "90004" // 支付已过期
+	ErrCodePaymentAlreadyPaid        ErrorCode = "90005" // 支付已完成
+	ErrCodePaymentRefundFailed       ErrorCode = "90006" // 退款失败
+	ErrCodePaymentSignatureInvalid   ErrorCode = "90007" // 支付签名无效
 	ErrCodePaymentChannelUnavailable ErrorCode = "90008" // 支付渠道不可用
 )
 
 // BusinessError 业务错误结构
 type BusinessError struct {
-	Code        ErrorCode              `json:"code"`                  // 错误码
-	Message     string                 `json:"message"`               // 错误消息
-	Details     string                 `json:"details,omitempty"`     // 详细信息
-	Level       ErrorLevel             `json:"level"`                 // 错误级别
-	Category    ErrorCategory          `json:"category"`              // 错误分类
-	Timestamp   time.Time              `json:"timestamp"`             // 错误时间
-	RequestID   string                 `json:"request_id,omitempty"`  // 请求ID
-	UserID      uint                   `json:"user_id,omitempty"`     // 用户ID
-	TraceID     string                 `json:"trace_id,omitempty"`    // 链路追踪ID
-	StackTrace  []StackFrame           `json:"stack_trace,omitempty"` // 调用栈
-	Context     map[string]interface{} `json:"context,omitempty"`     // 错误上下文
-	Cause       error                  `json:"-"`                     // 原始错误
-	Suggestion  string                 `json:"suggestion,omitempty"`  // 解决建议
-	Retryable   bool                   `json:"retryable"`             // 是否可重试
-	RetryAfter  *time.Duration         `json:"retry_after,omitempty"` // 重试间隔
+	Code       ErrorCode              `json:"code"`                  // 错误码
+	Message    string                 `json:"message"`               // 错误消息
+	Details    string                 `json:"details,omitempty"`     // 详细信息
+	Level      ErrorLevel             `json:"level"`                 // 错误级别
+	Category   ErrorCategory          `json:"category"`              // 错误分类
+	Timestamp  time.Time              `json:"timestamp"`             // 错误时间
+	RequestID  string                 `json:"request_id,omitempty"`  // 请求ID
+	UserID     uint                   `json:"user_id,omitempty"`     // 用户ID
+	TraceID    string                 `json:"trace_id,omitempty"`    // 链路追踪ID
+	StackTrace []StackFrame           `json:"stack_trace,omitempty"` // 调用栈
+	Context    map[string]interface{} `json:"context,omitempty"`     // 错误上下文
+	Cause      error                  `json:"-"`                     // 原始错误
+	Suggestion string                 `json:"suggestion,omitempty"`  // 解决建议
+	Retryable  bool                   `json:"retryable"`             // 是否可重试
+	RetryAfter *time.Duration         `json:"retry_after,omitempty"` // 重试间隔
 }
 
 // StackFrame 调用栈帧
@@ -260,7 +260,7 @@ func captureStackTrace(skip int) []StackFrame {
 	var pcs [depth]uintptr
 	n := runtime.Callers(skip+1, pcs[:])
 	frames := runtime.CallersFrames(pcs[:n])
-	
+
 	var stackTrace []StackFrame
 	for {
 		frame, more := frames.Next()
@@ -277,7 +277,7 @@ func captureStackTrace(skip int) []StackFrame {
 			break
 		}
 	}
-	
+
 	return stackTrace
 }
 
@@ -286,12 +286,12 @@ func WrapError(err error, code ErrorCode, message string, category ErrorCategory
 	if err == nil {
 		return nil
 	}
-	
+
 	// 如果已经是BusinessError，直接返回
 	if be, ok := err.(*BusinessError); ok {
 		return be
 	}
-	
+
 	return NewError(code, message, ErrorLevelError, category).WithCause(err).WithDetails(err.Error())
 }
 
@@ -333,7 +333,7 @@ func FormatErrorCode(code ErrorCode) string {
 	if len(codeStr) != 5 {
 		return codeStr
 	}
-	
+
 	// 根据错误码前缀确定分类
 	prefix := codeStr[:2]
 	var category string
@@ -359,7 +359,7 @@ func FormatErrorCode(code ErrorCode) string {
 	default:
 		category = "UNKNOWN"
 	}
-	
+
 	return fmt.Sprintf("%s-%s", category, codeStr)
 }
 
@@ -370,13 +370,13 @@ func ParseErrorCode(codeStr string) (ErrorCode, bool) {
 	if len(parts) == 2 {
 		codeStr = parts[1]
 	}
-	
+
 	// 验证错误码格式
 	if len(codeStr) == 5 {
 		if _, err := strconv.Atoi(codeStr); err == nil {
 			return ErrorCode(codeStr), true
 		}
 	}
-	
+
 	return "", false
 }

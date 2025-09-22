@@ -15,15 +15,15 @@ import (
 
 // ConfigTool 配置管理工具
 type ConfigTool struct {
-	configPath    string
-	templatePath  string
-	backupPath    string
+	configPath   string
+	templatePath string
+	backupPath   string
 }
 
 // NewConfigTool 创建配置工具
 func NewConfigTool(configPath string) *ConfigTool {
 	dir := filepath.Dir(configPath)
-	
+
 	return &ConfigTool{
 		configPath:   configPath,
 		templatePath: filepath.Join(dir, "templates"),
@@ -52,7 +52,7 @@ func (ct *ConfigTool) GenerateConfigForEnvironment(env string, force bool) error
 
 	// 生成配置模板
 	template := LoadTemplateByEnvironment(env)
-	
+
 	// 创建配置目录
 	if err := os.MkdirAll(filepath.Dir(ct.configPath), 0755); err != nil {
 		return fmt.Errorf("创建配置目录失败: %v", err)
@@ -93,14 +93,14 @@ func (ct *ConfigTool) ValidateConfig() (*ValidationReport, error) {
 
 	// 执行验证
 	errors := ValidateEnvironmentConfig(config)
-	
+
 	report := &ValidationReport{
-		ConfigPath:   ct.configPath,
-		Environment:  config.Environment,
-		IsValid:      len(errors) == 0,
-		ErrorCount:   len(errors),
-		Errors:       errors,
-		ValidatedAt:  time.Now(),
+		ConfigPath:  ct.configPath,
+		Environment: config.Environment,
+		IsValid:     len(errors) == 0,
+		ErrorCount:  len(errors),
+		Errors:      errors,
+		ValidatedAt: time.Now(),
 	}
 
 	// 输出验证结果
@@ -110,7 +110,7 @@ func (ct *ConfigTool) ValidateConfig() (*ValidationReport, error) {
 		logger.Error("❌ 配置验证失败",
 			zap.String("environment", config.Environment),
 			zap.Int("error_count", len(errors)))
-		
+
 		for _, err := range errors {
 			logger.Error("配置错误",
 				zap.String("field", err.Field),
@@ -124,12 +124,12 @@ func (ct *ConfigTool) ValidateConfig() (*ValidationReport, error) {
 
 // ValidationReport 验证报告
 type ValidationReport struct {
-	ConfigPath   string            `json:"config_path"`
-	Environment  string            `json:"environment"`
-	IsValid      bool              `json:"is_valid"`
-	ErrorCount   int               `json:"error_count"`
-	Errors       []ValidationError `json:"errors"`
-	ValidatedAt  time.Time         `json:"validated_at"`
+	ConfigPath  string            `json:"config_path"`
+	Environment string            `json:"environment"`
+	IsValid     bool              `json:"is_valid"`
+	ErrorCount  int               `json:"error_count"`
+	Errors      []ValidationError `json:"errors"`
+	ValidatedAt time.Time         `json:"validated_at"`
 }
 
 // MigrateConfig 配置迁移
@@ -171,7 +171,7 @@ func (ct *ConfigTool) MigrateConfig(fromVersion, toVersion string) error {
 func (ct *ConfigTool) performMigration(config *PaymentConfig, fromVersion, toVersion string) (*PaymentConfig, error) {
 	// 这里实现具体的迁移逻辑
 	// 根据版本差异进行字段添加、删除、修改等操作
-	
+
 	switch {
 	case fromVersion == "1.0" && toVersion == "1.1":
 		// 示例：添加新的安全配置
@@ -181,7 +181,7 @@ func (ct *ConfigTool) performMigration(config *PaymentConfig, fromVersion, toVer
 		if config.Security.RateLimitRPS == 0 {
 			config.Security.RateLimitRPS = 100
 		}
-		
+
 	case fromVersion == "1.1" && toVersion == "1.2":
 		// 示例：添加银联支付配置
 		if !config.UnionPay.Enabled {
@@ -228,16 +228,16 @@ func (ct *ConfigTool) backupExistingConfig() error {
 // generateEnvExample 生成环境变量示例文件
 func (ct *ConfigTool) generateEnvExample(env string) error {
 	envFile := filepath.Join(filepath.Dir(ct.configPath), fmt.Sprintf(".env.%s.example", env))
-	
+
 	var envContent strings.Builder
 	envContent.WriteString(fmt.Sprintf("# Mall-Go Payment Configuration - %s Environment\n", strings.ToUpper(env)))
 	envContent.WriteString(fmt.Sprintf("# Generated at: %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
-	
+
 	envContent.WriteString("# 基础配置\n")
 	envContent.WriteString(fmt.Sprintf("PAYMENT_ENVIRONMENT=%s\n", env))
 	envContent.WriteString("PAYMENT_DEBUG=true\n")
 	envContent.WriteString("PAYMENT_LOG_LEVEL=info\n\n")
-	
+
 	envContent.WriteString("# 支付宝配置\n")
 	if env == "prod" {
 		envContent.WriteString("ALIPAY_APP_ID=your_production_app_id\n")
@@ -249,7 +249,7 @@ func (ct *ConfigTool) generateEnvExample(env string) error {
 		envContent.WriteString("ALIPAY_PUBLIC_KEY=your_sandbox_public_key\n")
 	}
 	envContent.WriteString("\n")
-	
+
 	envContent.WriteString("# 微信支付配置\n")
 	if env == "prod" {
 		envContent.WriteString("WECHAT_APP_ID=your_production_app_id\n")
@@ -261,7 +261,7 @@ func (ct *ConfigTool) generateEnvExample(env string) error {
 		envContent.WriteString("WECHAT_API_KEY=your_test_api_key\n")
 	}
 	envContent.WriteString("\n")
-	
+
 	envContent.WriteString("# 银联支付配置\n")
 	envContent.WriteString("UNIONPAY_MERCHANT_ID=your_merchant_id\n")
 	envContent.WriteString("UNIONPAY_CERT_PATH=/path/to/cert.pfx\n")
@@ -329,10 +329,10 @@ type ConfigComparison struct {
 
 // ConfigDifference 配置差异
 type ConfigDifference struct {
-	Field   string      `json:"field"`
-	Value1  interface{} `json:"value1"`
-	Value2  interface{} `json:"value2"`
-	Type    string      `json:"type"` // changed, added, removed
+	Field  string      `json:"field"`
+	Value1 interface{} `json:"value1"`
+	Value2 interface{} `json:"value2"`
+	Type   string      `json:"type"` // changed, added, removed
 }
 
 // compareField 比较单个字段
@@ -371,10 +371,10 @@ func (ct *ConfigTool) ListBackups() ([]BackupInfo, error) {
 			}
 
 			backup := BackupInfo{
-				FileName:    file.Name(),
-				FilePath:    filepath.Join(ct.backupPath, file.Name()),
-				Size:        info.Size(),
-				CreatedAt:   info.ModTime(),
+				FileName:  file.Name(),
+				FilePath:  filepath.Join(ct.backupPath, file.Name()),
+				Size:      info.Size(),
+				CreatedAt: info.ModTime(),
 			}
 
 			backups = append(backups, backup)
@@ -386,16 +386,16 @@ func (ct *ConfigTool) ListBackups() ([]BackupInfo, error) {
 
 // BackupInfo 备份信息
 type BackupInfo struct {
-	FileName    string    `json:"file_name"`
-	FilePath    string    `json:"file_path"`
-	Size        int64     `json:"size"`
-	CreatedAt   time.Time `json:"created_at"`
+	FileName  string    `json:"file_name"`
+	FilePath  string    `json:"file_path"`
+	Size      int64     `json:"size"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // RestoreFromBackup 从备份恢复配置
 func (ct *ConfigTool) RestoreFromBackup(backupFileName string) error {
 	backupFilePath := filepath.Join(ct.backupPath, backupFileName)
-	
+
 	// 检查备份文件是否存在
 	if _, err := os.Stat(backupFilePath); os.IsNotExist(err) {
 		return fmt.Errorf("备份文件不存在: %s", backupFileName)

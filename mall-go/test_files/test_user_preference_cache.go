@@ -312,7 +312,7 @@ func testUserBrowseHistoryCache(userPrefCache *cache.UserPreferenceCacheService)
 		fmt.Printf("  ❌ 设置用户浏览历史缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置用户浏览历史缓存成功: UserID=%d, 浏览记录=%d条, 总浏览量=%d\n", 
+	fmt.Printf("  ✅ 设置用户浏览历史缓存成功: UserID=%d, 浏览记录=%d条, 总浏览量=%d\n",
 		userID, len(browseHistory.Items), browseHistory.TotalView)
 
 	// 测试检查存在
@@ -329,10 +329,10 @@ func testUserBrowseHistoryCache(userPrefCache *cache.UserPreferenceCacheService)
 		fmt.Printf("  ✅ 获取用户浏览历史缓存成功: UserID=%d\n", historyData.UserID)
 		fmt.Printf("    - 浏览记录数: %d\n", len(historyData.Items))
 		fmt.Printf("    - 总浏览量: %d\n", historyData.TotalView)
-		
+
 		if len(historyData.Items) > 0 {
 			item := historyData.Items[0]
-			fmt.Printf("    - 最新浏览: %s (浏览%d次, 时长%d秒)\n", 
+			fmt.Printf("    - 最新浏览: %s (浏览%d次, 时长%d秒)\n",
 				item.ProductName, item.ViewCount, item.ViewDuration)
 		}
 	} else {
@@ -361,7 +361,7 @@ func testUserFavoriteCache(userPrefCache *cache.UserPreferenceCacheService) {
 		fmt.Printf("  ❌ 设置用户收藏缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置用户收藏缓存成功: UserID=%d, 收藏数量=%d, 分类数=%d\n", 
+	fmt.Printf("  ✅ 设置用户收藏缓存成功: UserID=%d, 收藏数量=%d, 分类数=%d\n",
 		userID, favorite.TotalCount, len(favorite.CategoryMap))
 
 	// 测试检查存在
@@ -378,10 +378,10 @@ func testUserFavoriteCache(userPrefCache *cache.UserPreferenceCacheService) {
 		fmt.Printf("  ✅ 获取用户收藏缓存成功: UserID=%d\n", favoriteData.UserID)
 		fmt.Printf("    - 收藏商品数: %d\n", favoriteData.TotalCount)
 		fmt.Printf("    - 涉及分类数: %d\n", len(favoriteData.CategoryMap))
-		
+
 		if len(favoriteData.Items) > 0 {
 			item := favoriteData.Items[0]
-			fmt.Printf("    - 最新收藏: %s (价格: %s, 标签: %v)\n", 
+			fmt.Printf("    - 最新收藏: %s (价格: %s, 标签: %v)\n",
 				item.ProductName, item.Price, item.Tags)
 		}
 	} else {
@@ -411,7 +411,7 @@ func testUserRecommendationCache(userPrefCache *cache.UserPreferenceCacheService
 		fmt.Printf("  ❌ 设置用户推荐缓存失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 设置用户推荐缓存成功: UserID=%d, 算法版本=%s\n", 
+	fmt.Printf("  ✅ 设置用户推荐缓存成功: UserID=%d, 算法版本=%s\n",
 		userID, recommendation.AlgorithmVersion)
 
 	// 测试检查存在
@@ -429,10 +429,10 @@ func testUserRecommendationCache(userPrefCache *cache.UserPreferenceCacheService
 		fmt.Printf("    - 算法版本: %s\n", recommendationData.AlgorithmVersion)
 		fmt.Printf("    - 个人推荐: %d条\n", len(recommendationData.PersonalBased))
 		fmt.Printf("    - 行为推荐: %d条\n", len(recommendationData.BehaviorBased))
-		
+
 		if len(recommendationData.PersonalBased) > 0 {
 			item := recommendationData.PersonalBased[0]
-			fmt.Printf("    - 推荐商品: %s (分数: %.2f, 理由: %s)\n", 
+			fmt.Printf("    - 推荐商品: %s (分数: %.2f, 理由: %s)\n",
 				item.ProductName, item.Score, item.Reason)
 		}
 	} else {
@@ -479,10 +479,10 @@ func testUserBehaviorCache(userPrefCache *cache.UserPreferenceCacheService) {
 		fmt.Printf("    - 偏好品牌: %v\n", behaviorData.PurchasePattern.PreferredBrands)
 		fmt.Printf("    - 用户标签: %v\n", behaviorData.PreferenceProfile.Tags)
 		fmt.Printf("    - 平均会话时长: %d秒\n", behaviorData.ActivityStats.AvgSessionDuration)
-		
+
 		if len(behaviorData.SearchHistory) > 0 {
 			search := behaviorData.SearchHistory[0]
-			fmt.Printf("    - 热门搜索: %s (搜索%d次, 点击率%.2f%%)\n", 
+			fmt.Printf("    - 热门搜索: %s (搜索%d次, 点击率%.2f%%)\n",
 				search.Keyword, search.SearchCount, search.ClickRate*100)
 		}
 	} else {
@@ -528,7 +528,7 @@ func testUserPreferenceStats(userPrefCache *cache.UserPreferenceCacheService) {
 	fmt.Printf("    - 搜索历史数: %d\n", stats.SearchHistoryCount)
 	fmt.Printf("    - 点击行为数: %d\n", stats.ClickBehaviorCount)
 	fmt.Printf("    - 推荐算法版本: %s\n", stats.RecommendationAlgorithmVersion)
-	
+
 	fmt.Printf("  📈 用户活跃度指标:\n")
 	fmt.Printf("    - 有浏览历史: %v\n", stats.HasBrowseHistory)
 	fmt.Printf("    - 有收藏记录: %v\n", stats.HasFavorite)

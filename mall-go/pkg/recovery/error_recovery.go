@@ -32,16 +32,16 @@ func NewErrorRecoveryService(db *gorm.DB, rdb *redis.Client) *ErrorRecoveryServi
 
 // RecoveryTask 恢复任务
 type RecoveryTask struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Status      string                 `json:"status"`
-	Data        map[string]interface{} `json:"data"`
-	Error       string                 `json:"error,omitempty"`
-	RetryCount  int                    `json:"retry_count"`
-	MaxRetries  int                    `json:"max_retries"`
-	NextRetry   time.Time              `json:"next_retry"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+	ID         string                 `json:"id"`
+	Type       string                 `json:"type"`
+	Status     string                 `json:"status"`
+	Data       map[string]interface{} `json:"data"`
+	Error      string                 `json:"error,omitempty"`
+	RetryCount int                    `json:"retry_count"`
+	MaxRetries int                    `json:"max_retries"`
+	NextRetry  time.Time              `json:"next_retry"`
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
 }
 
 // RecoveryTaskStatus 恢复任务状态
@@ -55,10 +55,10 @@ const (
 
 // RecoveryTaskType 恢复任务类型
 const (
-	TaskTypeOrderRecovery    = "order_recovery"
-	TaskTypePaymentRecovery  = "payment_recovery"
+	TaskTypeOrderRecovery     = "order_recovery"
+	TaskTypePaymentRecovery   = "payment_recovery"
 	TaskTypeInventoryRecovery = "inventory_recovery"
-	TaskTypeRefundRecovery   = "refund_recovery"
+	TaskTypeRefundRecovery    = "refund_recovery"
 )
 
 // CreateRecoveryTask 创建恢复任务
@@ -395,7 +395,7 @@ var globalErrorRecoveryService *ErrorRecoveryService
 // InitGlobalErrorRecoveryService 初始化全局错误恢复服务
 func InitGlobalErrorRecoveryService(db *gorm.DB, rdb *redis.Client) {
 	globalErrorRecoveryService = NewErrorRecoveryService(db, rdb)
-	
+
 	// 启动后台任务处理器
 	go globalErrorRecoveryService.ProcessRecoveryTasks()
 }

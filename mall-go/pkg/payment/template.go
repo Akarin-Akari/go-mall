@@ -12,7 +12,7 @@ import (
 
 // ConfigTemplate 配置模板管理器
 type ConfigTemplate struct {
-	Environment string `json:"environment"`
+	Environment string                    `json:"environment"`
 	Templates   map[string]*PaymentConfig `json:"templates"`
 }
 
@@ -49,7 +49,7 @@ func GetDevelopmentTemplate() *PaymentConfig {
 		},
 
 		UnionPay: UnionPayConfig{
-			Enabled:    false, // 开发环境默认关闭银联
+			Enabled:    false,                            // 开发环境默认关闭银联
 			GatewayURL: "https://gateway.test.95516.com", // 测试环境
 			Timeout:    30 * time.Second,
 		},
@@ -110,9 +110,9 @@ func GetTestTemplate() *PaymentConfig {
 	// 测试环境更严格的安全配置
 	config.Security.RateLimitRPS = 500
 	config.CallbackConfig.AllowedIPs = []string{
-		"110.75.143.101",  // 支付宝回调IP段示例
+		"110.75.143.101", // 支付宝回调IP段示例
 		"110.75.143.102",
-		"182.254.11.170",  // 微信回调IP段示例
+		"182.254.11.170", // 微信回调IP段示例
 		"182.254.11.171",
 	}
 
@@ -161,19 +161,19 @@ func GetProductionTemplate() *PaymentConfig {
 			VerifySignature: true,
 			AllowedIPs: []string{
 				"110.75.143.101",
-				"110.75.143.102", 
+				"110.75.143.102",
 				"110.75.143.103", // 支付宝生产环境IP
-				"182.254.11.170", 
+				"182.254.11.170",
 				"182.254.11.171", // 微信生产环境IP
 			},
 		},
 
 		Security: SecurityConfig{
 			EnableSignature: true,
-			EnableEncrypt:   true, // 生产环境启用加密
+			EnableEncrypt:   true,          // 生产环境启用加密
 			TokenExpiry:     1 * time.Hour, // 生产环境较短过期时间
-			MaxRequestSize:  512 * 1024, // 更严格的请求大小限制
-			RateLimitRPS:    200,         // 生产环境严格限流
+			MaxRequestSize:  512 * 1024,    // 更严格的请求大小限制
+			RateLimitRPS:    200,           // 生产环境严格限流
 		},
 
 		Limits: LimitsConfig{
@@ -224,23 +224,23 @@ func LoadTemplateByEnvironment(env string) *PaymentConfig {
 // GenerateConfigFile 生成配置文件
 func GenerateConfigFile(env string, filePath string) error {
 	template := LoadTemplateByEnvironment(env)
-	
+
 	data, err := json.MarshalIndent(template, "", "  ")
 	if err != nil {
 		return fmt.Errorf("序列化配置模板失败: %v", err)
 	}
-	
+
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("写入配置文件失败: %v", err)
 	}
-	
+
 	return nil
 }
 
 // ValidateEnvironmentConfig 验证环境配置完整性
 func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 	var errors []ValidationError
-	
+
 	// 基础配置验证
 	if config.Environment == "" {
 		errors = append(errors, ValidationError{
@@ -249,7 +249,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 			Code:    "ENV_REQUIRED",
 		})
 	}
-	
+
 	// 生产环境特殊验证
 	if config.IsProduction() {
 		if config.Debug {
@@ -259,7 +259,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "PROD_DEBUG_ENABLED",
 			})
 		}
-		
+
 		if config.Security.EnableEncrypt == false {
 			errors = append(errors, ValidationError{
 				Field:   "security.enable_encrypt",
@@ -267,7 +267,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "PROD_ENCRYPT_REQUIRED",
 			})
 		}
-		
+
 		if len(config.CallbackConfig.AllowedIPs) == 0 {
 			errors = append(errors, ValidationError{
 				Field:   "callback.allowed_ips",
@@ -276,7 +276,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 			})
 		}
 	}
-	
+
 	// 支付宝配置验证
 	if config.Alipay.Enabled {
 		if config.Alipay.AppID == "" {
@@ -286,7 +286,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "ALIPAY_APPID_REQUIRED",
 			})
 		}
-		
+
 		if config.Alipay.PrivateKey == "" {
 			errors = append(errors, ValidationError{
 				Field:   "alipay.private_key",
@@ -294,7 +294,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "ALIPAY_PRIVATE_KEY_REQUIRED",
 			})
 		}
-		
+
 		if config.Alipay.PublicKey == "" {
 			errors = append(errors, ValidationError{
 				Field:   "alipay.public_key",
@@ -303,7 +303,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 			})
 		}
 	}
-	
+
 	// 微信支付配置验证
 	if config.Wechat.Enabled {
 		if config.Wechat.AppID == "" {
@@ -313,7 +313,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "WECHAT_APPID_REQUIRED",
 			})
 		}
-		
+
 		if config.Wechat.MchID == "" {
 			errors = append(errors, ValidationError{
 				Field:   "wechat.mch_id",
@@ -321,7 +321,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 				Code:    "WECHAT_MCHID_REQUIRED",
 			})
 		}
-		
+
 		if config.Wechat.APIKey == "" {
 			errors = append(errors, ValidationError{
 				Field:   "wechat.api_key",
@@ -330,7 +330,7 @@ func ValidateEnvironmentConfig(config *PaymentConfig) []ValidationError {
 			})
 		}
 	}
-	
+
 	return errors
 }
 

@@ -62,12 +62,12 @@ func main() {
 // generateConfig 生成配置文件
 func (cli *ConfigCLI) generateConfig(env string, force bool) {
 	fmt.Printf("🚀 正在为 %s 环境生成配置文件...\n", env)
-	
+
 	if err := cli.tool.GenerateConfigForEnvironment(env, force); err != nil {
 		fmt.Printf("❌ 生成配置失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("✅ 配置文件生成成功: %s\n", cli.configPath)
 	fmt.Printf("📝 请根据实际情况修改配置文件中的参数\n")
 	fmt.Printf("🔧 环境变量示例文件已生成: .env.%s.example\n", env)
@@ -76,18 +76,18 @@ func (cli *ConfigCLI) generateConfig(env string, force bool) {
 // validateConfig 验证配置文件
 func (cli *ConfigCLI) validateConfig(output string) {
 	fmt.Printf("🔍 正在验证配置文件: %s\n", cli.configPath)
-	
+
 	report, err := cli.tool.ValidateConfig()
 	if err != nil {
 		fmt.Printf("❌ 验证失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	if output == "json" {
 		cli.outputJSON(report)
 		return
 	}
-	
+
 	// 表格输出
 	if report.IsValid {
 		fmt.Printf("✅ 配置验证通过\n")
@@ -98,16 +98,16 @@ func (cli *ConfigCLI) validateConfig(output string) {
 		fmt.Printf("   环境: %s\n", report.Environment)
 		fmt.Printf("   验证时间: %s\n", report.ValidatedAt.Format("2006-01-02 15:04:05"))
 		fmt.Printf("\n错误详情:\n")
-		
+
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 		fmt.Fprintln(w, "字段\t错误码\t错误信息")
 		fmt.Fprintln(w, "----\t------\t--------")
-		
+
 		for _, err := range report.Errors {
 			fmt.Fprintf(w, "%s\t%s\t%s\n", err.Field, err.Code, err.Message)
 		}
 		w.Flush()
-		
+
 		os.Exit(1)
 	}
 }
@@ -119,14 +119,14 @@ func (cli *ConfigCLI) migrateConfig(fromVer, toVer string) {
 		fmt.Printf("   使用方法: -cmd=migrate -from=1.0 -to=1.1\n")
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("🔄 正在迁移配置从 %s 到 %s...\n", fromVer, toVer)
-	
+
 	if err := cli.tool.MigrateConfig(fromVer, toVer); err != nil {
 		fmt.Printf("❌ 迁移失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("✅ 配置迁移成功\n")
 	fmt.Printf("📝 建议重新验证配置文件\n")
 }
@@ -138,32 +138,32 @@ func (cli *ConfigCLI) compareConfigs(comparePath, output string) {
 		fmt.Printf("   使用方法: -cmd=compare -compare-with=/path/to/other/config.json\n")
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("🔍 正在比较配置文件...\n")
 	fmt.Printf("   文件1: %s\n", cli.configPath)
 	fmt.Printf("   文件2: %s\n", comparePath)
-	
+
 	comparison, err := cli.tool.CompareConfigs(comparePath)
 	if err != nil {
 		fmt.Printf("❌ 比较失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	if output == "json" {
 		cli.outputJSON(comparison)
 		return
 	}
-	
+
 	// 表格输出
 	if len(comparison.Differences) == 0 {
 		fmt.Printf("✅ 配置文件相同，无差异\n")
 	} else {
 		fmt.Printf("📊 发现 %d 个差异:\n\n", len(comparison.Differences))
-		
+
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 		fmt.Fprintln(w, "字段\t文件1值\t文件2值\t类型")
 		fmt.Fprintln(w, "----\t------\t------\t----")
-		
+
 		for _, diff := range comparison.Differences {
 			fmt.Fprintf(w, "%s\t%v\t%v\t%s\n", diff.Field, diff.Value1, diff.Value2, diff.Type)
 		}
@@ -174,30 +174,30 @@ func (cli *ConfigCLI) compareConfigs(comparePath, output string) {
 // listBackups 列出备份文件
 func (cli *ConfigCLI) listBackups(output string) {
 	fmt.Printf("📂 正在查询备份文件...\n")
-	
+
 	backups, err := cli.tool.ListBackups()
 	if err != nil {
 		fmt.Printf("❌ 查询备份失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	if len(backups) == 0 {
 		fmt.Printf("📭 没有找到备份文件\n")
 		return
 	}
-	
+
 	if output == "json" {
 		cli.outputJSON(backups)
 		return
 	}
-	
+
 	// 表格输出
 	fmt.Printf("📋 找到 %d 个备份文件:\n\n", len(backups))
-	
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "文件名\t大小\t创建时间\t文件路径")
 	fmt.Fprintln(w, "------\t----\t--------\t--------")
-	
+
 	for _, backup := range backups {
 		size := cli.formatSize(backup.Size)
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n",
@@ -207,7 +207,7 @@ func (cli *ConfigCLI) listBackups(output string) {
 			backup.FilePath)
 	}
 	w.Flush()
-	
+
 	fmt.Printf("\n💡 使用 -cmd=restore -backup=<文件名> 来恢复配置\n")
 }
 
@@ -219,14 +219,14 @@ func (cli *ConfigCLI) restoreConfig(backupFile string) {
 		fmt.Printf("   使用 -cmd=backup 查看可用的备份文件\n")
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("🔄 正在从备份恢复配置: %s\n", backupFile)
-	
+
 	if err := cli.tool.RestoreFromBackup(backupFile); err != nil {
 		fmt.Printf("❌ 恢复失败: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Printf("✅ 配置恢复成功\n")
 	fmt.Printf("📝 建议重新验证配置文件\n")
 }
@@ -309,7 +309,7 @@ func (cli *ConfigCLI) showUsage() {
 	fmt.Println()
 	fmt.Println("使用 -cmd=help 查看详细帮助信息")
 	fmt.Println()
-	
+
 	// 自动生成默认配置提示
 	configDir := filepath.Dir(cli.configPath)
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {

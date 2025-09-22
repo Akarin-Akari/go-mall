@@ -14,21 +14,21 @@ import (
 
 // RetryConfig 重试配置
 type RetryConfig struct {
-	MaxAttempts   int                    `json:"max_attempts"`   // 最大重试次数
-	BaseDelay     time.Duration          `json:"base_delay"`     // 基础延迟时间
-	MaxDelay      time.Duration          `json:"max_delay"`      // 最大延迟时间
-	BackoffFactor float64                `json:"backoff_factor"` // 退避因子
-	Jitter        bool                   `json:"jitter"`         // 是否启用抖动
-	RetryableErrors []ErrorCode          `json:"retryable_errors"` // 可重试的错误码
-	OnRetry       func(attempt int, err error) // 重试回调
+	MaxAttempts     int                          `json:"max_attempts"`     // 最大重试次数
+	BaseDelay       time.Duration                `json:"base_delay"`       // 基础延迟时间
+	MaxDelay        time.Duration                `json:"max_delay"`        // 最大延迟时间
+	BackoffFactor   float64                      `json:"backoff_factor"`   // 退避因子
+	Jitter          bool                         `json:"jitter"`           // 是否启用抖动
+	RetryableErrors []ErrorCode                  `json:"retryable_errors"` // 可重试的错误码
+	OnRetry         func(attempt int, err error) // 重试回调
 }
 
 // CircuitBreakerConfig 熔断器配置
 type CircuitBreakerConfig struct {
-	FailureThreshold   int           `json:"failure_threshold"`   // 失败阈值
-	RecoveryTimeout    time.Duration `json:"recovery_timeout"`    // 恢复超时时间
-	HalfOpenMaxCalls   int           `json:"half_open_max_calls"` // 半开状态最大调用数
-	MinRequestsToTrip  int           `json:"min_requests_to_trip"` // 最小触发请求数
+	FailureThreshold  int           `json:"failure_threshold"`    // 失败阈值
+	RecoveryTimeout   time.Duration `json:"recovery_timeout"`     // 恢复超时时间
+	HalfOpenMaxCalls  int           `json:"half_open_max_calls"`  // 半开状态最大调用数
+	MinRequestsToTrip int           `json:"min_requests_to_trip"` // 最小触发请求数
 }
 
 // CircuitBreakerState 熔断器状态
@@ -52,8 +52,8 @@ type CircuitBreaker struct {
 
 // RecoveryManager 错误恢复管理器
 type RecoveryManager struct {
-	retryConfigs      map[string]RetryConfig
-	circuitBreakers   map[string]*CircuitBreaker
+	retryConfigs       map[string]RetryConfig
+	circuitBreakers    map[string]*CircuitBreaker
 	defaultRetryConfig RetryConfig
 }
 
@@ -95,14 +95,14 @@ func (rm *RecoveryManager) SetCircuitBreaker(operation string, config CircuitBre
 // ExecuteWithRetry 执行带重试的操作
 func (rm *RecoveryManager) ExecuteWithRetry(ctx context.Context, operation string, fn func() error) error {
 	config := rm.getRetryConfig(operation)
-	
+
 	var lastErr error
 	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
 		// 检查上下文是否已取消
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		
+
 		// 执行操作
 		err := fn()
 		if err == nil {
@@ -114,9 +114,9 @@ func (rm *RecoveryManager) ExecuteWithRetry(ctx context.Context, operation strin
 			}
 			return nil
 		}
-		
+
 		lastErr = err
-		
+
 		// 检查是否为可重试错误
 		if !rm.isRetryableError(err, config) {
 			logger.Info("错误不可重试",
@@ -124,26 +124,26 @@ func (rm *RecoveryManager) ExecuteWithRetry(ctx context.Context, operation strin
 				zap.Error(err))
 			return err
 		}
-		
+
 		// 最后一次尝试，不再延迟
 		if attempt == config.MaxAttempts {
 			break
 		}
-		
+
 		// 计算延迟时间
 		delay := rm.calculateDelay(attempt, config)
-		
+
 		// 执行重试回调
 		if config.OnRetry != nil {
 			config.OnRetry(attempt, err)
 		}
-		
+
 		logger.Warn("操作失败，准备重试",
 			zap.String("operation", operation),
 			zap.Int("attempt", attempt),
 			zap.Duration("delay", delay),
 			zap.Error(err))
-		
+
 		// 等待延迟时间
 		select {
 		case <-ctx.Done():
@@ -152,12 +152,12 @@ func (rm *RecoveryManager) ExecuteWithRetry(ctx context.Context, operation strin
 			// 继续下一次重试
 		}
 	}
-	
+
 	logger.Error("重试失败，已达到最大重试次数",
 		zap.String("operation", operation),
 		zap.Int("max_attempts", config.MaxAttempts),
 		zap.Error(lastErr))
-	
+
 	return lastErr
 }
 
@@ -168,19 +168,19 @@ func (rm *RecoveryManager) ExecuteWithCircuitBreaker(operation string, fn func()
 		// 没有熔断器配置，直接执行
 		return fn()
 	}
-	
+
 	// 检查熔断器状态
 	if !breaker.allowRequest() {
 		return NewSystemError(ErrCodeSystemOverload, "服务熔断中，请稍后再试").
 			WithSuggestion("系统正在恢复中，请稍后重试")
 	}
-	
+
 	// 执行操作
 	err := fn()
-	
+
 	// 记录执行结果
 	breaker.recordResult(err == nil)
-	
+
 	return err
 }
 
@@ -213,14 +213,14 @@ func (rm *RecoveryManager) isRetryableError(err error, config RetryConfig) bool 
 		if be.Retryable {
 			return true
 		}
-		
+
 		// 检查错误码是否在可重试列表中
 		for _, code := range config.RetryableErrors {
 			if be.Code == code {
 				return true
 			}
 		}
-		
+
 		// 根据错误分类判断
 		switch be.Category {
 		case CategoryNetwork, CategoryThirdParty:
@@ -233,7 +233,7 @@ func (rm *RecoveryManager) isRetryableError(err error, config RetryConfig) bool 
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -241,18 +241,18 @@ func (rm *RecoveryManager) isRetryableError(err error, config RetryConfig) bool 
 func (rm *RecoveryManager) calculateDelay(attempt int, config RetryConfig) time.Duration {
 	// 指数退避算法
 	delay := time.Duration(float64(config.BaseDelay) * math.Pow(config.BackoffFactor, float64(attempt-1)))
-	
+
 	// 限制最大延迟
 	if delay > config.MaxDelay {
 		delay = config.MaxDelay
 	}
-	
+
 	// 添加抖动
 	if config.Jitter {
 		jitter := time.Duration(rand.Float64() * float64(delay) * 0.1)
 		delay += jitter
 	}
-	
+
 	return delay
 }
 
@@ -261,11 +261,11 @@ func (rm *RecoveryManager) calculateDelay(attempt int, config RetryConfig) time.
 // allowRequest 检查是否允许请求
 func (cb *CircuitBreaker) allowRequest() bool {
 	now := time.Now()
-	
+
 	switch cb.state {
 	case StateClosed:
 		return true
-		
+
 	case StateOpen:
 		// 检查是否到达恢复时间
 		if now.Sub(cb.lastFailureTime) > cb.config.RecoveryTimeout {
@@ -274,11 +274,11 @@ func (cb *CircuitBreaker) allowRequest() bool {
 			return true
 		}
 		return false
-		
+
 	case StateHalfOpen:
 		// 半开状态下限制调用数量
 		return cb.halfOpenCalls < cb.config.HalfOpenMaxCalls
-		
+
 	default:
 		return false
 	}
@@ -287,7 +287,7 @@ func (cb *CircuitBreaker) allowRequest() bool {
 // recordResult 记录执行结果
 func (cb *CircuitBreaker) recordResult(success bool) {
 	cb.requestCount++
-	
+
 	if success {
 		cb.onSuccess()
 	} else {
@@ -315,7 +315,7 @@ func (cb *CircuitBreaker) onSuccess() {
 func (cb *CircuitBreaker) onFailure() {
 	cb.failureCount++
 	cb.lastFailureTime = time.Now()
-	
+
 	if cb.state == StateHalfOpen {
 		// 半开状态下失败，立即打开熔断器
 		cb.state = StateOpen
@@ -340,10 +340,10 @@ func (cb *CircuitBreaker) GetState() CircuitBreakerState {
 // GetStatistics 获取熔断器统计信息
 func (cb *CircuitBreaker) GetStatistics() map[string]interface{} {
 	return map[string]interface{}{
-		"state":          cb.state,
-		"failure_count":  cb.failureCount,
-		"request_count":  cb.requestCount,
-		"half_open_calls": cb.halfOpenCalls,
+		"state":             cb.state,
+		"failure_count":     cb.failureCount,
+		"request_count":     cb.requestCount,
+		"half_open_calls":   cb.halfOpenCalls,
 		"last_failure_time": cb.lastFailureTime,
 	}
 }
@@ -362,7 +362,7 @@ var (
 			ErrCodeDatabaseQueryTimeout,
 		},
 	}
-	
+
 	// 第三方服务重试配置
 	ThirdPartyRetryConfig = RetryConfig{
 		MaxAttempts:   3,
@@ -376,7 +376,7 @@ var (
 			ErrCodeNetworkTimeout,
 		},
 	}
-	
+
 	// 支付服务重试配置
 	PaymentRetryConfig = RetryConfig{
 		MaxAttempts:   2,
@@ -389,7 +389,7 @@ var (
 			ErrCodeThirdPartyTimeout,
 		},
 	}
-	
+
 	// 数据库熔断器配置
 	DatabaseCircuitBreakerConfig = CircuitBreakerConfig{
 		FailureThreshold:  10,
@@ -397,7 +397,7 @@ var (
 		HalfOpenMaxCalls:  3,
 		MinRequestsToTrip: 20,
 	}
-	
+
 	// 第三方服务熔断器配置
 	ThirdPartyCircuitBreakerConfig = CircuitBreakerConfig{
 		FailureThreshold:  5,
@@ -416,7 +416,7 @@ func init() {
 	GlobalRecoveryManager.SetRetryConfig("database", DatabaseRetryConfig)
 	GlobalRecoveryManager.SetRetryConfig("third_party", ThirdPartyRetryConfig)
 	GlobalRecoveryManager.SetRetryConfig("payment", PaymentRetryConfig)
-	
+
 	// 设置预定义的熔断器配置
 	GlobalRecoveryManager.SetCircuitBreaker("database", DatabaseCircuitBreakerConfig)
 	GlobalRecoveryManager.SetCircuitBreaker("third_party", ThirdPartyCircuitBreakerConfig)

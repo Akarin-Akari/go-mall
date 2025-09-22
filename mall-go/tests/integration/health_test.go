@@ -21,12 +21,12 @@ type HealthTestSuite struct {
 func (suite *HealthTestSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 	suite.helper = helpers.NewTestHelper()
-	
+
 	// 设置简单的路由用于测试
 	router := gin.New()
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Mall-Go API is running",
 		})
 	})
@@ -53,7 +53,7 @@ func (suite *HealthTestSuite) TestHealthCheck() {
 
 	// Then - 验证响应
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
-	
+
 	response := suite.helper.AssertJSONResponse(w, http.StatusOK)
 	assert.Equal(suite.T(), "ok", response["status"])
 	assert.Equal(suite.T(), "Mall-Go API is running", response["message"])

@@ -79,26 +79,26 @@ func shouldVerifySignature(path string) bool {
 	if strings.Contains(path, "/callback/") {
 		return true
 	}
-	
+
 	// 敏感操作接口需要验证签名
 	sensitiveAPIs := []string{
 		"/payments/refund",
 		"/payments/statistics",
 	}
-	
+
 	for _, api := range sensitiveAPIs {
 		if strings.Contains(path, api) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 // verifyRequestSignature 验证请求签名
 func verifyRequestSignature(c *gin.Context, securityManager *payment.SecurityManager) error {
 	var params map[string]string
-	
+
 	// 根据请求方法获取参数
 	if c.Request.Method == "POST" {
 		// POST请求从表单或JSON中获取参数
@@ -126,23 +126,23 @@ func verifyRequestSignature(c *gin.Context, securityManager *payment.SecurityMan
 			}
 		}
 	}
-	
+
 	// 获取签名
 	signature := params["sign"]
 	if signature == "" {
 		signature = c.GetHeader("X-Signature")
 	}
-	
+
 	if signature == "" {
 		return nil // 如果没有签名，跳过验证
 	}
-	
+
 	// 获取签名类型
 	signType := params["sign_type"]
 	if signType == "" {
 		signType = "MD5" // 默认使用MD5
 	}
-	
+
 	// 验证签名
 	return securityManager.VerifySignature(params, signature, signType)
 }
@@ -154,25 +154,25 @@ func checkReplayAttack(c *gin.Context, securityManager *payment.SecurityManager)
 	if timestamp == "" {
 		timestamp = c.Query("timestamp")
 	}
-	
+
 	if timestamp != "" {
 		if err := securityManager.CheckTimestamp(timestamp, 5*time.Minute); err != nil {
 			return err
 		}
 	}
-	
+
 	// 检查随机数
 	nonce := c.GetHeader("X-Nonce")
 	if nonce == "" {
 		nonce = c.Query("nonce")
 	}
-	
+
 	if nonce != "" {
 		if err := securityManager.CheckNonce(nonce); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -186,14 +186,14 @@ func PaymentAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		
+
 		// 检查用户权限
 		if !hasPaymentPermission(userID) {
 			response.Error(c, http.StatusForbidden, "无支付权限")
 			c.Abort()
 			return
 		}
-		
+
 		c.Next()
 	}
 }
@@ -227,13 +227,13 @@ func PaymentLogMiddleware() gin.HandlerFunc {
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		
+
 		// 允许的域名列表
 		allowedOrigins := []string{
 			"https://your-frontend-domain.com",
 			"https://localhost:3000", // 开发环境
 		}
-		
+
 		// 检查是否为允许的域名
 		allowed := false
 		for _, allowedOrigin := range allowedOrigins {
@@ -242,22 +242,22 @@ func CORSMiddleware() gin.HandlerFunc {
 				break
 			}
 		}
-		
+
 		if allowed {
 			c.Header("Access-Control-Allow-Origin", origin)
 		}
-		
+
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Signature, X-Timestamp, X-Nonce")
 		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
 		c.Header("Access-Control-Allow-Credentials", "true")
-		
+
 		// 处理预检请求
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
-		
+
 		c.Next()
 	}
 }
@@ -269,10 +269,10 @@ func RequestIDMiddleware() gin.HandlerFunc {
 		if requestID == "" {
 			requestID = generateRequestID()
 		}
-		
+
 		c.Header("X-Request-ID", requestID)
 		c.Set("request_id", requestID)
-		
+
 		c.Next()
 	}
 }
@@ -289,7 +289,7 @@ func RecoveryMiddleware() gin.HandlerFunc {
 			zap.Any("recovered", recovered),
 			zap.String("path", c.Request.URL.Path),
 			zap.String("method", c.Request.Method))
-		
+
 		response.Error(c, http.StatusInternalServerError, "服务器内部错误")
 	})
 }
@@ -301,10 +301,10 @@ func SetupPaymentMiddlewares(router *gin.RouterGroup, securityManager *payment.S
 	router.Use(RequestIDMiddleware())
 	router.Use(PaymentLogMiddleware())
 	router.Use(CORSMiddleware())
-	
+
 	// 安全中间件
 	router.Use(SecurityMiddleware(securityManager))
-	
+
 	// 认证中间件（除了回调接口）
 	router.Use(func(c *gin.Context) {
 		// 回调接口不需要用户认证
@@ -312,7 +312,7 @@ func SetupPaymentMiddlewares(router *gin.RouterGroup, securityManager *payment.S
 			c.Next()
 			return
 		}
-		
+
 		// 其他接口需要用户认证
 		PaymentAuthMiddleware()(c)
 	})

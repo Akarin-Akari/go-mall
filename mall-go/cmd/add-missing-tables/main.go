@@ -59,7 +59,7 @@ func main() {
 	fmt.Println("🔍 验证表结构...")
 	if db.Migrator().HasTable(&model.OrderStatusLog{}) {
 		fmt.Println("   ✅ 订单状态日志表验证成功")
-		
+
 		// 检查表结构
 		var count int64
 		if err := db.Model(&model.OrderStatusLog{}).Count(&count).Error; err != nil {

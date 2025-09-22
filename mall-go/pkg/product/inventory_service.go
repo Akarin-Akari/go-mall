@@ -23,19 +23,19 @@ func NewInventoryService(db *gorm.DB) *InventoryService {
 
 // InventoryLog 库存变动日志模型
 type InventoryLog struct {
-	ID         uint      `gorm:"primarykey" json:"id"`
-	ProductID  uint      `gorm:"not null;index" json:"product_id"`
-	SKUID      uint      `gorm:"index" json:"sku_id"`
-	Type       string    `gorm:"size:20;not null;index" json:"type"`        // 变动类型：in/out/adjust
-	Quantity   int       `gorm:"not null" json:"quantity"`                  // 变动数量
-	BeforeQty  int       `gorm:"not null" json:"before_qty"`                // 变动前数量
-	AfterQty   int       `gorm:"not null" json:"after_qty"`                 // 变动后数量
-	Reason     string    `gorm:"size:100" json:"reason"`                    // 变动原因
-	OrderID    uint      `gorm:"index" json:"order_id"`                     // 关联订单ID
-	UserID     uint      `gorm:"not null;index" json:"user_id"`             // 操作用户ID
-	Remark     string    `gorm:"size:500" json:"remark"`                    // 备注
-	CreatedAt  time.Time `json:"created_at"`
-	
+	ID        uint      `gorm:"primarykey" json:"id"`
+	ProductID uint      `gorm:"not null;index" json:"product_id"`
+	SKUID     uint      `gorm:"index" json:"sku_id"`
+	Type      string    `gorm:"size:20;not null;index" json:"type"` // 变动类型：in/out/adjust
+	Quantity  int       `gorm:"not null" json:"quantity"`           // 变动数量
+	BeforeQty int       `gorm:"not null" json:"before_qty"`         // 变动前数量
+	AfterQty  int       `gorm:"not null" json:"after_qty"`          // 变动后数量
+	Reason    string    `gorm:"size:100" json:"reason"`             // 变动原因
+	OrderID   uint      `gorm:"index" json:"order_id"`              // 关联订单ID
+	UserID    uint      `gorm:"not null;index" json:"user_id"`      // 操作用户ID
+	Remark    string    `gorm:"size:500" json:"remark"`             // 备注
+	CreatedAt time.Time `json:"created_at"`
+
 	// 关联关系
 	Product *model.Product    `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 	SKU     *model.ProductSKU `gorm:"foreignKey:SKUID" json:"sku,omitempty"`
@@ -80,14 +80,14 @@ type StockOutRequest struct {
 
 // InventoryListRequest 库存列表请求
 type InventoryListRequest struct {
-	ProductID   uint   `form:"product_id"`
-	CategoryID  uint   `form:"category_id"`
-	MerchantID  uint   `form:"merchant_id"`
-	Keyword     string `form:"keyword"`
-	LowStock    bool   `form:"low_stock"`    // 是否只显示低库存
-	OutOfStock  bool   `form:"out_of_stock"` // 是否只显示缺货
-	Page        int    `form:"page" binding:"min=1"`
-	PageSize    int    `form:"page_size" binding:"min=1,max=100"`
+	ProductID  uint   `form:"product_id"`
+	CategoryID uint   `form:"category_id"`
+	MerchantID uint   `form:"merchant_id"`
+	Keyword    string `form:"keyword"`
+	LowStock   bool   `form:"low_stock"`    // 是否只显示低库存
+	OutOfStock bool   `form:"out_of_stock"` // 是否只显示缺货
+	Page       int    `form:"page" binding:"min=1"`
+	PageSize   int    `form:"page_size" binding:"min=1,max=100"`
 }
 
 // InventoryLogListRequest 库存日志列表请求
@@ -111,12 +111,12 @@ const (
 
 // 库存变动原因常量
 const (
-	InventoryReasonPurchase = "purchase"  // 采购入库
-	InventoryReasonReturn   = "return"    // 退货入库
-	InventoryReasonSale     = "sale"      // 销售出库
-	InventoryReasonDamage   = "damage"    // 损坏出库
-	InventoryReasonAdjust   = "adjust"    // 库存调整
-	InventoryReasonInit     = "init"      // 初始化
+	InventoryReasonPurchase = "purchase" // 采购入库
+	InventoryReasonReturn   = "return"   // 退货入库
+	InventoryReasonSale     = "sale"     // 销售出库
+	InventoryReasonDamage   = "damage"   // 损坏出库
+	InventoryReasonAdjust   = "adjust"   // 库存调整
+	InventoryReasonInit     = "init"     // 初始化
 )
 
 // AdjustStock 调整库存

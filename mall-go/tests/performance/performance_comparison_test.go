@@ -19,20 +19,20 @@ import (
 // PerformanceComparisonSuite 性能对比测试套件
 type PerformanceComparisonSuite struct {
 	*PerformanceTestSuite
-	cacheManager   cache.CacheManager
-	keyManager     *cache.CacheKeyManager
-	monitoringMgr  *cache.CacheMonitoringManager
+	cacheManager  cache.CacheManager
+	keyManager    *cache.CacheKeyManager
+	monitoringMgr *cache.CacheMonitoringManager
 }
 
 // ComparisonResult 性能对比结果
 type ComparisonResult struct {
-	TestName           string                 `json:"test_name"`
-	Timestamp          time.Time              `json:"timestamp"`
-	WithoutCache       *PerformanceMetrics    `json:"without_cache"`
-	WithCache          *PerformanceMetrics    `json:"with_cache"`
-	Improvement        *ImprovementMetrics    `json:"improvement"`
-	CacheMetrics       *CacheSpecificMetrics  `json:"cache_metrics"`
-	TestConfiguration  *TestConfiguration     `json:"test_configuration"`
+	TestName          string                `json:"test_name"`
+	Timestamp         time.Time             `json:"timestamp"`
+	WithoutCache      *PerformanceMetrics   `json:"without_cache"`
+	WithCache         *PerformanceMetrics   `json:"with_cache"`
+	Improvement       *ImprovementMetrics   `json:"improvement"`
+	CacheMetrics      *CacheSpecificMetrics `json:"cache_metrics"`
+	TestConfiguration *TestConfiguration    `json:"test_configuration"`
 }
 
 // PerformanceMetrics 性能指标
@@ -57,36 +57,36 @@ type ImprovementMetrics struct {
 
 // CacheSpecificMetrics 缓存特定指标
 type CacheSpecificMetrics struct {
-	HitRate           float64       `json:"hit_rate"`
-	MissRate          float64       `json:"miss_rate"`
-	AvgCacheTime      time.Duration `json:"avg_cache_time"`
-	CacheOperations   int           `json:"cache_operations"`
-	WarmupTime        time.Duration `json:"warmup_time"`
-	MemoryUsageMB     float64       `json:"memory_usage_mb"`
+	HitRate         float64       `json:"hit_rate"`
+	MissRate        float64       `json:"miss_rate"`
+	AvgCacheTime    time.Duration `json:"avg_cache_time"`
+	CacheOperations int           `json:"cache_operations"`
+	WarmupTime      time.Duration `json:"warmup_time"`
+	MemoryUsageMB   float64       `json:"memory_usage_mb"`
 }
 
 // TestConfiguration 测试配置
 type TestConfiguration struct {
-	ConcurrentUsers   int           `json:"concurrent_users"`
-	TestDuration      time.Duration `json:"test_duration"`
-	TotalRequests     int           `json:"total_requests"`
-	DataSetSize       int           `json:"data_set_size"`
-	CacheEnabled      bool          `json:"cache_enabled"`
-	TestScenario      string        `json:"test_scenario"`
+	ConcurrentUsers int           `json:"concurrent_users"`
+	TestDuration    time.Duration `json:"test_duration"`
+	TotalRequests   int           `json:"total_requests"`
+	DataSetSize     int           `json:"data_set_size"`
+	CacheEnabled    bool          `json:"cache_enabled"`
+	TestScenario    string        `json:"test_scenario"`
 }
 
 // SetupPerformanceComparison 设置性能对比测试环境
 func SetupPerformanceComparison(t *testing.T) *PerformanceComparisonSuite {
 	baseSuite := SetupPerformanceTest(t)
-	
+
 	// 初始化日志
 	logger.Init()
-	
+
 	// 初始化Redis客户端（可选）
 	var cacheManager cache.CacheManager
 	var keyManager *cache.CacheKeyManager
 	var monitoringMgr *cache.CacheMonitoringManager
-	
+
 	// 尝试连接Redis，如果失败则使用内存缓存
 	redisConfig := cache.RedisConfig{
 		Host:         "localhost",
@@ -102,16 +102,16 @@ func SetupPerformanceComparison(t *testing.T) *PerformanceComparisonSuite {
 		IdleTimeout:  300,
 		MaxConnAge:   3600,
 	}
-	
+
 	redisClient, err := cache.NewRedisClient(redisConfig)
 	if err == nil {
 		redisClient.FlushDB()
 		cacheManager = cache.NewRedisCacheManager(redisClient)
-		
+
 		// 初始化键管理器
 		cache.InitKeyManager("perf_comp")
 		keyManager = cache.GetKeyManager()
-		
+
 		// 创建监控管理器
 		monitoringConfig := cache.DefaultCacheMonitoringConfig()
 		monitoringConfig.CollectInterval = 1 * time.Second
@@ -121,7 +121,7 @@ func SetupPerformanceComparison(t *testing.T) *PerformanceComparisonSuite {
 		t.Logf("Redis不可用，将使用模拟缓存进行对比测试")
 		// 这里可以使用内存缓存实现
 	}
-	
+
 	return &PerformanceComparisonSuite{
 		PerformanceTestSuite: baseSuite,
 		cacheManager:         cacheManager,
@@ -145,14 +145,14 @@ func TestProductQueryPerformanceComparison(t *testing.T) {
 		return
 	}
 	defer suite.CleanupPerformanceComparison()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(t)
-	
+
 	t.Run("商品查询性能对比测试", func(t *testing.T) {
 		concurrency := 100
 		totalRequests := 2000
-		
+
 		// 测试配置
 		config := &TestConfiguration{
 			ConcurrentUsers: concurrency,
@@ -160,24 +160,24 @@ func TestProductQueryPerformanceComparison(t *testing.T) {
 			DataSetSize:     1000,
 			TestScenario:    "商品查询",
 		}
-		
+
 		// 1. 测试无缓存性能
 		t.Logf("🔍 测试无缓存性能...")
 		withoutCacheMetrics := suite.testWithoutCache(t, concurrency, totalRequests)
-		
+
 		// 2. 预热缓存
 		if suite.cacheManager != nil {
 			t.Logf("🔥 预热缓存...")
 			suite.warmupProductCache(t)
 		}
-		
+
 		// 3. 测试有缓存性能
 		t.Logf("⚡ 测试有缓存性能...")
 		withCacheMetrics, cacheMetrics := suite.testWithCache(t, concurrency, totalRequests)
-		
+
 		// 4. 计算改进指标
 		improvement := suite.calculateImprovement(withoutCacheMetrics, withCacheMetrics)
-		
+
 		// 5. 生成对比结果
 		result := &ComparisonResult{
 			TestName:          "商品查询性能对比",
@@ -188,22 +188,22 @@ func TestProductQueryPerformanceComparison(t *testing.T) {
 			CacheMetrics:      cacheMetrics,
 			TestConfiguration: config,
 		}
-		
+
 		// 6. 验证性能改进
 		assert.GreaterOrEqual(t, improvement.ResponseTimeImprovement, 70.0, "响应时间改进应≥70%")
 		assert.GreaterOrEqual(t, improvement.QPSImprovement, 200.0, "QPS改进应≥200%")
 		assert.GreaterOrEqual(t, improvement.DatabaseQueryReduction, 80.0, "数据库查询减少应≥80%")
-		
+
 		if suite.cacheManager != nil {
 			assert.GreaterOrEqual(t, cacheMetrics.HitRate, 85.0, "缓存命中率应≥85%")
 		}
-		
+
 		// 7. 保存测试报告
 		suite.saveComparisonReport(t, result)
-		
+
 		// 8. 输出结果
 		suite.printComparisonResults(t, result)
-		
+
 		t.Logf("✅ 商品查询性能对比测试通过")
 	})
 }
@@ -211,27 +211,27 @@ func TestProductQueryPerformanceComparison(t *testing.T) {
 // testWithoutCache 测试无缓存性能
 func (suite *PerformanceComparisonSuite) testWithoutCache(t *testing.T, concurrency, totalRequests int) *PerformanceMetrics {
 	var dbQueries int64
-	
+
 	requestFunc := func() *RequestResult {
 		start := time.Now()
-		
+
 		// 直接从数据库查询
 		productID := uint(rand.Intn(1000) + 1)
 		var product model.Product
 		err := suite.db.Where("id = ?", productID).First(&product).Error
-		
+
 		duration := time.Since(start)
 		dbQueries++
-		
+
 		return &RequestResult{
 			Success:  err == nil,
 			Duration: duration,
 			Error:    err,
 		}
 	}
-	
+
 	result := suite.RunConcurrentTest(t, "无缓存查询", concurrency, totalRequests, requestFunc)
-	
+
 	return &PerformanceMetrics{
 		AverageResponseTime: result.AverageTime,
 		P95ResponseTime:     result.P95ResponseTime,
@@ -255,33 +255,33 @@ func (suite *PerformanceComparisonSuite) testWithCache(t *testing.T, concurrency
 			CacheOperations: 0,
 		}
 	}
-	
+
 	var dbQueries int64
 	var cacheHits int64
 	var cacheMisses int64
 	var cacheOperations int64
-	
+
 	requestFunc := func() *RequestResult {
 		start := time.Now()
-		
+
 		// 先尝试从缓存获取
 		productID := uint(rand.Intn(1000) + 1)
 		key := suite.keyManager.GenerateProductKey(productID)
-		
+
 		cachedData, err := suite.cacheManager.Get(key)
 		cacheOperations++
-		
+
 		if err == nil && cachedData != nil {
 			// 缓存命中
 			cacheHits++
 			duration := time.Since(start)
-			
+
 			// 记录监控数据
 			if suite.monitoringMgr != nil {
 				suite.monitoringMgr.RecordResponseTime(duration)
 				suite.monitoringMgr.RecordHotKey(key, true)
 			}
-			
+
 			return &RequestResult{
 				Success:  true,
 				Duration: duration,
@@ -293,20 +293,20 @@ func (suite *PerformanceComparisonSuite) testWithCache(t *testing.T, concurrency
 			var product model.Product
 			dbErr := suite.db.Where("id = ?", productID).First(&product).Error
 			dbQueries++
-			
+
 			if dbErr == nil {
 				// 缓存数据
 				suite.cacheManager.Set(key, product, 1*time.Hour)
 			}
-			
+
 			duration := time.Since(start)
-			
+
 			// 记录监控数据
 			if suite.monitoringMgr != nil {
 				suite.monitoringMgr.RecordResponseTime(duration)
 				suite.monitoringMgr.RecordHotKey(key, false)
 			}
-			
+
 			return &RequestResult{
 				Success:  dbErr == nil,
 				Duration: duration,
@@ -314,14 +314,14 @@ func (suite *PerformanceComparisonSuite) testWithCache(t *testing.T, concurrency
 			}
 		}
 	}
-	
+
 	result := suite.RunConcurrentTest(t, "有缓存查询", concurrency, totalRequests, requestFunc)
-	
+
 	// 计算缓存指标
 	totalCacheOps := cacheHits + cacheMisses
 	hitRate := float64(cacheHits) / float64(totalCacheOps) * 100
 	missRate := float64(cacheMisses) / float64(totalCacheOps) * 100
-	
+
 	performanceMetrics := &PerformanceMetrics{
 		AverageResponseTime: result.AverageTime,
 		P95ResponseTime:     result.P95ResponseTime,
@@ -332,7 +332,7 @@ func (suite *PerformanceComparisonSuite) testWithCache(t *testing.T, concurrency
 		SuccessRequests:     result.SuccessRequests,
 		DatabaseQueries:     int(dbQueries),
 	}
-	
+
 	cacheMetrics := &CacheSpecificMetrics{
 		HitRate:         hitRate,
 		MissRate:        missRate,
@@ -340,7 +340,7 @@ func (suite *PerformanceComparisonSuite) testWithCache(t *testing.T, concurrency
 		CacheOperations: int(cacheOperations),
 		MemoryUsageMB:   0, // 需要实际测量
 	}
-	
+
 	return performanceMetrics, cacheMetrics
 }
 
@@ -349,9 +349,9 @@ func (suite *PerformanceComparisonSuite) warmupProductCache(t *testing.T) {
 	if suite.cacheManager == nil {
 		return
 	}
-	
+
 	start := time.Now()
-	
+
 	// 预热前500个商品
 	for i := 1; i <= 500; i++ {
 		var product model.Product
@@ -361,7 +361,7 @@ func (suite *PerformanceComparisonSuite) warmupProductCache(t *testing.T) {
 			suite.cacheManager.Set(key, product, 1*time.Hour)
 		}
 	}
-	
+
 	warmupDuration := time.Since(start)
 	t.Logf("   缓存预热完成，耗时: %v", warmupDuration)
 }
@@ -372,7 +372,7 @@ func (suite *PerformanceComparisonSuite) calculateImprovement(without, with *Per
 	qpsImprovement := (with.QPS/without.QPS - 1) * 100
 	dbQueryReduction := (1 - float64(with.DatabaseQueries)/float64(without.DatabaseQueries)) * 100
 	errorRateReduction := (without.ErrorRate - with.ErrorRate) / without.ErrorRate * 100
-	
+
 	return &ImprovementMetrics{
 		ResponseTimeImprovement: responseTimeImprovement,
 		QPSImprovement:          qpsImprovement,
@@ -389,24 +389,24 @@ func (suite *PerformanceComparisonSuite) saveComparisonReport(t *testing.T, resu
 		t.Logf("创建报告目录失败: %v", err)
 		return
 	}
-	
+
 	// 生成报告文件名
 	timestamp := time.Now().Format("20060102_150405")
 	filename := fmt.Sprintf("performance_comparison_%s.json", timestamp)
 	filepath := filepath.Join(reportDir, filename)
-	
+
 	// 保存JSON报告
 	data, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		t.Logf("序列化报告失败: %v", err)
 		return
 	}
-	
+
 	if err := os.WriteFile(filepath, data, 0644); err != nil {
 		t.Logf("保存报告失败: %v", err)
 		return
 	}
-	
+
 	t.Logf("📊 性能对比报告已保存: %s", filepath)
 }
 
@@ -414,28 +414,28 @@ func (suite *PerformanceComparisonSuite) saveComparisonReport(t *testing.T, resu
 func (suite *PerformanceComparisonSuite) printComparisonResults(t *testing.T, result *ComparisonResult) {
 	t.Logf("\n📊 性能对比测试结果:")
 	t.Logf("=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=" + "=")
-	
+
 	t.Logf("🔍 无缓存性能:")
 	t.Logf("   - 平均响应时间: %v", result.WithoutCache.AverageResponseTime)
 	t.Logf("   - P95响应时间: %v", result.WithoutCache.P95ResponseTime)
 	t.Logf("   - QPS: %.2f", result.WithoutCache.QPS)
 	t.Logf("   - 错误率: %.2f%%", result.WithoutCache.ErrorRate)
 	t.Logf("   - 数据库查询: %d", result.WithoutCache.DatabaseQueries)
-	
+
 	t.Logf("\n⚡ 有缓存性能:")
 	t.Logf("   - 平均响应时间: %v", result.WithCache.AverageResponseTime)
 	t.Logf("   - P95响应时间: %v", result.WithCache.P95ResponseTime)
 	t.Logf("   - QPS: %.2f", result.WithCache.QPS)
 	t.Logf("   - 错误率: %.2f%%", result.WithCache.ErrorRate)
 	t.Logf("   - 数据库查询: %d", result.WithCache.DatabaseQueries)
-	
+
 	if result.CacheMetrics != nil {
 		t.Logf("\n🎯 缓存指标:")
 		t.Logf("   - 缓存命中率: %.2f%%", result.CacheMetrics.HitRate)
 		t.Logf("   - 缓存未命中率: %.2f%%", result.CacheMetrics.MissRate)
 		t.Logf("   - 缓存操作数: %d", result.CacheMetrics.CacheOperations)
 	}
-	
+
 	t.Logf("\n📈 性能改进:")
 	t.Logf("   - 响应时间改进: %.2f%%", result.Improvement.ResponseTimeImprovement)
 	t.Logf("   - QPS改进: %.2f%%", result.Improvement.QPSImprovement)

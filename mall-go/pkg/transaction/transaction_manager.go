@@ -32,33 +32,33 @@ type CompensationFunc func() error
 
 // TransactionOptions 事务选项
 type TransactionOptions struct {
-	Timeout        time.Duration     // 事务超时时间
-	RetryCount     int               // 重试次数
-	RetryInterval  time.Duration     // 重试间隔
+	Timeout        time.Duration      // 事务超时时间
+	RetryCount     int                // 重试次数
+	RetryInterval  time.Duration      // 重试间隔
 	Compensations  []CompensationFunc // 补偿函数列表
-	EnableLogging  bool              // 是否启用详细日志
-	IsolationLevel string            // 事务隔离级别
+	EnableLogging  bool               // 是否启用详细日志
+	IsolationLevel string             // 事务隔离级别
 }
 
 // DefaultTransactionOptions 默认事务选项
 func DefaultTransactionOptions() *TransactionOptions {
 	return &TransactionOptions{
-		Timeout:       30 * time.Second,
-		RetryCount:    3,
-		RetryInterval: 100 * time.Millisecond,
-		Compensations: make([]CompensationFunc, 0),
-		EnableLogging: true,
+		Timeout:        30 * time.Second,
+		RetryCount:     3,
+		RetryInterval:  100 * time.Millisecond,
+		Compensations:  make([]CompensationFunc, 0),
+		EnableLogging:  true,
 		IsolationLevel: "READ_COMMITTED",
 	}
 }
 
 // TransactionResult 事务执行结果
 type TransactionResult struct {
-	Success       bool          `json:"success"`
-	Error         error         `json:"error,omitempty"`
-	ExecutionTime time.Duration `json:"execution_time"`
-	RetryCount    int           `json:"retry_count"`
-	CompensationExecuted bool   `json:"compensation_executed"`
+	Success              bool          `json:"success"`
+	Error                error         `json:"error,omitempty"`
+	ExecutionTime        time.Duration `json:"execution_time"`
+	RetryCount           int           `json:"retry_count"`
+	CompensationExecuted bool          `json:"compensation_executed"`
 }
 
 // ExecuteTransaction 执行事务
@@ -310,7 +310,7 @@ func (tm *TransactionManager) BatchExecuteTransactions(transactions []Transactio
 
 	for i, fn := range transactions {
 		results[i] = tm.ExecuteTransaction(fn, opts)
-		
+
 		// 如果某个事务失败且没有启用补偿，停止执行后续事务
 		if !results[i].Success && len(opts.Compensations) == 0 {
 			// 为剩余的事务创建失败结果

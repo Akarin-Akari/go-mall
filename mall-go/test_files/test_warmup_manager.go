@@ -61,8 +61,8 @@ func main() {
 
 	// 创建缓存预热管理器
 	warmupConfig := cache.DefaultCacheWarmupConfig()
-	warmupConfig.BatchSize = 3        // 减小批次大小用于测试
-	warmupConfig.MaxConcurrency = 2   // 减少并发数用于测试
+	warmupConfig.BatchSize = 3                    // 减小批次大小用于测试
+	warmupConfig.MaxConcurrency = 2               // 减少并发数用于测试
 	warmupConfig.ReportInterval = 2 * time.Second // 缩短报告间隔
 
 	cwm := cache.NewCacheWarmupManager(warmupConfig, cacheManager, keyManager, consistencyMgr, optimisticLock)
@@ -80,7 +80,7 @@ func main() {
 
 	// 测试配置获取
 	config := cwm.GetConfig()
-	fmt.Printf("📊 预热配置: Mode=%s, BatchSize=%d, MaxConcurrency=%d\n", 
+	fmt.Printf("📊 预热配置: Mode=%s, BatchSize=%d, MaxConcurrency=%d\n",
 		config.Mode, config.BatchSize, config.MaxConcurrency)
 
 	// 测试热点数据识别
@@ -207,12 +207,12 @@ func testWarmupExecution(cwm *cache.CacheWarmupManager) {
 
 	// 检查进度
 	progress := cwm.GetProgress()
-	fmt.Printf("  📊 预热后进度: 总任务=%d, 已完成=%d, 进度=%.2f%%\n", 
+	fmt.Printf("  📊 预热后进度: 总任务=%d, 已完成=%d, 进度=%.2f%%\n",
 		progress.TotalTasks, progress.CompletedTasks, progress.ProgressRate)
 
 	// 检查统计
 	stats := cwm.GetStats()
-	fmt.Printf("  📊 预热后统计: 总预热=%d, 成功=%d, 成功率=%.2f%%\n", 
+	fmt.Printf("  📊 预热后统计: 总预热=%d, 成功=%d, 成功率=%.2f%%\n",
 		stats.TotalWarmups, stats.SuccessfulWarmups, stats.SuccessRate)
 
 	fmt.Println("  ✅ 预热策略执行验证完成")
