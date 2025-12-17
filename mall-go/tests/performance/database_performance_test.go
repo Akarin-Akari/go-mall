@@ -72,13 +72,13 @@ func TestDatabasePerformance(t *testing.T) {
 				defer func() { <-semaphore }()
 
 				requestStart := time.Now()
-				
+
 				var product model.Product
 				productID := uint(requestID%1000 + 1)
 				err := db.Where("id = ?", productID).First(&product).Error
-				
+
 				duration := time.Since(requestStart)
-				
+
 				if err == nil {
 					results <- duration
 				} else {
@@ -129,15 +129,15 @@ func TestDatabasePerformance(t *testing.T) {
 				defer func() { <-semaphore }()
 
 				requestStart := time.Now()
-				
+
 				var products []model.Product
 				categoryID := uint(requestID%20 + 1)
 				err := db.Preload("Category").Preload("Images").
 					Where("category_id = ? AND status = ?", categoryID, "active").
 					Limit(20).Find(&products).Error
-				
+
 				duration := time.Since(requestStart)
-				
+
 				if err == nil {
 					results <- duration
 				} else {
@@ -188,7 +188,7 @@ func TestDatabasePerformance(t *testing.T) {
 				defer func() { <-semaphore }()
 
 				requestStart := time.Now()
-				
+
 				// 创建新用户
 				user := &model.User{
 					Username: fmt.Sprintf("dbperfuser%d", requestID+20000),
@@ -197,10 +197,10 @@ func TestDatabasePerformance(t *testing.T) {
 					Phone:    fmt.Sprintf("1380020%04d", requestID%10000),
 					Status:   "active",
 				}
-				
+
 				err := db.Create(user).Error
 				duration := time.Since(requestStart)
-				
+
 				if err == nil {
 					results <- duration
 				} else {
@@ -251,17 +251,17 @@ func TestDatabasePerformance(t *testing.T) {
 				defer func() { <-semaphore }()
 
 				requestStart := time.Now()
-				
+
 				var products []model.Product
 				page := requestID%10 + 1
 				pageSize := 20
 				offset := (page - 1) * pageSize
-				
+
 				err := db.Where("status = ?", "active").
 					Offset(offset).Limit(pageSize).Find(&products).Error
-				
+
 				duration := time.Since(requestStart)
-				
+
 				if err == nil {
 					results <- duration
 				} else {
@@ -298,7 +298,7 @@ func TestDatabasePerformance(t *testing.T) {
 func calculatePerformanceMetrics(results chan time.Duration, totalTime time.Duration, totalRequests int) (int, time.Duration, float64) {
 	var responseTimes []time.Duration
 	successCount := 0
-	
+
 	for duration := range results {
 		if duration > 0 {
 			responseTimes = append(responseTimes, duration)
@@ -369,7 +369,7 @@ func createDatabaseTestData(t *testing.T, db *gorm.DB) {
 		product := &model.Product{
 			Name:        fmt.Sprintf("数据库测试商品%d", i),
 			Description: fmt.Sprintf("用于数据库测试的商品%d", i),
-			CategoryID:  uint((i-1)%20 + 1), // 分配到不同分类
+			CategoryID:  uint((i-1)%20 + 1),   // 分配到不同分类
 			MerchantID:  uint((i-1)%10 + 101), // 分配到不同商家
 			Price:       price,
 			Stock:       500,

@@ -34,14 +34,14 @@ func NewService(db *gorm.DB, config *PaymentConfig) (*Service, error) {
 	if config.Alipay.Enabled && config.Alipay.AppID != "" && config.Alipay.PrivateKey != "" {
 		// 将PaymentConfig的AlipayConfig转换为config包的AlipayConfig
 		alipayConfig := &paymentconfig.AlipayConfig{
-			AppID:        config.Alipay.AppID,
-			PrivateKey:   config.Alipay.PrivateKey,
-			PublicKey:    config.Alipay.PublicKey,
-			SignType:     config.Alipay.SignType,
-			Format:       config.Alipay.Format,
-			Charset:      config.Alipay.Charset,
-			GatewayURL:   config.Alipay.GatewayURL,
-			Timeout:      config.Alipay.Timeout,
+			AppID:      config.Alipay.AppID,
+			PrivateKey: config.Alipay.PrivateKey,
+			PublicKey:  config.Alipay.PublicKey,
+			SignType:   config.Alipay.SignType,
+			Format:     config.Alipay.Format,
+			Charset:    config.Alipay.Charset,
+			GatewayURL: config.Alipay.GatewayURL,
+			Timeout:    config.Alipay.Timeout,
 		}
 		client, err := alipay.NewClient(alipayConfig)
 		if err != nil {
@@ -57,12 +57,12 @@ func NewService(db *gorm.DB, config *PaymentConfig) (*Service, error) {
 	if config.Wechat.Enabled && config.Wechat.AppID != "" && config.Wechat.MchID != "" && config.Wechat.APIKey != "" {
 		// 将PaymentConfig的WechatConfig转换为config包的WechatConfig
 		wechatConfig := &paymentconfig.WechatConfig{
-			AppID:        config.Wechat.AppID,
-			MchID:        config.Wechat.MchID,
-			APIKey:       config.Wechat.APIKey,
-			SignType:     config.Wechat.SignType,
-			GatewayURL:   config.Wechat.GatewayURL,
-			Timeout:      config.Wechat.Timeout,
+			AppID:      config.Wechat.AppID,
+			MchID:      config.Wechat.MchID,
+			APIKey:     config.Wechat.APIKey,
+			SignType:   config.Wechat.SignType,
+			GatewayURL: config.Wechat.GatewayURL,
+			Timeout:    config.Wechat.Timeout,
 		}
 		service.wechatClient = wechat.NewClient(wechatConfig)
 		logger.Info("微信支付客户端初始化成功")

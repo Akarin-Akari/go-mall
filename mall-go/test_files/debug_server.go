@@ -15,7 +15,7 @@ import (
 
 func main() {
 	fmt.Println("=== Mall-Go 服务器启动调试 ===")
-	
+
 	// 步骤1: 初始化日志
 	fmt.Println("步骤1: 初始化日志...")
 	defer func() {
@@ -63,16 +63,16 @@ func main() {
 	fmt.Println("步骤5: 添加基本路由...")
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Mall-Go API is running",
 		})
 	})
-	
+
 	r.GET("/api/v1/products", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Products endpoint is working",
-			"data": []interface{}{},
+			"data":    []interface{}{},
 		})
 	})
 	fmt.Println("✅ 基本路由添加成功")
@@ -82,6 +82,6 @@ func main() {
 	fmt.Println("🚀 服务器启动在端口: 8080")
 	fmt.Println("🔗 健康检查: http://localhost:8080/health")
 	fmt.Println("🔗 产品接口: http://localhost:8080/api/v1/products")
-	
+
 	log.Fatal(r.Run(":8080"))
 }

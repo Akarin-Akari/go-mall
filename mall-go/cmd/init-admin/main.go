@@ -47,7 +47,7 @@ func createAdminUser(db *gorm.DB) error {
 	var existingAdmin model.User
 	if err := db.Where("username = ? OR email = ?", "admin", "admin@mall-go.com").First(&existingAdmin).Error; err == nil {
 		fmt.Printf("⚠️ 管理员用户已存在: %s (ID: %d, Role: %s)\n", existingAdmin.Username, existingAdmin.ID, existingAdmin.Role)
-		
+
 		// 如果存在但角色不是admin，更新角色
 		if existingAdmin.Role != model.RoleAdmin {
 			existingAdmin.Role = model.RoleAdmin

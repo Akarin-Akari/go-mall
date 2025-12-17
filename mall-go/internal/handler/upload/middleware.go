@@ -46,7 +46,7 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 // Allow 检查是否允许请求
 func (rl *RateLimiter) Allow(key string) bool {
 	now := time.Now()
-	
+
 	// 清理过期的请求记录
 	if requests, exists := rl.requests[key]; exists {
 		var validRequests []time.Time
@@ -97,7 +97,7 @@ func (um *UploadMiddleware) ValidateUploadRequest() gin.HandlerFunc {
 		// 检查请求大小
 		maxSize := um.configManager.GetMaxFileSize()
 		if contentLength > maxSize {
-			response.Error(c, http.StatusRequestEntityTooLarge, 
+			response.Error(c, http.StatusRequestEntityTooLarge,
 				fmt.Sprintf("请求大小超过限制，最大允许 %d 字节", maxSize))
 			c.Abort()
 			return
@@ -110,13 +110,13 @@ func (um *UploadMiddleware) ValidateUploadRequest() gin.HandlerFunc {
 // RateLimitMiddleware 速率限制中间件
 func (um *UploadMiddleware) RateLimitMiddleware(limit int, window time.Duration) gin.HandlerFunc {
 	limiter := NewRateLimiter(limit, window)
-	
+
 	return func(c *gin.Context) {
 		// 使用IP地址作为限制键
 		clientIP := c.ClientIP()
-		
+
 		if !limiter.Allow(clientIP) {
-			response.Error(c, http.StatusTooManyRequests, 
+			response.Error(c, http.StatusTooManyRequests,
 				fmt.Sprintf("请求频率超过限制，每%v最多%d次请求", window, limit))
 			c.Abort()
 			return
@@ -138,7 +138,7 @@ func (um *UploadMiddleware) CheckUploadPermission() gin.HandlerFunc {
 		}
 
 		userRole, _ := c.Get("user_role")
-		
+
 		// 检查用户是否有上传权限
 		if !um.hasUploadPermission(userID.(uint), userRole) {
 			response.Error(c, http.StatusForbidden, "无文件上传权限")
@@ -159,10 +159,10 @@ func (um *UploadMiddleware) CheckFileCategory() gin.HandlerFunc {
 		}
 
 		userRole, _ := c.Get("user_role")
-		
+
 		// 检查分类权限
 		if !um.hasCategoryPermission(category, userRole) {
-			response.Error(c, http.StatusForbidden, 
+			response.Error(c, http.StatusForbidden,
 				fmt.Sprintf("无权限上传到分类: %s", category))
 			c.Abort()
 			return
@@ -176,30 +176,30 @@ func (um *UploadMiddleware) CheckFileCategory() gin.HandlerFunc {
 func (um *UploadMiddleware) LogUploadActivity() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		
+
 		// 记录请求信息
 		userID, _ := c.Get("user_id")
 		clientIP := c.ClientIP()
 		userAgent := c.GetHeader("User-Agent")
-		
+
 		c.Next()
-		
+
 		// 记录响应信息
 		duration := time.Since(start)
 		status := c.Writer.Status()
-		
+
 		// 这里可以记录到数据库或日志文件
 		logData := map[string]interface{}{
-			"user_id":      userID,
-			"client_ip":    clientIP,
-			"user_agent":   userAgent,
-			"method":       c.Request.Method,
-			"path":         c.Request.URL.Path,
-			"status":       status,
-			"duration_ms":  duration.Milliseconds(),
-			"timestamp":    start,
+			"user_id":     userID,
+			"client_ip":   clientIP,
+			"user_agent":  userAgent,
+			"method":      c.Request.Method,
+			"path":        c.Request.URL.Path,
+			"status":      status,
+			"duration_ms": duration.Milliseconds(),
+			"timestamp":   start,
 		}
-		
+
 		// 输出到控制台（生产环境应该记录到日志系统）
 		fmt.Printf("Upload Activity: %+v\n", logData)
 	}
@@ -219,7 +219,7 @@ func (um *UploadMiddleware) ValidateFileType() gin.HandlerFunc {
 		// 检查单文件上传
 		if file, _, err := c.Request.FormFile("file"); err == nil {
 			defer file.Close()
-			
+
 			// 读取文件头部检测类型
 			buffer := make([]byte, 512)
 			_, err := file.Read(buffer)
@@ -228,14 +228,14 @@ func (um *UploadMiddleware) ValidateFileType() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			
+
 			// 重置文件指针
 			file.Seek(0, 0)
-			
+
 			// 检测文件类型
 			contentType := http.DetectContentType(buffer)
 			if !um.configManager.IsAllowedType(contentType) {
-				response.Error(c, http.StatusBadRequest, 
+				response.Error(c, http.StatusBadRequest,
 					fmt.Sprintf("不支持的文件类型: %s", contentType))
 				c.Abort()
 				return
@@ -250,14 +250,14 @@ func (um *UploadMiddleware) ValidateFileType() gin.HandlerFunc {
 				if err != nil {
 					continue
 				}
-				
+
 				buffer := make([]byte, 512)
 				file.Read(buffer)
 				file.Close()
-				
+
 				contentType := http.DetectContentType(buffer)
 				if !um.configManager.IsAllowedType(contentType) {
-					response.Error(c, http.StatusBadRequest, 
+					response.Error(c, http.StatusBadRequest,
 						fmt.Sprintf("文件 %s 类型不支持: %s", fileHeader.Filename, contentType))
 					c.Abort()
 					return
@@ -299,7 +299,7 @@ func (um *UploadMiddleware) SecurityScanMiddleware() gin.HandlerFunc {
 
 		// 这里可以集成病毒扫描、恶意文件检测等
 		// 简化实现，只检查文件扩展名
-		
+
 		// 解析表单获取文件
 		err := c.Request.ParseMultipartForm(32 << 20)
 		if err != nil {
@@ -311,7 +311,7 @@ func (um *UploadMiddleware) SecurityScanMiddleware() gin.HandlerFunc {
 		// 检查单文件
 		if _, fileHeader, err := c.Request.FormFile("file"); err == nil {
 			if um.configManager.IsForbiddenExt(fileHeader.Filename) {
-				response.Error(c, http.StatusBadRequest, 
+				response.Error(c, http.StatusBadRequest,
 					fmt.Sprintf("文件类型被禁止: %s", fileHeader.Filename))
 				c.Abort()
 				return
@@ -323,7 +323,7 @@ func (um *UploadMiddleware) SecurityScanMiddleware() gin.HandlerFunc {
 			files := form.File["files"]
 			for _, fileHeader := range files {
 				if um.configManager.IsForbiddenExt(fileHeader.Filename) {
-					response.Error(c, http.StatusBadRequest, 
+					response.Error(c, http.StatusBadRequest,
 						fmt.Sprintf("文件 %s 类型被禁止", fileHeader.Filename))
 					c.Abort()
 					return
@@ -367,11 +367,11 @@ func (um *UploadMiddleware) checkUserQuota(userID uint) bool {
 	// 简化实现，实际应该查询数据库计算用户已使用的存储空间
 	// 这里假设每个用户有100MB的配额
 	const userQuota = 100 * 1024 * 1024 // 100MB
-	
+
 	// TODO: 实现实际的配额检查逻辑
 	// 1. 查询用户已上传文件的总大小
 	// 2. 与配额进行比较
-	
+
 	return true // 简化实现，总是返回true
 }
 

@@ -59,7 +59,7 @@ func TestSimpleProductService(t *testing.T) {
 		}
 
 		response, err := productService.CreateProduct(req)
-		
+
 		// 验证创建结果
 		if err != nil {
 			t.Logf("创建商品错误: %v", err)
@@ -102,7 +102,7 @@ func TestSimpleProductService(t *testing.T) {
 
 		// 获取商品详情
 		response, err := productService.GetProduct(testProduct.ID)
-		
+
 		// 验证获取结果
 		assert.NoError(t, err, "获取商品详情应该成功")
 		assert.NotNil(t, response, "获取响应不应为空")
@@ -115,7 +115,7 @@ func TestSimpleProductService(t *testing.T) {
 	t.Run("商品不存在", func(t *testing.T) {
 		// 尝试获取不存在的商品
 		response, err := productService.GetProduct(99999)
-		
+
 		// 验证错误处理
 		assert.Error(t, err, "获取不存在商品应该失败")
 		assert.Nil(t, response, "获取失败时不应返回结果")
@@ -164,9 +164,9 @@ func TestSimpleProductService(t *testing.T) {
 			PageSize: 10,
 			Status:   "active",
 		}
-		
+
 		response, err := productService.ListProducts(req)
-		
+
 		// 验证查询结果
 		assert.NoError(t, err, "查询商品列表应该成功")
 		assert.NotNil(t, response, "查询响应不应为空")
@@ -203,9 +203,9 @@ func TestSimpleProductService(t *testing.T) {
 			Page:     1,
 			PageSize: 10,
 		}
-		
+
 		response, err := productService.SearchProducts(req)
-		
+
 		// 验证搜索结果
 		assert.NoError(t, err, "搜索商品应该成功")
 		assert.NotNil(t, response, "搜索响应不应为空")
@@ -252,9 +252,9 @@ func TestSimpleProductService(t *testing.T) {
 			Page:       1,
 			PageSize:   10,
 		}
-		
+
 		response, err := productService.ListProducts(req)
-		
+
 		// 验证筛选结果
 		assert.NoError(t, err, "按分类筛选商品应该成功")
 		assert.NotNil(t, response, "筛选响应不应为空")

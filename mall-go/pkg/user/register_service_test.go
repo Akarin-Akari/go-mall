@@ -321,8 +321,8 @@ func TestRegisterService_ValidationMethods(t *testing.T) {
 	// 测试用户名验证
 	assert.True(t, service.isValidUsername("validuser123"))
 	assert.True(t, service.isValidUsername("user_name"))
-	assert.False(t, service.isValidUsername("ab"))           // 太短
-	assert.False(t, service.isValidUsername("user@name"))    // 包含非法字符
+	assert.False(t, service.isValidUsername("ab"))                                              // 太短
+	assert.False(t, service.isValidUsername("user@name"))                                       // 包含非法字符
 	assert.False(t, service.isValidUsername("verylongusernamethatexceedsfiftycharacterslimit")) // 太长
 
 	// 测试邮箱验证
@@ -335,9 +335,9 @@ func TestRegisterService_ValidationMethods(t *testing.T) {
 	// 测试密码验证
 	assert.True(t, service.isValidPassword("password123"))
 	assert.True(t, service.isValidPassword("123456"))
-	assert.False(t, service.isValidPassword("12345"))  // 太短
-	assert.False(t, service.isValidPassword(""))       // 空密码
-	assert.False(t, service.isValidPassword("   "))    // 只有空格
+	assert.False(t, service.isValidPassword("12345")) // 太短
+	assert.False(t, service.isValidPassword(""))      // 空密码
+	assert.False(t, service.isValidPassword("   "))   // 只有空格
 
 	// 测试手机号验证
 	assert.True(t, service.isValidPhone("13812345678"))

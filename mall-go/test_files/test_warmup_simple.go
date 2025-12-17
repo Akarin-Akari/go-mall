@@ -46,7 +46,7 @@ func main() {
 	// 测试配置
 	cfg := cwm.GetConfig()
 	if cfg != nil {
-		fmt.Printf("  ✅ 配置获取成功: Mode=%s, BatchSize=%d, MaxConcurrency=%d\n", 
+		fmt.Printf("  ✅ 配置获取成功: Mode=%s, BatchSize=%d, MaxConcurrency=%d\n",
 			cfg.Mode, cfg.BatchSize, cfg.MaxConcurrency)
 	} else {
 		fmt.Println("  ❌ 配置获取失败")
@@ -62,7 +62,7 @@ func main() {
 	// 测试进度信息
 	progress := cwm.GetProgress()
 	if progress != nil {
-		fmt.Printf("  ✅ 进度信息获取成功: TotalTasks=%d, CompletedTasks=%d\n", 
+		fmt.Printf("  ✅ 进度信息获取成功: TotalTasks=%d, CompletedTasks=%d\n",
 			progress.TotalTasks, progress.CompletedTasks)
 	} else {
 		fmt.Println("  ❌ 进度信息获取失败")
@@ -71,7 +71,7 @@ func main() {
 	// 测试统计信息
 	stats := cwm.GetStats()
 	if stats != nil {
-		fmt.Printf("  ✅ 统计信息获取成功: TotalWarmups=%d, SuccessfulWarmups=%d\n", 
+		fmt.Printf("  ✅ 统计信息获取成功: TotalWarmups=%d, SuccessfulWarmups=%d\n",
 			stats.TotalWarmups, stats.SuccessfulWarmups)
 	} else {
 		fmt.Println("  ❌ 统计信息获取失败")
@@ -140,7 +140,7 @@ func main() {
 	}
 
 	if task != nil {
-		fmt.Printf("  ✅ 任务结构验证成功: ID=%s, Strategy=%s, Priority=%d\n", 
+		fmt.Printf("  ✅ 任务结构验证成功: ID=%s, Strategy=%s, Priority=%d\n",
 			task.ID, task.Strategy, task.Priority)
 	}
 
@@ -155,7 +155,7 @@ func main() {
 	}
 
 	if progressStruct != nil {
-		fmt.Printf("  ✅ 进度结构验证成功: Total=%d, Completed=%d, Rate=%.1f%%\n", 
+		fmt.Printf("  ✅ 进度结构验证成功: Total=%d, Completed=%d, Rate=%.1f%%\n",
 			progressStruct.TotalTasks, progressStruct.CompletedTasks, progressStruct.ProgressRate)
 	}
 
@@ -169,7 +169,7 @@ func main() {
 	}
 
 	if statsStruct != nil {
-		fmt.Printf("  ✅ 统计结构验证成功: Total=%d, Success=%d, Rate=%.1f%%\n", 
+		fmt.Printf("  ✅ 统计结构验证成功: Total=%d, Success=%d, Rate=%.1f%%\n",
 			statsStruct.TotalWarmups, statsStruct.SuccessfulWarmups, statsStruct.SuccessRate)
 	}
 
@@ -178,18 +178,18 @@ func main() {
 		ProductSoldCountThreshold:  100,
 		ProductViewCountThreshold:  1000,
 		ProductRatingThreshold:     4.0,
-		ProductDaysRange:          30,
-		UserLoginDaysThreshold:    7,
-		UserOrderCountThreshold:   5,
-		UserActivityScore:         0.7,
-		CategoryProductCount:      10,
+		ProductDaysRange:           30,
+		UserLoginDaysThreshold:     7,
+		UserOrderCountThreshold:    5,
+		UserActivityScore:          0.7,
+		CategoryProductCount:       10,
 		CategoryViewCountThreshold: 500,
 	}
 
 	if hotDataConfig != nil {
-		fmt.Printf("  ✅ 热点数据配置验证成功: SoldThreshold=%d, ViewThreshold=%d, Rating=%.1f\n", 
-			hotDataConfig.ProductSoldCountThreshold, 
-			hotDataConfig.ProductViewCountThreshold, 
+		fmt.Printf("  ✅ 热点数据配置验证成功: SoldThreshold=%d, ViewThreshold=%d, Rating=%.1f\n",
+			hotDataConfig.ProductSoldCountThreshold,
+			hotDataConfig.ProductViewCountThreshold,
 			hotDataConfig.ProductRatingThreshold)
 	}
 

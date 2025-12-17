@@ -94,16 +94,16 @@ func (h *UploadHandler) UploadSingle(c *gin.Context) {
 
 	// 保存文件记录到数据库
 	fileRecord := &model.File{
-		UserID:      userID.(uint),
+		UserID:       userID.(uint),
 		OriginalName: header.Filename,
-		FileName:    fileName,
-		FilePath:    filePath,
-		FileSize:    header.Size,
-		ContentType: validationResult.ContentType,
-		Category:    category,
-		Description: description,
-		URL:         h.storageManager.GetURL(filePath),
-		Status:      "active",
+		FileName:     fileName,
+		FilePath:     filePath,
+		FileSize:     header.Size,
+		ContentType:  validationResult.ContentType,
+		Category:     category,
+		Description:  description,
+		URL:          h.storageManager.GetURL(filePath),
+		Status:       "active",
 	}
 
 	if err := h.db.Create(fileRecord).Error; err != nil {
@@ -407,10 +407,10 @@ func (h *UploadHandler) GetUploadConfig(c *gin.Context) {
 func (h *UploadHandler) generateFilePath(category, fileName string) string {
 	now := time.Now()
 	datePath := fmt.Sprintf("%d/%02d/%02d", now.Year(), now.Month(), now.Day())
-	
+
 	if category != "" && category != "general" {
 		return filepath.Join(category, datePath, fileName)
 	}
-	
+
 	return filepath.Join(datePath, fileName)
 }

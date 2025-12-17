@@ -33,13 +33,13 @@ const (
 // LogConfig 日志配置
 type LogConfig struct {
 	Level      LogLevel `json:"level" yaml:"level"`
-	Format     string   `json:"format" yaml:"format"`         // json or console
-	Output     string   `json:"output" yaml:"output"`         // stdout, stderr, file
-	Filename   string   `json:"filename" yaml:"filename"`     // 日志文件名
-	MaxSize    int      `json:"max_size" yaml:"max_size"`     // 日志文件最大大小(MB)
-	MaxAge     int      `json:"max_age" yaml:"max_age"`       // 保留天数
+	Format     string   `json:"format" yaml:"format"`           // json or console
+	Output     string   `json:"output" yaml:"output"`           // stdout, stderr, file
+	Filename   string   `json:"filename" yaml:"filename"`       // 日志文件名
+	MaxSize    int      `json:"max_size" yaml:"max_size"`       // 日志文件最大大小(MB)
+	MaxAge     int      `json:"max_age" yaml:"max_age"`         // 保留天数
 	MaxBackups int      `json:"max_backups" yaml:"max_backups"` // 保留文件数
-	Compress   bool     `json:"compress" yaml:"compress"`     // 是否压缩
+	Compress   bool     `json:"compress" yaml:"compress"`       // 是否压缩
 }
 
 // StructuredLog 结构化日志字段
@@ -140,8 +140,8 @@ func InitWithConfig(config LogConfig) {
 	// 创建日志器
 	Logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 	Sugar = Logger.Sugar()
-	
-	Info("Logger initialized successfully", 
+
+	Info("Logger initialized successfully",
 		zap.String("level", string(config.Level)),
 		zap.String("format", config.Format),
 		zap.String("output", config.Output))
@@ -169,7 +169,7 @@ func getFileWriter(config LogConfig) zapcore.WriteSyncer {
 			panic(fmt.Sprintf("failed to create log directory: %v", err))
 		}
 	}
-	
+
 	// 这里应该使用 lumberjack 来实现日志轮转，但为了简化先使用文件
 	file, err := os.OpenFile(config.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
@@ -185,7 +185,7 @@ func WithContext(ctx context.Context) *zap.Logger {
 	}
 
 	fields := []zap.Field{}
-	
+
 	// 添加追踪ID
 	if traceID, ok := ctx.Value(traceIDKey).(string); ok && traceID != "" {
 		fields = append(fields, zap.String("trace_id", traceID))
@@ -207,7 +207,7 @@ func WithContext(ctx context.Context) *zap.Logger {
 	if len(fields) > 0 {
 		return Logger.With(fields...)
 	}
-	
+
 	return Logger
 }
 
@@ -235,7 +235,7 @@ func ContextWithRequest(ctx context.Context, reqCtx *RequestContext) context.Con
 func GinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		
+
 		// 创建请求上下文
 		userID := ""
 		if uid, exists := c.Get("user_id"); exists {
@@ -245,15 +245,15 @@ func GinMiddleware() gin.HandlerFunc {
 				userID = fmt.Sprintf("%d", uidUint)
 			}
 		}
-		
+
 		reqCtx := NewRequestContext(userID)
 		ctx := ContextWithRequest(c.Request.Context(), reqCtx)
 		c.Request = c.Request.WithContext(ctx)
-		
+
 		// 设置响应头
 		c.Header("X-Trace-ID", reqCtx.TraceID)
 		c.Header("X-Request-ID", reqCtx.RequestID)
-		
+
 		// 记录请求开始
 		WithContext(ctx).Info("Request started",
 			zap.String("method", c.Request.Method),
@@ -268,7 +268,7 @@ func GinMiddleware() gin.HandlerFunc {
 
 		// 计算处理时间
 		duration := time.Since(start)
-		
+
 		// 记录请求完成
 		logger := WithContext(ctx)
 		fields := []zap.Field{
@@ -278,12 +278,12 @@ func GinMiddleware() gin.HandlerFunc {
 			zap.Duration("duration", duration),
 			zap.Int("response_size", c.Writer.Size()),
 		}
-		
+
 		// 添加错误信息（如果有）
 		if len(c.Errors) > 0 {
 			fields = append(fields, zap.String("error", c.Errors.String()))
 		}
-		
+
 		if c.Writer.Status() >= 400 {
 			logger.Error("Request completed with error", fields...)
 		} else {
@@ -299,7 +299,7 @@ func LogStructured(level LogLevel, message string, log StructuredLog) {
 	}
 
 	fields := []zap.Field{}
-	
+
 	if log.TraceID != "" {
 		fields = append(fields, zap.String("trace_id", log.TraceID))
 	}
@@ -355,19 +355,19 @@ func LogStructured(level LogLevel, message string, log StructuredLog) {
 // LogPerformance 记录性能日志
 func LogPerformance(ctx context.Context, operation string, duration time.Duration, metadata map[string]interface{}) {
 	logger := WithContext(ctx)
-	
+
 	fields := []zap.Field{
 		zap.String("operation", operation),
 		zap.Duration("duration", duration),
 		zap.String("performance_type", "timing"),
 	}
-	
+
 	if metadata != nil {
 		for k, v := range metadata {
 			fields = append(fields, zap.Any(k, v))
 		}
 	}
-	
+
 	// 根据执行时间判断日志级别
 	if duration > time.Second {
 		logger.Warn("Slow operation detected", fields...)
@@ -381,7 +381,7 @@ func LogPerformance(ctx context.Context, operation string, duration time.Duratio
 // LogBusinessEvent 记录业务事件日志
 func LogBusinessEvent(ctx context.Context, event string, entity string, entityID string, action string, metadata map[string]interface{}) {
 	logger := WithContext(ctx)
-	
+
 	fields := []zap.Field{
 		zap.String("event_type", "business"),
 		zap.String("event", event),
@@ -390,33 +390,33 @@ func LogBusinessEvent(ctx context.Context, event string, entity string, entityID
 		zap.String("action", action),
 		zap.Time("event_time", time.Now()),
 	}
-	
+
 	if metadata != nil {
 		for k, v := range metadata {
 			fields = append(fields, zap.Any(k, v))
 		}
 	}
-	
+
 	logger.Info("Business event", fields...)
 }
 
 // LogSecurityEvent 记录安全事件日志
 func LogSecurityEvent(ctx context.Context, event string, severity string, details map[string]interface{}) {
 	logger := WithContext(ctx)
-	
+
 	fields := []zap.Field{
 		zap.String("event_type", "security"),
 		zap.String("security_event", event),
 		zap.String("severity", severity),
 		zap.Time("event_time", time.Now()),
 	}
-	
+
 	if details != nil {
 		for k, v := range details {
 			fields = append(fields, zap.Any(k, v))
 		}
 	}
-	
+
 	// 根据严重程度选择日志级别
 	switch severity {
 	case "critical", "high":

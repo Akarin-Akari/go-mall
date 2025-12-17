@@ -106,7 +106,7 @@ func InitGlobalConfigManagerWithEnv() error {
 func (cm *ConfigManager) GetConfig() *UploadConfig {
 	cm.mutex.RLock()
 	defer cm.mutex.RUnlock()
-	
+
 	// 返回配置的副本，避免外部修改
 	configCopy := *cm.config
 	return &configCopy

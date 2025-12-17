@@ -51,11 +51,11 @@ func (ss *SyncService) syncCategoryNames() error {
 		) 
 		WHERE category_id IS NOT NULL
 	`)
-	
+
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	log.Printf("✅ 同步分类名称完成，影响 %d 条记录", result.RowsAffected)
 	return nil
 }
@@ -69,11 +69,11 @@ func (ss *SyncService) syncBrandNames() error {
 		) 
 		WHERE brand_id IS NOT NULL AND brand_id > 0
 	`)
-	
+
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	log.Printf("✅ 同步品牌名称完成，影响 %d 条记录", result.RowsAffected)
 	return nil
 }
@@ -87,11 +87,11 @@ func (ss *SyncService) syncMerchantNames() error {
 		) 
 		WHERE merchant_id IS NOT NULL
 	`)
-	
+
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	log.Printf("✅ 同步商家名称完成，影响 %d 条记录", result.RowsAffected)
 	return nil
 }
@@ -144,11 +144,11 @@ func (ss *SyncService) OnCategoryUpdate(categoryID uint, newName string) error {
 	result := ss.db.Model(&model.Product{}).
 		Where("category_id = ?", categoryID).
 		Update("category_name", newName)
-	
+
 	if result.Error != nil {
 		return fmt.Errorf("更新商品分类名称失败: %v", result.Error)
 	}
-	
+
 	log.Printf("✅ 分类更新同步完成，影响 %d 个商品", result.RowsAffected)
 	return nil
 }
@@ -158,11 +158,11 @@ func (ss *SyncService) OnBrandUpdate(brandID uint, newName string) error {
 	result := ss.db.Model(&model.Product{}).
 		Where("brand_id = ?", brandID).
 		Update("brand_name", newName)
-	
+
 	if result.Error != nil {
 		return fmt.Errorf("更新商品品牌名称失败: %v", result.Error)
 	}
-	
+
 	log.Printf("✅ 品牌更新同步完成，影响 %d 个商品", result.RowsAffected)
 	return nil
 }
@@ -172,11 +172,11 @@ func (ss *SyncService) OnMerchantUpdate(merchantID uint, newUsername string) err
 	result := ss.db.Model(&model.Product{}).
 		Where("merchant_id = ?", merchantID).
 		Update("merchant_name", newUsername)
-	
+
 	if result.Error != nil {
 		return fmt.Errorf("更新商品商家名称失败: %v", result.Error)
 	}
-	
+
 	log.Printf("✅ 商家更新同步完成，影响 %d 个商品", result.RowsAffected)
 	return nil
 }

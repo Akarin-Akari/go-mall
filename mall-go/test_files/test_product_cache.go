@@ -97,37 +97,37 @@ func createTestProduct(id uint, name string, price float64) *model.Product {
 		CategoryID:  1,
 		BrandID:     1,
 		MerchantID:  1,
-		
+
 		CategoryName: "测试分类",
 		BrandName:    "测试品牌",
 		MerchantName: "测试商家",
-		
+
 		Price:       decimal.NewFromFloat(price),
 		OriginPrice: decimal.NewFromFloat(price * 2),
 		CostPrice:   decimal.NewFromFloat(price * 0.5),
-		
+
 		Stock:     100,
 		MinStock:  10,
 		MaxStock:  1000,
 		SoldCount: 50,
 		Version:   1,
-		
+
 		Weight: decimal.NewFromFloat(1.5),
 		Volume: decimal.NewFromFloat(0.5),
 		Unit:   "件",
-		
+
 		Status:      "active",
 		IsHot:       true,
 		IsNew:       false,
 		IsRecommend: true,
-		
+
 		SEOTitle:       fmt.Sprintf("%s SEO标题", name),
 		SEOKeywords:    "测试,商品,关键词",
 		SEODescription: fmt.Sprintf("%s SEO描述", name),
-		
+
 		Sort:      100,
 		ViewCount: 1000,
-		
+
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -158,7 +158,7 @@ func testBasicCRUD(productCache *cache.ProductCacheService) {
 		return
 	}
 	if cachedProduct != nil {
-		fmt.Printf("  ✅ 获取商品缓存成功: ID=%d, Name=%s, Price=%s\n", 
+		fmt.Printf("  ✅ 获取商品缓存成功: ID=%d, Name=%s, Price=%s\n",
 			cachedProduct.ID, cachedProduct.Name, cachedProduct.Price)
 	} else {
 		fmt.Println("  ❌ 商品缓存未命中")
@@ -257,7 +257,7 @@ func testCacheWarmup(productCache *cache.ProductCacheService) {
 		fmt.Printf("  ❌ 验证预热结果失败: %v\n", err)
 		return
 	}
-	fmt.Printf("  ✅ 预热验证成功: 命中率=%.1f%%\n", 
+	fmt.Printf("  ✅ 预热验证成功: 命中率=%.1f%%\n",
 		float64(len(cachedProducts))/float64(len(productIDs))*100)
 }
 

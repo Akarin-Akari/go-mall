@@ -18,7 +18,7 @@ func main() {
 	// 加载配置
 	fmt.Println("📋 加载配置文件...")
 	config.Load()
-	
+
 	fmt.Printf("✅ 配置加载成功\n")
 	fmt.Printf("   数据库主机: %s:%d\n", config.GlobalConfig.Database.Host, config.GlobalConfig.Database.Port)
 	fmt.Printf("   数据库名称: %s\n", config.GlobalConfig.Database.DBName)
@@ -26,7 +26,7 @@ func main() {
 
 	// 测试数据库连接
 	fmt.Println("\n🔌 测试数据库连接...")
-	
+
 	db := database.Init()
 	if db == nil {
 		log.Fatal("❌ 数据库初始化失败")
@@ -36,7 +36,7 @@ func main() {
 
 	// 测试数据库操作
 	fmt.Println("\n🧪 测试数据库操作...")
-	
+
 	// 测试查询用户表
 	var userCount int64
 	if err := db.Table("users").Count(&userCount).Error; err != nil {

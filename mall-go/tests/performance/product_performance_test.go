@@ -27,7 +27,7 @@ func TestProductAPIPerformance(t *testing.T) {
 			page := rand.Intn(10) + 1
 			pageSize := rand.Intn(20) + 10
 			path := fmt.Sprintf("/api/product/list?page=%d&page_size=%d", page, pageSize)
-			
+
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
 
@@ -39,7 +39,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 300.0, "QPS应大于300")
 		assert.Less(t, result.ErrorRate, 3.0, "错误率应小于3%")
 
-		t.Logf("✅ 商品列表查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 商品列表查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -51,7 +51,7 @@ func TestProductAPIPerformance(t *testing.T) {
 			// 查询随机商品详情
 			productID := rand.Intn(1000) + 1
 			path := fmt.Sprintf("/api/product/%d", productID)
-			
+
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
 
@@ -63,7 +63,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 500.0, "QPS应大于500")
 		assert.Less(t, result.ErrorRate, 2.0, "错误率应小于2%")
 
-		t.Logf("✅ 商品详情查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 商品详情查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -81,9 +81,9 @@ func TestProductAPIPerformance(t *testing.T) {
 			keyword := searchKeywords[rand.Intn(len(searchKeywords))]
 			page := rand.Intn(5) + 1
 			pageSize := rand.Intn(10) + 10
-			path := fmt.Sprintf("/api/product/search?keyword=%s&page=%d&page_size=%d", 
+			path := fmt.Sprintf("/api/product/search?keyword=%s&page=%d&page_size=%d",
 				keyword, page, pageSize)
-			
+
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
 
@@ -95,7 +95,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 200.0, "QPS应大于200")
 		assert.Less(t, result.ErrorRate, 5.0, "错误率应小于5%")
 
-		t.Logf("✅ 商品搜索性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 商品搜索性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -108,9 +108,9 @@ func TestProductAPIPerformance(t *testing.T) {
 			categoryID := rand.Intn(20) + 1
 			page := rand.Intn(10) + 1
 			pageSize := rand.Intn(15) + 10
-			path := fmt.Sprintf("/api/product/category/%d?page=%d&page_size=%d", 
+			path := fmt.Sprintf("/api/product/category/%d?page=%d&page_size=%d",
 				categoryID, page, pageSize)
-			
+
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
 
@@ -122,7 +122,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 400.0, "QPS应大于400")
 		assert.Less(t, result.ErrorRate, 3.0, "错误率应小于3%")
 
-		t.Logf("✅ 分类商品查询性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 分类商品查询性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -135,7 +135,7 @@ func TestProductAPIPerformance(t *testing.T) {
 			hotProductIDs := []int{1, 2, 3, 4, 5, 10, 20, 50, 100, 200}
 			productID := hotProductIDs[rand.Intn(len(hotProductIDs))]
 			path := fmt.Sprintf("/api/product/%d", productID)
-			
+
 			return suite.MakeHTTPRequest("GET", path, nil)
 		}
 
@@ -147,7 +147,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 200.0, "压力测试QPS应大于200")
 		assert.Less(t, result.ErrorRate, 10.0, "压力测试错误率应小于10%")
 
-		t.Logf("✅ 商品高并发查询压力测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 商品高并发查询压力测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 
@@ -160,30 +160,30 @@ func TestProductAPIPerformance(t *testing.T) {
 		requestFunc := func() *RequestResult {
 			// 随机选择操作类型
 			operation := operations[rand.Intn(len(operations))]
-			
+
 			switch operation {
 			case "list":
 				page := rand.Intn(5) + 1
 				pageSize := rand.Intn(10) + 10
 				path := fmt.Sprintf("/api/product/list?page=%d&page_size=%d", page, pageSize)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			case "detail":
 				productID := rand.Intn(1000) + 1
 				path := fmt.Sprintf("/api/product/%d", productID)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			case "search":
 				keywords := []string{"测试", "商品", "电商"}
 				keyword := keywords[rand.Intn(len(keywords))]
 				path := fmt.Sprintf("/api/product/search?keyword=%s", keyword)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			case "category":
 				categoryID := rand.Intn(20) + 1
 				path := fmt.Sprintf("/api/product/category/%d", categoryID)
 				return suite.MakeHTTPRequest("GET", path, nil)
-				
+
 			default:
 				return suite.MakeHTTPRequest("GET", "/api/product/list", nil)
 			}
@@ -197,7 +197,7 @@ func TestProductAPIPerformance(t *testing.T) {
 		assert.Greater(t, result.RequestsPerSec, 250.0, "QPS应大于250")
 		assert.Less(t, result.ErrorRate, 5.0, "错误率应小于5%")
 
-		t.Logf("✅ 商品混合操作性能测试通过 - 平均响应时间: %v, QPS: %.2f", 
+		t.Logf("✅ 商品混合操作性能测试通过 - 平均响应时间: %v, QPS: %.2f",
 			result.AverageTime, result.RequestsPerSec)
 	})
 }
@@ -206,7 +206,7 @@ func TestProductAPIPerformance(t *testing.T) {
 func BenchmarkProductList(b *testing.B) {
 	suite := SetupPerformanceTest(&testing.T{})
 	defer suite.CleanupPerformanceTest()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(&testing.T{})
 
@@ -218,7 +218,7 @@ func BenchmarkProductList(b *testing.B) {
 			page := i%10 + 1
 			pageSize := 20
 			path := fmt.Sprintf("/api/product/list?page=%d&page_size=%d", page, pageSize)
-			
+
 			result := suite.MakeHTTPRequest("GET", path, nil)
 			if !result.Success {
 				b.Errorf("商品列表查询失败: %v", result.Error)
@@ -231,7 +231,7 @@ func BenchmarkProductList(b *testing.B) {
 func BenchmarkProductDetail(b *testing.B) {
 	suite := SetupPerformanceTest(&testing.T{})
 	defer suite.CleanupPerformanceTest()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(&testing.T{})
 
@@ -242,7 +242,7 @@ func BenchmarkProductDetail(b *testing.B) {
 			i++
 			productID := i%1000 + 1
 			path := fmt.Sprintf("/api/product/%d", productID)
-			
+
 			result := suite.MakeHTTPRequest("GET", path, nil)
 			if !result.Success {
 				b.Errorf("商品详情查询失败: %v", result.Error)
@@ -255,7 +255,7 @@ func BenchmarkProductDetail(b *testing.B) {
 func BenchmarkProductSearch(b *testing.B) {
 	suite := SetupPerformanceTest(&testing.T{})
 	defer suite.CleanupPerformanceTest()
-	
+
 	// 创建测试数据
 	suite.CreateTestData(&testing.T{})
 
@@ -268,7 +268,7 @@ func BenchmarkProductSearch(b *testing.B) {
 			i++
 			keyword := keywords[i%len(keywords)]
 			path := fmt.Sprintf("/api/product/search?keyword=%s", keyword)
-			
+
 			result := suite.MakeHTTPRequest("GET", path, nil)
 			if !result.Success {
 				b.Errorf("商品搜索失败: %v", result.Error)

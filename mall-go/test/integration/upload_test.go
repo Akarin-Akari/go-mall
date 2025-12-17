@@ -67,7 +67,7 @@ func (suite *UploadIntegrationTestSuite) SetupSuite() {
 
 	// 设置路由
 	router := gin.New()
-	
+
 	// 添加认证中间件模拟
 	router.Use(func(c *gin.Context) {
 		// 模拟用户认证
@@ -237,7 +237,7 @@ func (suite *UploadIntegrationTestSuite) TestListFiles() {
 	data, ok := resp.Data.(map[string]interface{})
 	suite.True(ok)
 	suite.GreaterOrEqual(data["total"].(float64), float64(3))
-	
+
 	files, ok := data["files"].([]interface{})
 	suite.True(ok)
 	suite.GreaterOrEqual(len(files), 3)
@@ -437,7 +437,7 @@ func (suite *UploadIntegrationTestSuite) uploadTestFile(filename, content string
 	var resp response.Response
 	json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp.Data.(map[string]interface{})
-	
+
 	return uint(data["file_id"].(float64))
 }
 

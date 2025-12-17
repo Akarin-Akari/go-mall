@@ -37,10 +37,10 @@ func DefaultUpdateConfig() *UpdateConfig {
 
 // UpdateResult 更新结果
 type UpdateResult struct {
-	Success      bool   // 是否成功
-	RowsAffected int64  // 影响行数
-	Retries      int    // 重试次数
-	Error        error  // 错误信息
+	Success      bool  // 是否成功
+	RowsAffected int64 // 影响行数
+	Retries      int   // 重试次数
+	Error        error // 错误信息
 }
 
 // UpdateWithOptimisticLock 使用乐观锁更新记录
@@ -105,7 +105,7 @@ func (ols *OptimisticLockService) UpdateWithOptimisticLock(
 		}
 
 		// 计算退避时间并等待
-		backoffTime := time.Duration(float64(config.RetryInterval) * 
+		backoffTime := time.Duration(float64(config.RetryInterval) *
 			(1 + float64(retries)*config.BackoffFactor))
 		time.Sleep(backoffTime)
 	}
@@ -240,11 +240,11 @@ func (ols *OptimisticLockService) BatchUpdateWithOptimisticLock(
 
 // ConflictStatistics 冲突统计
 type ConflictStatistics struct {
-	TotalUpdates    int64 // 总更新次数
-	ConflictCount   int64 // 冲突次数
-	ConflictRate    float64 // 冲突率
-	AvgRetries      float64 // 平均重试次数
-	MaxRetries      int   // 最大重试次数
+	TotalUpdates  int64   // 总更新次数
+	ConflictCount int64   // 冲突次数
+	ConflictRate  float64 // 冲突率
+	AvgRetries    float64 // 平均重试次数
+	MaxRetries    int     // 最大重试次数
 }
 
 // GetConflictStatistics 获取冲突统计信息（需要应用层记录）

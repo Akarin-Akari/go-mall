@@ -13,50 +13,50 @@ import (
 // PaymentMetrics 支付系统指标
 type PaymentMetrics struct {
 	mu sync.RWMutex
-	
+
 	// 支付创建指标
-	CreatePaymentTotal     map[string]int64          `json:"create_payment_total"`
-	CreatePaymentSuccess   map[string]int64          `json:"create_payment_success"`
-	CreatePaymentFailed    map[string]int64          `json:"create_payment_failed"`
-	CreatePaymentDuration  map[string][]time.Duration `json:"-"` // 不序列化，内存中统计用
+	CreatePaymentTotal    map[string]int64           `json:"create_payment_total"`
+	CreatePaymentSuccess  map[string]int64           `json:"create_payment_success"`
+	CreatePaymentFailed   map[string]int64           `json:"create_payment_failed"`
+	CreatePaymentDuration map[string][]time.Duration `json:"-"` // 不序列化，内存中统计用
 
 	// 支付查询指标
-	QueryPaymentTotal     map[string]int64          `json:"query_payment_total"`
-	QueryPaymentSuccess   map[string]int64          `json:"query_payment_success"`
-	QueryPaymentFailed    map[string]int64          `json:"query_payment_failed"`
-	QueryPaymentDuration  map[string][]time.Duration `json:"-"`
+	QueryPaymentTotal    map[string]int64           `json:"query_payment_total"`
+	QueryPaymentSuccess  map[string]int64           `json:"query_payment_success"`
+	QueryPaymentFailed   map[string]int64           `json:"query_payment_failed"`
+	QueryPaymentDuration map[string][]time.Duration `json:"-"`
 
 	// 支付回调指标
-	CallbackTotal         map[string]int64          `json:"callback_total"`
-	CallbackSuccess       map[string]int64          `json:"callback_success"`
-	CallbackFailed        map[string]int64          `json:"callback_failed"`
+	CallbackTotal   map[string]int64 `json:"callback_total"`
+	CallbackSuccess map[string]int64 `json:"callback_success"`
+	CallbackFailed  map[string]int64 `json:"callback_failed"`
 
 	// 系统指标
-	LastResetTime         time.Time                 `json:"last_reset_time"`
-	CurrentConnections    int64                     `json:"current_connections"`
-	TotalRequests         int64                     `json:"total_requests"`
+	LastResetTime      time.Time `json:"last_reset_time"`
+	CurrentConnections int64     `json:"current_connections"`
+	TotalRequests      int64     `json:"total_requests"`
 }
 
 // PaymentMetricsSummary 支付指标摘要
 type PaymentMetricsSummary struct {
-	Method              string        `json:"method"`
-	CreateTotal         int64         `json:"create_total"`
-	CreateSuccess       int64         `json:"create_success"`
-	CreateFailed        int64         `json:"create_failed"`
-	CreateSuccessRate   float64       `json:"create_success_rate"`
-	CreateAvgDuration   time.Duration `json:"create_avg_duration"`
-	CreateP95Duration   time.Duration `json:"create_p95_duration"`
-	
-	QueryTotal          int64         `json:"query_total"`
-	QuerySuccess        int64         `json:"query_success"`
-	QueryFailed         int64         `json:"query_failed"`
-	QuerySuccessRate    float64       `json:"query_success_rate"`
-	QueryAvgDuration    time.Duration `json:"query_avg_duration"`
-	
-	CallbackTotal       int64         `json:"callback_total"`
-	CallbackSuccess     int64         `json:"callback_success"`
-	CallbackFailed      int64         `json:"callback_failed"`
-	CallbackSuccessRate float64       `json:"callback_success_rate"`
+	Method            string        `json:"method"`
+	CreateTotal       int64         `json:"create_total"`
+	CreateSuccess     int64         `json:"create_success"`
+	CreateFailed      int64         `json:"create_failed"`
+	CreateSuccessRate float64       `json:"create_success_rate"`
+	CreateAvgDuration time.Duration `json:"create_avg_duration"`
+	CreateP95Duration time.Duration `json:"create_p95_duration"`
+
+	QueryTotal       int64         `json:"query_total"`
+	QuerySuccess     int64         `json:"query_success"`
+	QueryFailed      int64         `json:"query_failed"`
+	QuerySuccessRate float64       `json:"query_success_rate"`
+	QueryAvgDuration time.Duration `json:"query_avg_duration"`
+
+	CallbackTotal       int64   `json:"callback_total"`
+	CallbackSuccess     int64   `json:"callback_success"`
+	CallbackFailed      int64   `json:"callback_failed"`
+	CallbackSuccessRate float64 `json:"callback_success_rate"`
 }
 
 // NewPaymentMetrics 创建支付指标实例
@@ -66,17 +66,17 @@ func NewPaymentMetrics() *PaymentMetrics {
 		CreatePaymentSuccess:  make(map[string]int64),
 		CreatePaymentFailed:   make(map[string]int64),
 		CreatePaymentDuration: make(map[string][]time.Duration),
-		
-		QueryPaymentTotal:     make(map[string]int64),
-		QueryPaymentSuccess:   make(map[string]int64),
-		QueryPaymentFailed:    make(map[string]int64),
-		QueryPaymentDuration:  make(map[string][]time.Duration),
-		
-		CallbackTotal:         make(map[string]int64),
-		CallbackSuccess:       make(map[string]int64),
-		CallbackFailed:        make(map[string]int64),
-		
-		LastResetTime:         time.Now(),
+
+		QueryPaymentTotal:    make(map[string]int64),
+		QueryPaymentSuccess:  make(map[string]int64),
+		QueryPaymentFailed:   make(map[string]int64),
+		QueryPaymentDuration: make(map[string][]time.Duration),
+
+		CallbackTotal:   make(map[string]int64),
+		CallbackSuccess: make(map[string]int64),
+		CallbackFailed:  make(map[string]int64),
+
+		LastResetTime: time.Now(),
 	}
 }
 
@@ -100,7 +100,7 @@ func (pm *PaymentMetrics) RecordCreatePayment(method model.PaymentMethod, status
 	if pm.CreatePaymentDuration[methodStr] == nil {
 		pm.CreatePaymentDuration[methodStr] = make([]time.Duration, 0)
 	}
-	
+
 	// 保留最近1000条记录用于统计
 	if len(pm.CreatePaymentDuration[methodStr]) >= 1000 {
 		pm.CreatePaymentDuration[methodStr] = pm.CreatePaymentDuration[methodStr][100:]
@@ -136,7 +136,7 @@ func (pm *PaymentMetrics) RecordQueryPayment(method model.PaymentMethod, status 
 	if pm.QueryPaymentDuration[methodStr] == nil {
 		pm.QueryPaymentDuration[methodStr] = make([]time.Duration, 0)
 	}
-	
+
 	if len(pm.QueryPaymentDuration[methodStr]) >= 1000 {
 		pm.QueryPaymentDuration[methodStr] = pm.QueryPaymentDuration[methodStr][100:]
 	}
@@ -193,16 +193,16 @@ func (pm *PaymentMetrics) GetSummary() []PaymentMetricsSummary {
 
 	for _, method := range methods {
 		summary := PaymentMetricsSummary{
-			Method:            method,
-			CreateTotal:       pm.CreatePaymentTotal[method],
-			CreateSuccess:     pm.CreatePaymentSuccess[method],
-			CreateFailed:      pm.CreatePaymentFailed[method],
-			QueryTotal:        pm.QueryPaymentTotal[method],
-			QuerySuccess:      pm.QueryPaymentSuccess[method],
-			QueryFailed:       pm.QueryPaymentFailed[method],
-			CallbackTotal:     pm.CallbackTotal[method],
-			CallbackSuccess:   pm.CallbackSuccess[method],
-			CallbackFailed:    pm.CallbackFailed[method],
+			Method:          method,
+			CreateTotal:     pm.CreatePaymentTotal[method],
+			CreateSuccess:   pm.CreatePaymentSuccess[method],
+			CreateFailed:    pm.CreatePaymentFailed[method],
+			QueryTotal:      pm.QueryPaymentTotal[method],
+			QuerySuccess:    pm.QueryPaymentSuccess[method],
+			QueryFailed:     pm.QueryPaymentFailed[method],
+			CallbackTotal:   pm.CallbackTotal[method],
+			CallbackSuccess: pm.CallbackSuccess[method],
+			CallbackFailed:  pm.CallbackFailed[method],
 		}
 
 		// 计算成功率
@@ -252,7 +252,7 @@ func calculateP95(durations []time.Duration) time.Duration {
 	// 简单排序（生产环境建议使用更高效的排序算法）
 	sorted := make([]time.Duration, len(durations))
 	copy(sorted, durations)
-	
+
 	for i := 0; i < len(sorted)-1; i++ {
 		for j := 0; j < len(sorted)-i-1; j++ {
 			if sorted[j] > sorted[j+1] {
@@ -297,7 +297,7 @@ func (pm *PaymentMetrics) Reset() {
 // LogSummary 记录指标摘要到日志
 func (pm *PaymentMetrics) LogSummary() {
 	summaries := pm.GetSummary()
-	
+
 	logger.Info("📊 支付系统指标摘要",
 		zap.Int("method_count", len(summaries)),
 		zap.Int64("current_connections", pm.CurrentConnections),
@@ -330,7 +330,7 @@ func (pm *PaymentMetrics) StartPeriodicLogging(interval time.Duration) {
 			}
 		}
 	}()
-	
+
 	logger.Info("支付系统指标周期性日志记录已启动",
 		zap.Duration("interval", interval))
 }

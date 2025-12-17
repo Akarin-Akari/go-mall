@@ -87,12 +87,12 @@ func (fv *FileValidator) ValidateFile(filename string, reader io.Reader, size in
 
 // ValidationResult 验证结果
 type ValidationResult struct {
-	Valid       bool     `json:"valid"`        // 是否通过验证
-	Filename    string   `json:"filename"`     // 文件名
-	Size        int64    `json:"size"`         // 文件大小
-	ContentType string   `json:"content_type"` // 文件类型
-	Errors      []string `json:"errors"`       // 错误信息
-	Warnings    []string `json:"warnings"`     // 警告信息
+	Valid       bool       `json:"valid"`                // 是否通过验证
+	Filename    string     `json:"filename"`             // 文件名
+	Size        int64      `json:"size"`                 // 文件大小
+	ContentType string     `json:"content_type"`         // 文件类型
+	Errors      []string   `json:"errors"`               // 错误信息
+	Warnings    []string   `json:"warnings"`             // 警告信息
 	ImageInfo   *ImageInfo `json:"image_info,omitempty"` // 图片信息
 }
 
@@ -121,7 +121,7 @@ func (fv *FileValidator) validateFileSize(size int64, result *ValidationResult) 
 // validateFileExtension 验证文件扩展名
 func (fv *FileValidator) validateFileExtension(filename string, result *ValidationResult) error {
 	ext := strings.ToLower(filepath.Ext(filename))
-	
+
 	// 检查是否为禁止的扩展名
 	for _, forbiddenExt := range fv.config.Security.ForbiddenExts {
 		if ext == strings.ToLower(forbiddenExt) {
@@ -200,7 +200,7 @@ func (fv *FileValidator) checkFileHeaderMismatch(filename, contentType string, r
 	if expectedType != "" && contentType != expectedType {
 		// 某些情况下可能不完全匹配，给出警告而不是错误
 		if !fv.isAcceptableMismatch(ext, contentType, expectedType) {
-			result.Warnings = append(result.Warnings, 
+			result.Warnings = append(result.Warnings,
 				fmt.Sprintf("文件类型与扩展名不匹配: 扩展名 %s 期望 %s，实际 %s", ext, expectedType, contentType))
 		}
 	}
@@ -214,7 +214,7 @@ func (fv *FileValidator) isAcceptableMismatch(ext, actual, expected string) bool
 	if ext == ".jpg" || ext == ".jpeg" {
 		return actual == "image/jpeg" || expected == "image/jpeg"
 	}
-	
+
 	// 其他可接受的不匹配情况
 	acceptableMismatches := map[string][]string{
 		".png":  {"image/png"},
@@ -243,8 +243,8 @@ func (fv *FileValidator) checkExecutableFile(header []byte, result *ValidationRe
 	}
 
 	// ELF可执行文件特征
-	if len(header) >= 4 && header[0] == 0x7F && header[1] == 0x45 && 
-	   header[2] == 0x4C && header[3] == 0x46 { // ELF header
+	if len(header) >= 4 && header[0] == 0x7F && header[1] == 0x45 &&
+		header[2] == 0x4C && header[3] == 0x46 { // ELF header
 		result.Errors = append(result.Errors, "检测到Linux可执行文件")
 		return nil
 	}
@@ -321,19 +321,19 @@ func (fv *FileValidator) validateImage(reader io.Reader, result *ValidationResul
 
 	// 检查图片尺寸
 	if fv.config.Security.MaxImageWidth > 0 && config.Width > fv.config.Security.MaxImageWidth {
-		result.Errors = append(result.Errors, 
+		result.Errors = append(result.Errors,
 			fmt.Sprintf("图片宽度超过限制: %d > %d", config.Width, fv.config.Security.MaxImageWidth))
 	}
 
 	if fv.config.Security.MaxImageHeight > 0 && config.Height > fv.config.Security.MaxImageHeight {
-		result.Errors = append(result.Errors, 
+		result.Errors = append(result.Errors,
 			fmt.Sprintf("图片高度超过限制: %d > %d", config.Height, fv.config.Security.MaxImageHeight))
 	}
 
 	// 检查图片格式是否与文件类型匹配
 	expectedFormat := fv.getExpectedImageFormat(result.ContentType)
 	if expectedFormat != "" && format != expectedFormat {
-		result.Warnings = append(result.Warnings, 
+		result.Warnings = append(result.Warnings,
 			fmt.Sprintf("图片格式与文件类型不匹配: 格式 %s，类型 %s", format, result.ContentType))
 	}
 
@@ -344,7 +344,7 @@ func (fv *FileValidator) validateImage(reader io.Reader, result *ValidationResul
 func (fv *FileValidator) isImageFile(contentType string) bool {
 	imageTypes := []string{
 		"image/jpeg",
-		"image/png", 
+		"image/png",
 		"image/gif",
 		"image/webp",
 		"image/bmp",

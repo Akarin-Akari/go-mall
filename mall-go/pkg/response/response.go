@@ -1,7 +1,6 @@
 package response
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,21 +19,21 @@ type Response struct {
 
 // ErrorDetail 详细错误信息
 type ErrorDetail struct {
-	Field   string      `json:"field,omitempty"`   // 错误字段
-	Value   interface{} `json:"value,omitempty"`   // 错误值
-	Message string      `json:"message"`           // 错误消息
-	Code    string      `json:"code,omitempty"`    // 错误代码
+	Field   string      `json:"field,omitempty"` // 错误字段
+	Value   interface{} `json:"value,omitempty"` // 错误值
+	Message string      `json:"message"`         // 错误消息
+	Code    string      `json:"code,omitempty"`  // 错误代码
 }
 
 // ErrorResponse 详细错误响应结构
 type ErrorResponse struct {
-	Code      int           `json:"code"`                // 状态码
-	Message   string        `json:"message"`             // 主要错误消息
-	Details   []ErrorDetail `json:"details,omitempty"`   // 详细错误列表
-	TraceID   string        `json:"trace_id"`            // 追踪ID
-	Timestamp int64         `json:"timestamp"`           // 时间戳
-	Path      string        `json:"path,omitempty"`      // 请求路径
-	Method    string        `json:"method,omitempty"`    // 请求方法
+	Code      int           `json:"code"`              // 状态码
+	Message   string        `json:"message"`           // 主要错误消息
+	Details   []ErrorDetail `json:"details,omitempty"` // 详细错误列表
+	TraceID   string        `json:"trace_id"`          // 追踪ID
+	Timestamp int64         `json:"timestamp"`         // 时间戳
+	Path      string        `json:"path,omitempty"`    // 请求路径
+	Method    string        `json:"method,omitempty"`  // 请求方法
 }
 
 // PageResult 分页响应结构
@@ -47,43 +46,43 @@ type PageResult struct {
 
 // 状态码常量
 const (
-	CodeSuccess      = 200  // 成功
-	CodeError        = 500  // 服务器错误
-	CodeInvalidParam = 400  // 参数错误
-	CodeUnauthorized = 401  // 未授权
-	CodeForbidden    = 403  // 禁止访问
-	CodeNotFound     = 404  // 资源不存在
-	CodeConflict     = 409  // 资源冲突
-	CodeTooManyReq   = 429  // 请求过多
+	CodeSuccess      = 200 // 成功
+	CodeError        = 500 // 服务器错误
+	CodeInvalidParam = 400 // 参数错误
+	CodeUnauthorized = 401 // 未授权
+	CodeForbidden    = 403 // 禁止访问
+	CodeNotFound     = 404 // 资源不存在
+	CodeConflict     = 409 // 资源冲突
+	CodeTooManyReq   = 429 // 请求过多
 )
 
 // 业务错误代码常量
 const (
 	// 用户相关错误
-	ErrUserNotFound     = "USER_NOT_FOUND"
-	ErrUserExists       = "USER_EXISTS"
-	ErrInvalidPassword  = "INVALID_PASSWORD"
-	ErrTokenExpired     = "TOKEN_EXPIRED"
-	ErrTokenInvalid     = "TOKEN_INVALID"
-	
+	ErrUserNotFound    = "USER_NOT_FOUND"
+	ErrUserExists      = "USER_EXISTS"
+	ErrInvalidPassword = "INVALID_PASSWORD"
+	ErrTokenExpired    = "TOKEN_EXPIRED"
+	ErrTokenInvalid    = "TOKEN_INVALID"
+
 	// 商品相关错误
-	ErrProductNotFound  = "PRODUCT_NOT_FOUND"
+	ErrProductNotFound   = "PRODUCT_NOT_FOUND"
 	ErrInsufficientStock = "INSUFFICIENT_STOCK"
-	ErrProductOffline   = "PRODUCT_OFFLINE"
-	
+	ErrProductOffline    = "PRODUCT_OFFLINE"
+
 	// 订单相关错误
 	ErrOrderNotFound    = "ORDER_NOT_FOUND"
 	ErrOrderStatusError = "ORDER_STATUS_ERROR"
 	ErrPaymentFailed    = "PAYMENT_FAILED"
-	
+
 	// 购物车相关错误
 	ErrCartItemNotFound = "CART_ITEM_NOT_FOUND"
 	ErrCartEmpty        = "CART_EMPTY"
-	
+
 	// 通用错误
-	ErrValidationFailed = "VALIDATION_FAILED"
-	ErrDatabaseError    = "DATABASE_ERROR"
-	ErrNetworkError     = "NETWORK_ERROR"
+	ErrValidationFailed   = "VALIDATION_FAILED"
+	ErrDatabaseError      = "DATABASE_ERROR"
+	ErrNetworkError       = "NETWORK_ERROR"
 	ErrServiceUnavailable = "SERVICE_UNAVAILABLE"
 )
 

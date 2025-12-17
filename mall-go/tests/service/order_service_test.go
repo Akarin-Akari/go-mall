@@ -104,16 +104,16 @@ func TestOrderService(t *testing.T) {
 
 		// 创建用户地址
 		address := &model.Address{
-			UserID:      user.ID,
-			Name:        "张三",
-			Phone:       "13800138001",
-			Province:    "北京市",
-			City:        "北京市",
-			District:    "朝阳区",
-			Address:     "朝阳路123号",
-			ZipCode:     "100000",
-			IsDefault:   true,
-			Status:      "active",
+			UserID:    user.ID,
+			Name:      "张三",
+			Phone:     "13800138001",
+			Province:  "北京市",
+			City:      "北京市",
+			District:  "朝阳区",
+			Address:   "朝阳路123号",
+			ZipCode:   "100000",
+			IsDefault: true,
+			Status:    "active",
 		}
 		err = db.Create(address).Error
 		assert.NoError(t, err, "创建用户地址失败")
@@ -220,7 +220,7 @@ func TestOrderService(t *testing.T) {
 		// 验证金额精度
 		assert.Equal(t, int32(2), price.Exponent(), "价格应该保持2位小数精度")
 
-		t.Logf("✅ 订单金额计算验证测试通过 - 单价: %s, 数量: %d, 总计: %s", 
+		t.Logf("✅ 订单金额计算验证测试通过 - 单价: %s, 数量: %d, 总计: %s",
 			price.String(), quantity, expectedTotal.String())
 	})
 
@@ -286,7 +286,7 @@ func TestOrderService(t *testing.T) {
 		excessiveQuantity := initialStock + 5
 		assert.Greater(t, excessiveQuantity, product.Stock, "超量订购应该大于库存")
 
-		t.Logf("✅ 订单库存扣减验证测试通过 - 初始库存: %d, 订购数量: %d, 剩余库存: %d", 
+		t.Logf("✅ 订单库存扣减验证测试通过 - 初始库存: %d, 订购数量: %d, 剩余库存: %d",
 			initialStock, orderQuantity, expectedRemainingStock)
 	})
 
@@ -304,16 +304,16 @@ func TestOrderService(t *testing.T) {
 
 		// 创建用户地址
 		address := &model.Address{
-			UserID:      user.ID,
-			Name:        "李四",
-			Phone:       "13800138007",
-			Province:    "上海市",
-			City:        "上海市",
-			District:    "浦东新区",
-			Address:     "张江高科技园区",
-			ZipCode:     "200000",
-			IsDefault:   true,
-			Status:      "active",
+			UserID:    user.ID,
+			Name:      "李四",
+			Phone:     "13800138007",
+			Province:  "上海市",
+			City:      "上海市",
+			District:  "浦东新区",
+			Address:   "张江高科技园区",
+			ZipCode:   "200000",
+			IsDefault: true,
+			Status:    "active",
 		}
 		err = db.Create(address).Error
 		assert.NoError(t, err, "创建用户地址失败")
@@ -329,7 +329,7 @@ func TestOrderService(t *testing.T) {
 		assert.True(t, address.IsDefault, "应该有默认地址")
 		assert.Equal(t, "active", address.Status, "地址状态应该为active")
 
-		t.Logf("✅ 订单地址信息验证测试通过 - 收货人: %s, 地址: %s %s %s %s", 
+		t.Logf("✅ 订单地址信息验证测试通过 - 收货人: %s, 地址: %s %s %s %s",
 			address.Name, address.Province, address.City, address.District, address.Address)
 	})
 }
