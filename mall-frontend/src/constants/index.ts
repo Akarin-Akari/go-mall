@@ -7,6 +7,10 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/v1/users/logout',
     PROFILE: '/api/v1/users/profile',
     REFRESH_TOKEN: '/api/v1/auth/refresh',
+    SEND_RESET_CODE: '/api/v1/auth/forgot-password',
+    RESET_PASSWORD: '/api/v1/auth/reset-password',
+    CHECK_USERNAME: '/api/v1/auth/check-username',
+    CHECK_EMAIL: '/api/v1/auth/check-email',
   },
 
   // 用户相关

@@ -67,6 +67,14 @@ func main() {
 	fmt.Println("POST     /api/v1/payments/callback/alipay")
 	fmt.Println("POST     /api/v1/payments/callback/wechat")
 
+	fmt.Println("\n=== 地址管理路由 ===")
+	fmt.Println("GET      /api/v1/addresses")
+	fmt.Println("POST     /api/v1/addresses")
+	fmt.Println("PUT      /api/v1/addresses/:id")
+	fmt.Println("DELETE   /api/v1/addresses/:id")
+	fmt.Println("PUT      /api/v1/addresses/:id/default")
+	fmt.Println("GET      /api/v1/addresses/regions")
+
 	fmt.Println("\n=== 测试服务器启动 ===")
 	fmt.Println("服务器将在 :8080 端口启动")
 	fmt.Println("访问 http://localhost:8080 查看API信息")

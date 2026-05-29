@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"crypto/rand"
 	"errors"
+	"math/big"
+	mathrand "math/rand"
 	"regexp"
 	"unicode"
 
@@ -208,19 +211,22 @@ func GenerateRandomPassword(length int) string {
 	)
 
 	// 确保包含各种字符类型
-	password := ""
-	password += string(lowerChars[0])   // 至少一个小写字母
-	password += string(upperChars[0])   // 至少一个大写字母
-	password += string(numberChars[0])  // 至少一个数字
-	password += string(specialChars[0]) // 至少一个特殊字符
+	password := make([]byte, length)
+	password[0] = lowerChars[secureRandomInt(len(lowerChars))]   // 至少一个小写字母
+	password[1] = upperChars[secureRandomInt(len(upperChars))]   // 至少一个大写字母
+	password[2] = numberChars[secureRandomInt(len(numberChars))] // 至少一个数字
+	password[3] = specialChars[secureRandomInt(len(specialChars))] // 至少一个特殊字符
 
 	// 填充剩余长度
 	allChars := lowerChars + upperChars + numberChars + specialChars
 	for i := 4; i < length; i++ {
-		password += string(allChars[i%len(allChars)])
+		password[i] = allChars[secureRandomInt(len(allChars))]
 	}
 
-	return password
+	// 打乱密码字符顺序
+	shuffleBytes(password)
+
+	return string(password)
 }
 
 // PasswordStrengthText 获取密码强度文本描述
@@ -236,5 +242,29 @@ func PasswordStrengthText(strength PasswordStrength) string {
 		return "很强"
 	default:
 		return "未知"
+	}
+}
+
+// secureRandomInt 使用crypto/rand生成安全的随机整数
+func secureRandomInt(max int) int {
+	if max <= 0 {
+		return 0
+	}
+
+	// 使用crypto/rand生成随机数
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		// 如果crypto/rand失败，使用math/rand作为降级方案
+		// 这种情况极少发生，通常只在系统熵源耗尽时
+		return mathrand.Intn(max)
+	}
+	return int(nBig.Int64())
+}
+
+// shuffleBytes 使用Fisher-Yates算法打乱字节切片
+func shuffleBytes(data []byte) {
+	for i := len(data) - 1; i > 0; i-- {
+		j := secureRandomInt(i + 1)
+		data[i], data[j] = data[j], data[i]
 	}
 }

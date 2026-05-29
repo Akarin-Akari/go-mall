@@ -40,6 +40,23 @@ jwt:
   secret: "your-secret-key-change-in-production"
   expire: "24h"
 
+# 跨域配置（开发环境允许前端 http://localhost:3002）
+cors:
+  allow_origins:
+    - "http://localhost:3002"
+  allow_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allow_headers:
+    - Authorization
+    - Content-Type
+    - X-Request-ID
+  allow_credentials: true
+  max_age: 86400
+
 # 日志配置
 log:
   level: info

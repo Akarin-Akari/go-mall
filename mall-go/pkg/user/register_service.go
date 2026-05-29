@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -156,6 +157,11 @@ func (rs *RegisterService) Register(req *RegisterRequest) (*RegisterResponse, er
 
 	// 9. 保存用户到数据库
 	if err := rs.db.Create(user).Error; err != nil {
+		// P1-3 并发注册兜底：两个请求同时通过 SELECT 检查后撞 DB 唯一索引，
+		// 第二个会在此命中 ErrDuplicatedKey，需返回友好提示而非泛化的"创建用户失败"
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, fmt.Errorf("用户名、邮箱或手机号已被注册")
+		}
 		return nil, fmt.Errorf("创建用户失败: %v", err)
 	}
 

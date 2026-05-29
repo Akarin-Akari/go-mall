@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Form,
   Input,
@@ -36,6 +36,7 @@ import {
 } from '@/store/slices/authSlice';
 import { RegisterRequest } from '@/types';
 import { ROUTES } from '@/constants';
+import { authAPI } from '@/services/api';
 
 const { Title, Text } = Typography;
 
@@ -68,6 +69,16 @@ const RegisterPage: React.FC = () => {
   });
   const [emailChecking, setEmailChecking] = useState(false);
   const [usernameChecking, setUsernameChecking] = useState(false);
+  const usernameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastValuesRef = useRef<{ username: string; email: string }>({
+    username: '',
+    email: '',
+  });
+  const validateUsernameRef = useRef<((v: string) => void) | undefined>(undefined);
+  const validateEmailRef = useRef<((v: string) => void) | undefined>(undefined);
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -92,22 +103,61 @@ const RegisterPage: React.FC = () => {
     };
   }, [dispatch]);
 
-  // 实时验证用户名
+  // 组件挂载日志（用于诊断渲染是否来自当前文件）
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('🎯 RegisterPage 组件已挂载');
+    }
+  }, []);
+
+  // 自动化测试钩子：当 URL 带有 ?autotest=1 时，自动填充并触发实时校验
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('autotest') === '1') {
+        const usernameVal = 'testuser_e2e';
+        const emailVal = 'test@example.com';
+        form.setFieldsValue({ username: usernameVal, email: emailVal });
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('🤖 自动化测试：填充值并触发校验', {
+            usernameVal,
+            emailVal,
+          });
+        }
+        // 稍作延迟，确保受控值与表单状态同步
+        setTimeout(() => {
+          validateUsername(usernameVal);
+          validateEmail(emailVal);
+        }, 300);
+      }
+    }
+    // 仅在首次挂载检查一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 兜底轮询（占位，具体实现见下方定义完成后）
+
+  // 实时验证用户名（接入真实 API）
   const validateUsername = useCallback(
     async (username: string) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('🔍 validateUsername 被调用，参数:', username);
+      }
       if (!username || username.length < 3) return;
 
       setUsernameChecking(true);
       setValidationStatus(prev => ({ ...prev, username: 'validating' }));
 
       try {
-        // 模拟API调用检查用户名是否存在
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // 这里应该调用真实的API
-        const isAvailable = !['admin', 'test', 'user'].includes(
-          username.toLowerCase()
-        );
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(
+            '🌐 准备调用 API:',
+            'authAPI.checkUsernameAvailable',
+            username
+          );
+        }
+        const res = await authAPI.checkUsernameAvailable(username);
+        const isAvailable = !!res.data?.available;
 
         setValidationStatus(prev => ({
           ...prev,
@@ -131,22 +181,27 @@ const RegisterPage: React.FC = () => {
     [form]
   );
 
-  // 实时验证邮箱
+  // 实时验证邮箱（接入真实 API）
   const validateEmail = useCallback(
     async (email: string) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('🔍 validateEmail 被调用，参数:', email);
+      }
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
 
       setEmailChecking(true);
       setValidationStatus(prev => ({ ...prev, email: 'validating' }));
 
       try {
-        // 模拟API调用检查邮箱是否存在
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        // 这里应该调用真实的API
-        const isAvailable = !['test@example.com', 'admin@example.com'].includes(
-          email.toLowerCase()
-        );
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(
+            '🌐 准备调用 API:',
+            'authAPI.checkEmailAvailable',
+            email
+          );
+        }
+        const res = await authAPI.checkEmailAvailable(email);
+        const isAvailable = !!res.data?.available;
 
         setValidationStatus(prev => ({
           ...prev,
@@ -169,6 +224,53 @@ const RegisterPage: React.FC = () => {
     },
     [form]
   );
+
+  // 兜底轮询：监听表单值变化（用户名/邮箱），满足条件时以800ms防抖触发校验
+  useEffect(() => {
+    // 将回调函数引用同步到 ref，避免初始化时序导致的引用错误
+    validateUsernameRef.current = validateUsername;
+    validateEmailRef.current = validateEmail;
+
+    const intervalId = setInterval(() => {
+      const usernameVal: string = form.getFieldValue('username') || '';
+      const emailVal: string = form.getFieldValue('email') || '';
+
+      if (usernameVal !== lastValuesRef.current.username) {
+        lastValuesRef.current.username = usernameVal;
+        if (usernameDebounceRef.current)
+          clearTimeout(usernameDebounceRef.current);
+        if (usernameVal && usernameVal.length >= 3) {
+          usernameDebounceRef.current = setTimeout(() => {
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('⏲️ 轮询触发用户名校验:', usernameVal);
+            }
+            validateUsernameRef.current &&
+              validateUsernameRef.current(usernameVal);
+          }, 800);
+        }
+      }
+
+      if (emailVal !== lastValuesRef.current.email) {
+        lastValuesRef.current.email = emailVal;
+        if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
+        if (emailVal && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          emailDebounceRef.current = setTimeout(() => {
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('⏲️ 轮询触发邮箱校验:', emailVal);
+            }
+            validateEmailRef.current && validateEmailRef.current(emailVal);
+          }, 800);
+        }
+      }
+    }, 300);
+
+    return () => {
+      clearInterval(intervalId);
+      if (usernameDebounceRef.current)
+        clearTimeout(usernameDebounceRef.current);
+      if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
+    };
+  }, [form, validateUsername, validateEmail]);
 
   // 密码强度检测
   const checkPasswordStrength = (password: string) => {
@@ -246,10 +348,18 @@ const RegisterPage: React.FC = () => {
         message.success('注册成功！请登录您的账户');
         router.push(ROUTES.LOGIN);
       } else {
-        message.error((result.payload as string) || '注册失败，请稍后重试');
+        const errorMsg =
+          typeof result.payload === 'string'
+            ? result.payload
+            : (result.payload as any)?.message ||
+              (result.payload as any)?.error ||
+              JSON.stringify(result.payload);
+        message.error(errorMsg || '注册失败，请稍后重试');
       }
     } catch (error) {
-      console.error('Register error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Register error:', error);
+      }
       message.error('注册失败，请稍后重试');
     } finally {
       setLoading(false);
@@ -257,8 +367,27 @@ const RegisterPage: React.FC = () => {
   };
 
   const handleFormFailed = (errorInfo: any) => {
-    console.log('Form validation failed:', errorInfo);
-    message.error('请检查表单输入');
+    const firstMsg =
+      errorInfo?.errorFields?.[0]?.errors?.[0] ||
+      errorInfo?.errorFields
+        ?.map((f: any) => f.errors?.[0])
+        .filter(Boolean)
+        .join('；') ||
+      '请检查表单输入';
+
+    if (process.env.NODE_ENV === 'development') {
+      const errorSummary =
+        errorInfo?.errorFields?.map((f: any) => ({
+          field: f.name?.[0] || 'unknown',
+          errors: f.errors || [],
+        })) || [];
+      console.debug('表单验证失败:', firstMsg);
+      if (errorSummary.length > 0) {
+        console.debug('验证错误详情:', JSON.stringify(errorSummary, null, 2));
+      }
+    }
+
+    message.error(firstMsg);
   };
 
   return (
@@ -313,7 +442,14 @@ const RegisterPage: React.FC = () => {
         {error && (
           <Alert
             message='注册失败'
-            description={error}
+            description={
+              typeof error === 'string'
+                ? error
+                : (error as any)?.message ||
+                  (error as any)?.error ||
+                  JSON.stringify(error) ||
+                  '请求失败，请稍后重试'
+            }
             type='error'
             showIcon
             closable
@@ -327,6 +463,45 @@ const RegisterPage: React.FC = () => {
           name='register'
           onFinish={handleSubmit}
           onFinishFailed={handleFormFailed}
+          onValuesChange={(changedValues, allValues) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('📋 Form 值变化:', { changedValues, allValues });
+            }
+
+            // 用户名防抖触发
+            if (
+              Object.prototype.hasOwnProperty.call(changedValues, 'username')
+            ) {
+              const value = (changedValues as any).username as string;
+              if (usernameDebounceRef.current) {
+                clearTimeout(usernameDebounceRef.current);
+              }
+              usernameDebounceRef.current = setTimeout(() => {
+                if (value && value.length >= 3) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.debug('⏱️ 用户名防抖触发校验:', value);
+                  }
+                  validateUsername(value);
+                }
+              }, 600);
+            }
+
+            // 邮箱防抖触发
+            if (Object.prototype.hasOwnProperty.call(changedValues, 'email')) {
+              const value = (changedValues as any).email as string;
+              if (emailDebounceRef.current) {
+                clearTimeout(emailDebounceRef.current);
+              }
+              emailDebounceRef.current = setTimeout(() => {
+                if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.debug('⏱️ 邮箱防抖触发校验:', value);
+                  }
+                  validateEmail(value);
+                }
+              }, 600);
+            }
+          }}
           autoComplete='off'
           size='large'
           layout='vertical'
@@ -351,6 +526,18 @@ const RegisterPage: React.FC = () => {
                 pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
                 message: '用户名只能包含字母、数字、下划线和中文',
               },
+              {
+                // 兜底触发：在校验规则阶段也调用实时校验
+                validator: async (_, value) => {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.debug('🔧 用户名 validator 被触发，值:', value);
+                  }
+                  if (value && value.length >= 3) {
+                    await validateUsername(value);
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
           >
             <Input
@@ -358,8 +545,22 @@ const RegisterPage: React.FC = () => {
               suffix={usernameChecking ? <LoadingOutlined /> : null}
               placeholder='请输入用户名'
               autoComplete='username'
-              onChange={e => {
+              value={form.getFieldValue('username')}
+              onBlur={e => {
                 const value = e.target.value;
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug('👆 用户名失焦，值:', value);
+                }
+                if (value && value.length >= 3) {
+                  validateUsername(value);
+                }
+              }}
+              onChange={e => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug('📝 用户名输入变化:', e.target.value);
+                }
+                const value = e.target.value;
+                form.setFieldsValue({ username: value });
                 if (value.length >= 3) {
                   validateUsername(value);
                 } else {
@@ -385,6 +586,18 @@ const RegisterPage: React.FC = () => {
             rules={[
               { required: true, message: '请输入邮箱地址' },
               { type: 'email', message: '请输入有效的邮箱地址' },
+              {
+                // 兜底触发：在校验规则阶段也调用实时校验
+                validator: async (_, value) => {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.debug('🔧 邮箱 validator 被触发，值:', value);
+                  }
+                  if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    await validateEmail(value);
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
           >
             <Input
@@ -392,8 +605,22 @@ const RegisterPage: React.FC = () => {
               suffix={emailChecking ? <LoadingOutlined /> : null}
               placeholder='请输入邮箱地址'
               autoComplete='email'
-              onChange={e => {
+              value={form.getFieldValue('email')}
+              onBlur={e => {
                 const value = e.target.value;
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug('👆 邮箱失焦，值:', value);
+                }
+                if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  validateEmail(value);
+                }
+              }}
+              onChange={e => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug('📝 邮箱输入变化:', e.target.value);
+                }
+                const value = e.target.value;
+                form.setFieldsValue({ email: value });
                 if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                   validateEmail(value);
                 } else {
@@ -408,7 +635,22 @@ const RegisterPage: React.FC = () => {
             label='手机号码'
             rules={[
               { required: true, message: '请输入手机号码' },
-              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码' },
+              {
+                validator: (_, value) => {
+                  if (!value)
+                    return Promise.reject(new Error('请输入手机号码'));
+                  const normalized = String(value).replace(/[\s-]/g, '');
+                  const e164 = /^\+?[1-9]\d{6,14}$/; // 国际E.164: 7-15位
+                  const cn = /^1[3-9]\d{9}$/; // 中国大陆手机号
+                  return e164.test(normalized) || cn.test(normalized)
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error(
+                          '请输入有效的手机号码（支持国际格式，如 +1 202-555-0123）'
+                        )
+                      );
+                },
+              },
             ]}
           >
             <Input

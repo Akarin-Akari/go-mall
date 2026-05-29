@@ -16,14 +16,12 @@ func main() {
 	fmt.Println("========================================")
 
 	// 加载配置
-	if err := config.LoadConfig(); err != nil {
-		log.Fatalf("加载配置失败: %v", err)
-	}
+	config.Load()
 
 	// 连接数据库
-	db, err := database.InitDB()
-	if err != nil {
-		log.Fatalf("数据库连接失败: %v", err)
+	db := database.Init()
+	if db == nil {
+		log.Fatal("数据库连接失败")
 	}
 
 	// 初始化Casbin
@@ -130,7 +128,7 @@ func initUserRoles(cm *auth.CasbinManager) error {
 	}
 
 	for _, ur := range userRoles {
-		_, err := cm.AddRoleForUser(ur.UserID, ur.Role)
+		_, err := cm.AddRoleForUser(fmt.Sprintf("%d", ur.UserID), ur.Role)
 		if err != nil {
 			return fmt.Errorf("为用户%d分配角色%s失败: %v", ur.UserID, ur.Role, err)
 		}
@@ -159,7 +157,7 @@ func verifyPermissions(cm *auth.CasbinManager) error {
 	}
 
 	for _, tc := range testCases {
-		hasPermission, err := cm.CheckPermission(tc.UserID, tc.Resource, tc.Action)
+		hasPermission, err := cm.CheckPermission(fmt.Sprintf("%d", tc.UserID), tc.Resource, tc.Action)
 		if err != nil {
 			return fmt.Errorf("权限检查失败: %v", err)
 		}

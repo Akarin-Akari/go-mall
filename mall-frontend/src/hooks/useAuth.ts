@@ -23,7 +23,7 @@ export interface UseAuthReturn {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  
+
   // 方法
   login: (data: LoginRequest) => Promise<boolean>;
   register: (data: RegisterRequest) => Promise<boolean>;
@@ -33,7 +33,7 @@ export interface UseAuthReturn {
   checkAuth: () => boolean;
   hasRole: (role: string) => boolean;
   isAdmin: () => boolean;
-  
+
   // 工具方法
   redirectToLogin: (returnUrl?: string) => void;
   restoreAuthState: () => void;
@@ -50,44 +50,50 @@ export const useAuth = (): UseAuthReturn => {
   const { user, isAuthenticated, loading, error } = useAppSelector(selectAuth);
 
   // 登录
-  const login = useCallback(async (data: LoginRequest): Promise<boolean> => {
-    try {
-      const result = await dispatch(loginAsync(data));
-      
-      if (loginAsync.fulfilled.match(result)) {
-        message.success('登录成功！');
-        return true;
-      } else {
-        const errorMsg = result.payload as string || '登录失败';
-        message.error(errorMsg);
+  const login = useCallback(
+    async (data: LoginRequest): Promise<boolean> => {
+      try {
+        const result = await dispatch(loginAsync(data));
+
+        if (loginAsync.fulfilled.match(result)) {
+          message.success('登录成功！');
+          return true;
+        } else {
+          const errorMsg = (result.payload as string) || '登录失败';
+          message.error(errorMsg);
+          return false;
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        message.error('登录过程中发生错误');
         return false;
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      message.error('登录过程中发生错误');
-      return false;
-    }
-  }, [dispatch]);
+    },
+    [dispatch]
+  );
 
   // 注册
-  const register = useCallback(async (data: RegisterRequest): Promise<boolean> => {
-    try {
-      const result = await dispatch(registerAsync(data));
-      
-      if (registerAsync.fulfilled.match(result)) {
-        message.success('注册成功！欢迎加入！');
-        return true;
-      } else {
-        const errorMsg = result.payload as string || '注册失败';
-        message.error(errorMsg);
+  const register = useCallback(
+    async (data: RegisterRequest): Promise<boolean> => {
+      try {
+        const result = await dispatch(registerAsync(data));
+
+        if (registerAsync.fulfilled.match(result)) {
+          message.success('注册成功！欢迎加入！');
+          return true;
+        } else {
+          const errorMsg = (result.payload as string) || '注册失败';
+          message.error(errorMsg);
+          return false;
+        }
+      } catch (error) {
+        console.error('Register error:', error);
+        message.error('注册过程中发生错误');
         return false;
       }
-    } catch (error) {
-      console.error('Register error:', error);
-      message.error('注册过程中发生错误');
-      return false;
-    }
-  }, [dispatch]);
+    },
+    [dispatch]
+  );
 
   // 登出
   const logout = useCallback(async (): Promise<void> => {
@@ -109,7 +115,7 @@ export const useAuth = (): UseAuthReturn => {
   const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
       const result = await dispatch(refreshTokenAsync());
-      
+
       if (refreshTokenAsync.fulfilled.match(result)) {
         return true;
       } else {
@@ -132,7 +138,7 @@ export const useAuth = (): UseAuthReturn => {
   const getProfile = useCallback(async (): Promise<User | null> => {
     try {
       const result = await dispatch(getProfileAsync());
-      
+
       if (getProfileAsync.fulfilled.match(result)) {
         return result.payload;
       } else {
@@ -153,9 +159,12 @@ export const useAuth = (): UseAuthReturn => {
   }, [isAuthenticated]);
 
   // 检查用户角色
-  const hasRole = useCallback((role: string): boolean => {
-    return user?.role === role || false;
-  }, [user]);
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      return user?.role === role || false;
+    },
+    [user]
+  );
 
   // 检查是否为管理员
   const isAdmin = useCallback((): boolean => {
@@ -163,11 +172,14 @@ export const useAuth = (): UseAuthReturn => {
   }, [hasRole]);
 
   // 重定向到登录页
-  const redirectToLogin = useCallback((returnUrl?: string) => {
-    const currentUrl = returnUrl || window.location.pathname;
-    const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentUrl)}`;
-    router.push(loginUrl);
-  }, [router]);
+  const redirectToLogin = useCallback(
+    (returnUrl?: string) => {
+      const currentUrl = returnUrl || window.location.pathname;
+      const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(currentUrl)}`;
+      router.push(loginUrl);
+    },
+    [router]
+  );
 
   // 恢复认证状态
   const restoreAuthState = useCallback(() => {
@@ -190,16 +202,19 @@ export const useAuth = (): UseAuthReturn => {
 
     // 解析Token过期时间（这里简化处理，实际应该解析JWT）
     // 在Token过期前5分钟尝试刷新
-    const refreshInterval = setInterval(async () => {
-      const refreshTokenValue = secureTokenManager.getRefreshToken();
-      if (refreshTokenValue) {
-        const success = await refreshToken();
-        if (!success) {
-          // 刷新失败，重定向到登录页
-          redirectToLogin();
+    const refreshInterval = setInterval(
+      async () => {
+        const refreshTokenValue = secureTokenManager.getRefreshToken();
+        if (refreshTokenValue) {
+          const success = await refreshToken();
+          if (!success) {
+            // 刷新失败，重定向到登录页
+            redirectToLogin();
+          }
         }
-      }
-    }, 25 * 60 * 1000); // 25分钟检查一次
+      },
+      25 * 60 * 1000
+    ); // 25分钟检查一次
 
     return () => clearInterval(refreshInterval);
   }, [isAuthenticated, refreshToken, redirectToLogin]);
@@ -228,7 +243,7 @@ export const useAuth = (): UseAuthReturn => {
     isAuthenticated,
     loading,
     error,
-    
+
     // 方法
     login,
     register,
@@ -238,7 +253,7 @@ export const useAuth = (): UseAuthReturn => {
     checkAuth,
     hasRole,
     isAdmin,
-    
+
     // 工具方法
     redirectToLogin,
     restoreAuthState,

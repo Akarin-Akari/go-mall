@@ -2,7 +2,6 @@ package errors
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"

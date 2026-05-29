@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"mall-go/internal/model"
+	"mall-go/pkg/logger"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -97,8 +98,15 @@ func (cs *CacheService) GetCartWithCache(userID uint, sessionID string, includeI
 		return nil, err
 	}
 
-	// 异步更新缓存
-	go cs.updateCartCache(cacheKey, cartResponse, userID == 0)
+	// 异步更新缓存（添加日志和错误处理）
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error(fmt.Sprintf("购物车缓存更新panic: %v", r))
+			}
+		}()
+		cs.updateCartCache(cacheKey, cartResponse, userID == 0)
+	}()
 
 	return cartResponse, nil
 }
@@ -171,6 +179,11 @@ func (cs *CacheService) ClearCartWithCache(userID uint, sessionID string) error 
 
 // GetCartItemCountWithCache 获取购物车商品数量（带缓存）
 func (cs *CacheService) GetCartItemCountWithCache(userID uint, sessionID string) (int, error) {
+	// 如果Redis不可用，直接从数据库获取
+	if cs.rdb == nil {
+		return cs.cartService.GetCartItemCount(userID, sessionID)
+	}
+
 	countKey := cs.getCartCountKey(userID, sessionID)
 
 	// 尝试从缓存获取
@@ -189,7 +202,11 @@ func (cs *CacheService) GetCartItemCountWithCache(userID uint, sessionID string)
 	}
 
 	// 异步更新缓存
-	go cs.rdb.Set(cs.ctx, countKey, count, CartCountExpire)
+	go func() {
+		if cs.rdb != nil {
+			cs.rdb.Set(cs.ctx, countKey, count, CartCountExpire)
+		}
+	}()
 
 	return count, nil
 }
@@ -242,6 +259,11 @@ func (cs *CacheService) getCartLockKey(userID uint, sessionID string) string {
 
 // getCartFromCache 从缓存获取购物车
 func (cs *CacheService) getCartFromCache(cacheKey string) (*CartCacheData, error) {
+	// 如果Redis不可用，返回错误
+	if cs.rdb == nil {
+		return nil, fmt.Errorf("Redis不可用")
+	}
+
 	data, err := cs.rdb.Get(cs.ctx, cacheKey).Result()
 	if err != nil {
 		return nil, err
@@ -257,6 +279,12 @@ func (cs *CacheService) getCartFromCache(cacheKey string) (*CartCacheData, error
 
 // updateCartCache 更新购物车缓存
 func (cs *CacheService) updateCartCache(cacheKey string, cartResponse *model.CartResponse, isGuest bool) {
+	// 如果Redis不可用，直接返回
+	if cs.rdb == nil {
+		logger.Warn("Redis不可用，跳过购物车缓存更新")
+		return
+	}
+
 	cacheData := &CartCacheData{
 		Cart:      cartResponse.Cart,
 		Items:     cartResponse.Cart.Items,
@@ -267,6 +295,7 @@ func (cs *CacheService) updateCartCache(cacheKey string, cartResponse *model.Car
 
 	data, err := json.Marshal(cacheData)
 	if err != nil {
+		logger.Error(fmt.Sprintf("购物车缓存数据序列化失败: %v", err))
 		return
 	}
 
@@ -275,11 +304,18 @@ func (cs *CacheService) updateCartCache(cacheKey string, cartResponse *model.Car
 		expire = GuestCartExpire
 	}
 
-	cs.rdb.Set(cs.ctx, cacheKey, data, expire)
+	if err := cs.rdb.Set(cs.ctx, cacheKey, data, expire).Err(); err != nil {
+		logger.Error(fmt.Sprintf("购物车缓存更新失败: key=%s, error=%v", cacheKey, err))
+	}
 }
 
 // clearCartCache 清除购物车相关缓存
 func (cs *CacheService) clearCartCache(userID uint, sessionID string) {
+	// 如果Redis不可用，直接返回
+	if cs.rdb == nil {
+		return
+	}
+
 	cartKey := cs.getCartCacheKey(userID, sessionID)
 	countKey := cs.getCartCountKey(userID, sessionID)
 
@@ -288,6 +324,11 @@ func (cs *CacheService) clearCartCache(userID uint, sessionID string) {
 
 // acquireLock 获取分布式锁
 func (cs *CacheService) acquireLock(lockKey string, expire time.Duration) (string, error) {
+	// 如果Redis不可用，返回错误
+	if cs.rdb == nil {
+		return "", fmt.Errorf("Redis不可用")
+	}
+
 	lockValue := fmt.Sprintf("%d", time.Now().UnixNano())
 
 	success, err := cs.rdb.SetNX(cs.ctx, lockKey, lockValue, expire).Result()
@@ -304,6 +345,11 @@ func (cs *CacheService) acquireLock(lockKey string, expire time.Duration) (strin
 
 // releaseLock 释放分布式锁
 func (cs *CacheService) releaseLock(lockKey, lockValue string) {
+	// 如果Redis不可用，直接返回
+	if cs.rdb == nil {
+		return
+	}
+
 	script := `
 		if redis.call("get", KEYS[1]) == ARGV[1] then
 			return redis.call("del", KEYS[1])
@@ -340,48 +386,91 @@ func (cs *CacheService) RefreshCartCache(userID uint, sessionID string) error {
 func (cs *CacheService) GetCacheStats() (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	// 获取购物车缓存数量
-	cartKeys, err := cs.rdb.Keys(cs.ctx, CartCachePrefix+"*").Result()
-	if err == nil {
-		stats["cart_cache_count"] = len(cartKeys)
+	// 如果Redis不可用，返回空统计信息
+	if cs.rdb == nil {
+		stats["error"] = "Redis不可用"
+		return stats, fmt.Errorf("Redis不可用")
 	}
+
+	// 使用SCAN替代KEYS，避免阻塞Redis
+	// 获取购物车缓存数量
+	cartCount := cs.scanAndCount(CartCachePrefix + "*")
+	stats["cart_cache_count"] = cartCount
 
 	// 获取购物车数量缓存数量
-	countKeys, err := cs.rdb.Keys(cs.ctx, CartCountPrefix+"*").Result()
-	if err == nil {
-		stats["count_cache_count"] = len(countKeys)
-	}
+	countCacheCount := cs.scanAndCount(CartCountPrefix + "*")
+	stats["count_cache_count"] = countCacheCount
 
 	// 获取活跃锁数量
-	lockKeys, err := cs.rdb.Keys(cs.ctx, CartLockPrefix+"*").Result()
-	if err == nil {
-		stats["active_locks"] = len(lockKeys)
-	}
+	lockCount := cs.scanAndCount(CartLockPrefix + "*")
+	stats["active_locks"] = lockCount
 
 	return stats, nil
 }
 
+// scanAndCount 使用SCAN命令统计匹配模式的键数量
+func (cs *CacheService) scanAndCount(pattern string) int {
+	if cs.rdb == nil {
+		return 0
+	}
+
+	var cursor uint64
+	count := 0
+
+	for {
+		var keys []string
+		var err error
+		keys, cursor, err = cs.rdb.Scan(cs.ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			break
+		}
+
+		count += len(keys)
+
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return count
+}
+
 // CleanExpiredCache 清理过期缓存
 func (cs *CacheService) CleanExpiredCache() error {
+	// 如果Redis不可用，返回错误
+	if cs.rdb == nil {
+		return fmt.Errorf("Redis不可用")
+	}
+
 	// Redis会自动清理过期键，这里可以添加额外的清理逻辑
 	// 比如清理长时间未使用的游客购物车缓存
 
-	// 获取所有游客购物车缓存键
-	guestKeys, err := cs.rdb.Keys(cs.ctx, CartCachePrefix+"guest_*").Result()
-	if err != nil {
-		return err
-	}
+	// 使用SCAN替代KEYS避免阻塞
+	var cursor uint64
+	pattern := CartCachePrefix + "guest_*"
 
-	// 检查每个键的最后访问时间，清理超过7天未访问的缓存
-	for _, key := range guestKeys {
-		ttl, err := cs.rdb.TTL(cs.ctx, key).Result()
+	for {
+		keys, newCursor, err := cs.rdb.Scan(cs.ctx, cursor, pattern, 100).Result()
 		if err != nil {
-			continue
+			return err
 		}
 
-		// 如果TTL小于1天，说明缓存即将过期，可以提前清理
-		if ttl < 24*time.Hour {
-			cs.rdb.Del(cs.ctx, key)
+		// 检查每个键的最后访问时间，清理超过7天未访问的缓存
+		for _, key := range keys {
+			ttl, err := cs.rdb.TTL(cs.ctx, key).Result()
+			if err != nil {
+				continue
+			}
+
+			// 如果TTL小于1天，说明缓存即将过期，可以提前清理
+			if ttl < 24*time.Hour {
+				cs.rdb.Del(cs.ctx, key)
+			}
+		}
+
+		cursor = newCursor
+		if cursor == 0 {
+			break
 		}
 	}
 

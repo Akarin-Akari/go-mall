@@ -1,16 +1,49 @@
 package user
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"mall-go/internal/model"
+	"mall-go/pkg/audit"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/logger"
 	"mall-go/pkg/response"
+	"mall-go/pkg/security"
 	"mall-go/pkg/user"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
+
+// generateSessionID 生成随机会话ID（P2-7）。失败时退化为纳秒时间戳，保证非空。
+func generateSessionID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Sprintf("sess-%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b)
+}
+
+// buildLockInfo 构造账户锁定信息（locked_until + retry_after 秒数），供前端做倒计时 UX。
+// P1-5：当 LockedUntil 为 nil（如永久锁定 StatusLocked）时返回空对象。
+func buildLockInfo(u *model.User) gin.H {
+	data := gin.H{}
+	if u.LockedUntil != nil {
+		retryAfter := int64(time.Until(*u.LockedUntil).Seconds())
+		if retryAfter < 0 {
+			retryAfter = 0
+		}
+		data["locked_until"] = u.LockedUntil.Unix()
+		data["retry_after"] = retryAfter
+	}
+	return data
+}
 
 type Handler struct {
 	db                *gorm.DB
@@ -28,6 +61,40 @@ func NewHandler(db *gorm.DB) *Handler {
 		permissionService: user.NewPermissionService(db),
 		securityService:   user.NewSecurityService(db),
 	}
+}
+
+// CheckUsernameAvailable 实时校验：用户名是否可用
+func (h *Handler) CheckUsernameAvailable(c *gin.Context) {
+    username := c.Query("username")
+    if username == "" {
+        response.BadRequest(c, "缺少参数: username")
+        return
+    }
+    var u model.User
+    err := h.db.Select("id").Where("username = ?", username).First(&u).Error
+    available := err == gorm.ErrRecordNotFound
+    c.JSON(200, gin.H{
+        "code": 200,
+        "msg":  "ok",
+        "data": gin.H{"available": available},
+    })
+}
+
+// CheckEmailAvailable 实时校验：邮箱是否可用
+func (h *Handler) CheckEmailAvailable(c *gin.Context) {
+    email := c.Query("email")
+    if email == "" {
+        response.BadRequest(c, "缺少参数: email")
+        return
+    }
+    var u model.User
+    err := h.db.Select("id").Where("email = ?", email).First(&u).Error
+    available := err == gorm.ErrRecordNotFound
+    c.JSON(200, gin.H{
+        "code": 200,
+        "msg":  "ok",
+        "data": gin.H{"available": available},
+    })
 }
 
 // Register 用户注册
@@ -117,7 +184,9 @@ func (h *Handler) Login(c *gin.Context) {
 	// 检查用户状态
 	if !user.CanLogin() {
 		if user.IsLocked() {
-			response.Unauthorized(c, "账户已被锁定，请稍后再试")
+			// P1-5：返回 retry_after / locked_until，便于前端展示倒计时
+			response.JSON(c, http.StatusUnauthorized, http.StatusUnauthorized,
+				"账户已被锁定，请稍后再试", buildLockInfo(&user))
 			return
 		}
 		response.Unauthorized(c, "账户状态异常，无法登录")
@@ -130,6 +199,13 @@ func (h *Handler) Login(c *gin.Context) {
 		user.IncrementLoginAttempts()
 		h.db.Save(&user)
 
+		// P1-5：若本次失败恰好触发锁定（默认 5 次），返回 retry_after 让前端倒计时
+		if user.IsLocked() {
+			response.JSON(c, http.StatusUnauthorized, http.StatusUnauthorized,
+				"密码错误次数过多，账户已被锁定，请稍后再试", buildLockInfo(&user))
+			return
+		}
+
 		response.Unauthorized(c, "用户名或密码错误")
 		return
 	}
@@ -139,8 +215,9 @@ func (h *Handler) Login(c *gin.Context) {
 	user.UpdateLastLogin()
 	h.db.Save(&user)
 
-	// 生成JWT令牌
-	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	// 生成JWT令牌（P2-7：携带 SessionID + DeviceID，用于会话追溯与设备识别）
+	sessionID := generateSessionID()
+	token, _, err := auth.GenerateTokenWithSession(user.ID, user.Username, user.Role, sessionID, req.DeviceID, 24*time.Hour)
 	if err != nil {
 		logger.Error("生成JWT令牌失败", zap.Error(err))
 		response.ServerError(c, "登录失败，请稍后重试")
@@ -329,6 +406,18 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	if err != nil {
 		response.BadRequest(c, err.Error())
 		return
+	}
+
+	// P1-6 审计：记录密码重置（忘记密码流程，未登录上下文 UserID 留 0，以邮箱追溯）
+	if as := audit.GetGlobalAuditService(); as != nil {
+		as.Log(audit.LogEntry{
+			Action:     model.AuditActionResetPassword,
+			TargetType: "user",
+			IP:         c.ClientIP(),
+			UserAgent:  c.GetHeader("User-Agent"),
+			NewValue:   req.Email,
+			Remark:     "通过邮箱验证码重置密码",
+		})
 	}
 
 	response.Success(c, "密码重置成功", nil)
@@ -647,10 +736,33 @@ func (h *Handler) Logout(c *gin.Context) {
 
 	userID := userIDVal.(uint)
 
-	response.Success(c, "登出成功", gin.H{
-		"user_id": userID,
-		"message": "登出功能待实现",
-	})
+	// P2-7：将当前令牌加入黑名单，使其立即失效（登出/踢人闭环）
+	authHeader := c.GetHeader("Authorization")
+	const bearerPrefix = "Bearer "
+	if strings.HasPrefix(authHeader, bearerPrefix) {
+		token := authHeader[len(bearerPrefix):]
+		if claims, err := auth.ParseToken(token); err == nil {
+			if ttl := time.Until(claims.ExpiresAt.Time); ttl > 0 {
+				if err := security.GetJWTBlacklist().AddToBlacklist(c.Request.Context(), token, ttl); err != nil {
+					logger.Error("登出加入黑名单失败", zap.Error(err))
+				}
+			}
+		}
+	}
+
+	// 审计：记录登出
+	if as := audit.GetGlobalAuditService(); as != nil {
+		as.Log(audit.LogEntry{
+			UserID:     userID,
+			Action:     "logout",
+			TargetType: "user",
+			IP:         c.ClientIP(),
+			UserAgent:  c.GetHeader("User-Agent"),
+			Remark:     "用户登出",
+		})
+	}
+
+	response.Success(c, "登出成功", gin.H{"user_id": userID})
 }
 
 // DeleteAccount 删除账号

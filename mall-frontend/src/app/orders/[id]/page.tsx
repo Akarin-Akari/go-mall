@@ -294,14 +294,14 @@ const OrderDetailPage: React.FC = () => {
             <Descriptions column={1} size='small'>
               <Descriptions.Item label='收货人'>
                 <Space>
-                  <Text>{currentOrder.shipping_address.name}</Text>
+                  <Text>{currentOrder.shipping_address.receiver_name}</Text>
                   <Button
                     type='link'
                     size='small'
                     icon={<PhoneOutlined />}
-                    href={`tel:${currentOrder.shipping_address.phone}`}
+                    href={`tel:${currentOrder.shipping_address.receiver_phone}`}
                   >
-                    {currentOrder.shipping_address.phone}
+                    {currentOrder.shipping_address.receiver_phone}
                   </Button>
                 </Space>
               </Descriptions.Item>
@@ -312,7 +312,7 @@ const OrderDetailPage: React.FC = () => {
                     {currentOrder.shipping_address.province}{' '}
                     {currentOrder.shipping_address.city}{' '}
                     {currentOrder.shipping_address.district}{' '}
-                    {currentOrder.shipping_address.detail}
+                    {currentOrder.shipping_address.detail_address}
                   </Text>
                 </Space>
               </Descriptions.Item>

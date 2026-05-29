@@ -87,6 +87,8 @@ const (
 	ErrCodeDatabaseConstraint  ErrorCode = "60004" // 数据库约束错误
 	ErrCodeDatabaseNotFound    ErrorCode = "60005" // 记录不存在
 	ErrCodeDatabaseDuplicate   ErrorCode = "60006" // 重复记录
+	ErrCodeDatabaseQueryTimeout ErrorCode = "60007" // 数据库查询超时
+	ErrCodeCacheConnectionFailed ErrorCode = "60008" // 缓存连接失败
 
 	// 网络错误 (70000-79999)
 	ErrCodeNetworkTimeout     ErrorCode = "70001" // 网络超时

@@ -65,7 +65,7 @@ func (h *UploadHandler) UploadSingle(c *gin.Context) {
 
 	// 获取可选参数
 	category := c.DefaultPostForm("category", "general") // 文件分类
-	description := c.PostForm("description")             // 文件描述
+	// description := c.PostForm("description")             // 文件描述（暂未使用）
 
 	// 验证文件
 	validationResult, err := h.validator.ValidateFile(header.Filename, file, header.Size)
@@ -94,16 +94,15 @@ func (h *UploadHandler) UploadSingle(c *gin.Context) {
 
 	// 保存文件记录到数据库
 	fileRecord := &model.File{
-		UserID:       userID.(uint),
+		UploadUserID: userID.(uint),
 		OriginalName: header.Filename,
-		FileName:     fileName,
+		StoredName:   fileName,
 		FilePath:     filePath,
 		FileSize:     header.Size,
-		ContentType:  validationResult.ContentType,
-		Category:     category,
-		Description:  description,
-		URL:          h.storageManager.GetURL(filePath),
-		Status:       "active",
+		MimeType:     validationResult.ContentType,
+		BusinessType: model.BusinessType(category),
+		AccessURL:    h.storageManager.GetURL(filePath),
+		Status:       model.FileStatusSuccess,
 	}
 
 	if err := h.db.Create(fileRecord).Error; err != nil {
@@ -117,12 +116,12 @@ func (h *UploadHandler) UploadSingle(c *gin.Context) {
 	response.Success(c, "文件上传成功", gin.H{
 		"file_id":       fileRecord.ID,
 		"original_name": fileRecord.OriginalName,
-		"file_name":     fileRecord.FileName,
+		"stored_name":   fileRecord.StoredName,
 		"file_path":     fileRecord.FilePath,
 		"file_size":     fileRecord.FileSize,
-		"content_type":  fileRecord.ContentType,
-		"category":      fileRecord.Category,
-		"url":           fileRecord.URL,
+		"mime_type":     fileRecord.MimeType,
+		"business_type": fileRecord.BusinessType,
+		"access_url":    fileRecord.AccessURL,
 		"validation":    validationResult,
 		"uploaded_at":   fileRecord.CreatedAt,
 	})
@@ -158,7 +157,7 @@ func (h *UploadHandler) UploadMultiple(c *gin.Context) {
 
 	// 获取可选参数
 	category := c.DefaultPostForm("category", "general")
-	description := c.PostForm("description")
+	// description := c.PostForm("description") // 文件描述（暂未使用）
 
 	var uploadedFiles []gin.H
 	var failedFiles []gin.H
@@ -219,16 +218,15 @@ func (h *UploadHandler) UploadMultiple(c *gin.Context) {
 
 		// 保存文件记录到数据库
 		fileRecord := &model.File{
-			UserID:       userID.(uint),
+			UploadUserID: userID.(uint),
 			OriginalName: fileHeader.Filename,
-			FileName:     fileName,
+			StoredName:   fileName,
 			FilePath:     filePath,
 			FileSize:     fileHeader.Size,
-			ContentType:  validationResult.ContentType,
-			Category:     category,
-			Description:  description,
-			URL:          h.storageManager.GetURL(filePath),
-			Status:       "active",
+			MimeType:     validationResult.ContentType,
+			BusinessType: model.BusinessType(category),
+			AccessURL:    h.storageManager.GetURL(filePath),
+			Status:       model.FileStatusSuccess,
 		}
 
 		if err := h.db.Create(fileRecord).Error; err != nil {
@@ -247,12 +245,12 @@ func (h *UploadHandler) UploadMultiple(c *gin.Context) {
 			"index":         i,
 			"file_id":       fileRecord.ID,
 			"original_name": fileRecord.OriginalName,
-			"file_name":     fileRecord.FileName,
+			"stored_name":   fileRecord.StoredName,
 			"file_path":     fileRecord.FilePath,
 			"file_size":     fileRecord.FileSize,
-			"content_type":  fileRecord.ContentType,
-			"category":      fileRecord.Category,
-			"url":           fileRecord.URL,
+			"mime_type":     fileRecord.MimeType,
+			"business_type": fileRecord.BusinessType,
+			"access_url":    fileRecord.AccessURL,
 			"validation":    validationResult,
 			"uploaded_at":   fileRecord.CreatedAt,
 		})
@@ -290,13 +288,12 @@ func (h *UploadHandler) GetFileInfo(c *gin.Context) {
 	response.Success(c, "获取文件信息成功", gin.H{
 		"file_id":       file.ID,
 		"original_name": file.OriginalName,
-		"file_name":     file.FileName,
+		"stored_name":   file.StoredName,
 		"file_path":     file.FilePath,
 		"file_size":     file.FileSize,
-		"content_type":  file.ContentType,
-		"category":      file.Category,
-		"description":   file.Description,
-		"url":           file.URL,
+		"mime_type":     file.MimeType,
+		"business_type": file.BusinessType,
+		"access_url":    file.AccessURL,
 		"status":        file.Status,
 		"created_at":    file.CreatedAt,
 		"updated_at":    file.UpdatedAt,
@@ -308,8 +305,8 @@ func (h *UploadHandler) ListFiles(c *gin.Context) {
 	// 获取查询参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
-	category := c.Query("category")
-	status := c.DefaultQuery("status", "active")
+	businessType := c.Query("business_type")
+	status := c.DefaultQuery("status", string(model.FileStatusSuccess))
 
 	if page < 1 {
 		page = 1
@@ -321,8 +318,8 @@ func (h *UploadHandler) ListFiles(c *gin.Context) {
 	// 构建查询
 	query := h.db.Model(&model.File{}).Where("status = ?", status)
 
-	if category != "" {
-		query = query.Where("category = ?", category)
+	if businessType != "" {
+		query = query.Where("business_type = ?", businessType)
 	}
 
 	// 获取总数
@@ -377,7 +374,7 @@ func (h *UploadHandler) DeleteFile(c *gin.Context) {
 
 	// 检查权限（只能删除自己的文件，除非是管理员）
 	userRole, _ := c.Get("user_role")
-	if file.UserID != userID.(uint) && userRole != "admin" {
+	if file.UploadUserID != userID.(uint) && userRole != "admin" {
 		response.Error(c, http.StatusForbidden, "无权限删除此文件")
 		return
 	}
@@ -407,10 +404,10 @@ func (h *UploadHandler) GetUploadConfig(c *gin.Context) {
 func (h *UploadHandler) generateFilePath(category, fileName string) string {
 	now := time.Now()
 	datePath := fmt.Sprintf("%d/%02d/%02d", now.Year(), now.Month(), now.Day())
-
+	
 	if category != "" && category != "general" {
 		return filepath.Join(category, datePath, fileName)
 	}
-
+	
 	return filepath.Join(datePath, fileName)
 }

@@ -31,7 +31,7 @@ import { ROUTES, STORAGE_KEYS } from '@/constants';
 const { Title, Text } = Typography;
 
 interface LoginFormData {
-  email: string;
+  username: string;
   password: string;
   remember: boolean;
 }
@@ -115,10 +115,10 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const rememberLogin = localStorage.getItem(STORAGE_KEYS.REMEMBER_LOGIN);
     if (rememberLogin === 'true') {
-      const savedEmail = localStorage.getItem('saved_email');
-      if (savedEmail) {
+      const savedUsername = localStorage.getItem('saved_username');
+      if (savedUsername) {
         form.setFieldsValue({
-          email: savedEmail,
+          username: savedUsername,
           remember: true,
         });
       }
@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
       dispatch(clearError()); // 清除之前的错误
 
       const loginData: LoginRequest = {
-        email: values.email,
+        username: values.username,
         password: values.password,
       };
 
@@ -156,7 +156,7 @@ const LoginPage: React.FC = () => {
         // 如果选择记住登录状态，保存到本地存储
         if (values.remember) {
           localStorage.setItem(STORAGE_KEYS.REMEMBER_LOGIN, 'true');
-          localStorage.setItem('saved_email', values.email);
+          localStorage.setItem('saved_username', values.username);
         } else {
           localStorage.removeItem(STORAGE_KEYS.REMEMBER_LOGIN);
           localStorage.removeItem('saved_email');
@@ -178,7 +178,12 @@ const LoginPage: React.FC = () => {
           message.error('登录失败次数过多，账户已被临时锁定30分钟');
         } else {
           const errorMsg =
-            (result.payload as string) || '登录失败，请检查邮箱和密码';
+            typeof result.payload === 'string'
+              ? result.payload
+              : (result.payload as any)?.message ||
+                (result.payload as any)?.error ||
+                JSON.stringify(result.payload) ||
+                '登录失败，请检查邮箱和密码';
           message.error(`${errorMsg} (剩余尝试次数: ${5 - newAttempts})`);
         }
       }
@@ -191,8 +196,27 @@ const LoginPage: React.FC = () => {
   };
 
   const handleFormFailed = (errorInfo: any) => {
-    console.log('Form validation failed:', errorInfo);
-    message.error('请检查表单输入');
+    const firstMsg =
+      errorInfo?.errorFields?.[0]?.errors?.[0] ||
+      errorInfo?.errorFields
+        ?.map((f: any) => f.errors?.[0])
+        .filter(Boolean)
+        .join('；') ||
+      '请检查表单输入';
+
+    if (process.env.NODE_ENV === 'development') {
+      const errorSummary =
+        errorInfo?.errorFields?.map((f: any) => ({
+          field: f.name?.[0] || 'unknown',
+          errors: f.errors || [],
+        })) || [];
+      console.debug('表单验证失败:', firstMsg);
+      if (errorSummary.length > 0) {
+        console.debug('验证错误详情:', JSON.stringify(errorSummary, null, 2));
+      }
+    }
+
+    message.error(firstMsg);
   };
 
   return (
@@ -226,7 +250,9 @@ const LoginPage: React.FC = () => {
         {error && (
           <Alert
             message='登录失败'
-            description={error}
+            description={
+              typeof error === 'string' ? error : JSON.stringify(error)
+            }
             type='error'
             showIcon
             closable
@@ -276,19 +302,17 @@ const LoginPage: React.FC = () => {
           autoComplete='off'
           size='large'
           layout='vertical'
+          preserve={true}
         >
           <Form.Item
-            name='email'
-            label='邮箱地址'
-            rules={[
-              { required: true, message: '请输入邮箱地址' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
-            ]}
+            name='username'
+            label='用户名/邮箱'
+            rules={[{ required: true, message: '请输入用户名或邮箱' }]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder='请输入邮箱地址'
-              autoComplete='email'
+              placeholder='请输入用户名或邮箱'
+              autoComplete='username'
             />
           </Form.Item>
 

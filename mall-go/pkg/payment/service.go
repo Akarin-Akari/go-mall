@@ -1,7 +1,9 @@
 package payment
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"mall-go/internal/model"
@@ -86,7 +88,16 @@ func (s *Service) CreatePayment(req *model.PaymentCreateRequest) (*model.Payment
 	}
 
 	// 检查支付方式是否启用
-	if !s.configManager.IsMethodEnabled(req.PaymentMethod) {
+	methodEnabled := s.configManager.IsMethodEnabled(req.PaymentMethod)
+	// #region agent log
+	agentDebugLog("H1", "payment/service.go:CreatePayment:precheck", "create payment precheck", map[string]interface{}{
+		"orderId":       req.OrderID,
+		"paymentMethod": req.PaymentMethod,
+		"amount":        req.Amount.String(),
+		"methodEnabled": methodEnabled,
+	})
+	// #endregion
+	if !methodEnabled {
 		return nil, fmt.Errorf("支付方式 %s 未启用", req.PaymentMethod)
 	}
 
@@ -111,7 +122,10 @@ func (s *Service) CreatePayment(req *model.PaymentCreateRequest) (*model.Payment
 
 	// 检查金额是否匹配
 	if !req.Amount.Equal(order.TotalAmount) {
-		return nil, model.ErrInvalidAmount
+		logger.Error("支付金额与订单金额不匹配",
+			zap.String("request_amount", req.Amount.String()),
+			zap.String("order_total_amount", order.TotalAmount.String()))
+		return nil, fmt.Errorf("支付金额(%s)与订单金额(%s)不匹配", req.Amount.String(), order.TotalAmount.String())
 	}
 
 	// 开启事务
@@ -154,6 +168,15 @@ func (s *Service) CreatePayment(req *model.PaymentCreateRequest) (*model.Payment
 		tx.Rollback()
 		return nil, fmt.Errorf("调用第三方支付失败: %v", err)
 	}
+	// #region agent log
+	agentDebugLog("H2", "payment/service.go:CreatePayment:third-party", "third party payment created", map[string]interface{}{
+		"paymentId":     payment.ID,
+		"paymentNo":     payment.PaymentNo,
+		"paymentMethod": payment.PaymentMethod,
+		"amount":        payment.Amount.String(),
+		"paymentData":   paymentData,
+	})
+	// #endregion
 
 	// 更新支付记录
 	payment.PaymentStatus = model.PaymentStatusPaying
@@ -195,7 +218,28 @@ func (s *Service) callThirdPartyPayment(payment *model.Payment) (interface{}, er
 
 // createAlipayPayment 创建支付宝支付
 func (s *Service) createAlipayPayment(payment *model.Payment) (interface{}, error) {
+	// 开发/调试模式下，如果客户端未初始化，返回模拟支付数据
+	// #region agent log
+	agentDebugLog("H2", "payment/service.go:createAlipayPayment:entry", "enter create alipay payment", map[string]interface{}{
+		"paymentNo":     payment.PaymentNo,
+		"amount":        payment.Amount.String(),
+		"clientNil":     s.alipayClient == nil,
+		"debugMode":     s.configManager != nil && s.configManager.config != nil && s.configManager.config.Debug,
+		"notifyURL":     payment.NotifyURL,
+		"returnURL":     payment.ReturnURL,
+		"paymentMethod": payment.PaymentMethod,
+	})
+	// #endregion
 	if s.alipayClient == nil {
+		if s.configManager.config != nil && s.configManager.config.Debug {
+			logger.Info("开发模式：返回模拟支付宝支付数据",
+				zap.String("payment_no", payment.PaymentNo),
+				zap.String("amount", payment.Amount.String()))
+			return map[string]interface{}{
+				"qr_code":     fmt.Sprintf("MOCK_ALIPAY_QR_%s", payment.PaymentNo),
+				"payment_url": fmt.Sprintf("https://mock.alipay.com/pay?out_trade_no=%s&amount=%s", payment.PaymentNo, payment.Amount.String()),
+			}, nil
+		}
 		return nil, fmt.Errorf("支付宝客户端未初始化")
 	}
 
@@ -221,7 +265,17 @@ func (s *Service) createAlipayPayment(payment *model.Payment) (interface{}, erro
 
 // createWechatPayment 创建微信支付
 func (s *Service) createWechatPayment(payment *model.Payment) (interface{}, error) {
+	// 开发/调试模式下，如果客户端未初始化，返回模拟支付数据
 	if s.wechatClient == nil {
+		if s.configManager.config != nil && s.configManager.config.Debug {
+			logger.Info("开发模式：返回模拟微信支付数据",
+				zap.String("payment_no", payment.PaymentNo),
+				zap.String("amount", payment.Amount.String()))
+			return map[string]interface{}{
+				"code_url":  fmt.Sprintf("weixin://wxpay/bizpayurl?pr=MOCK_%s", payment.PaymentNo),
+				"prepay_id": fmt.Sprintf("MOCK_PREPAY_%s", payment.PaymentNo),
+			}, nil
+		}
 		return nil, fmt.Errorf("微信支付客户端未初始化")
 	}
 
@@ -319,6 +373,16 @@ func (s *Service) syncAlipayStatus(payment *model.Payment) error {
 
 	if resp.Status != payment.PaymentStatus {
 		// 更新支付状态
+		// #region agent log
+		agentDebugLog("H3", "payment/service.go:syncAlipayStatus:status-change", "alipay status changed", map[string]interface{}{
+			"paymentNo":     payment.PaymentNo,
+			"oldStatus":     payment.PaymentStatus,
+			"newStatus":     resp.Status,
+			"tradeNo":       resp.TradeNo,
+			"orderId":       payment.OrderID,
+			"thirdPartyRaw": resp,
+		})
+		// #endregion
 		payment.PaymentStatus = resp.Status
 		payment.ThirdPartyID = resp.TradeNo
 
@@ -355,6 +419,16 @@ func (s *Service) syncWechatStatus(payment *model.Payment) error {
 
 	if resp.Status != payment.PaymentStatus {
 		// 更新支付状态
+		// #region agent log
+		agentDebugLog("H3", "payment/service.go:syncWechatStatus:status-change", "wechat status changed", map[string]interface{}{
+			"paymentNo":     payment.PaymentNo,
+			"oldStatus":     payment.PaymentStatus,
+			"newStatus":     resp.Status,
+			"transactionId": resp.TransactionID,
+			"orderId":       payment.OrderID,
+			"timeEnd":       resp.TimeEnd,
+		})
+		// #endregion
 		payment.PaymentStatus = resp.Status
 		payment.ThirdPartyID = resp.TransactionID
 
@@ -409,6 +483,15 @@ func (s *Service) handlePaymentSuccess(payment *model.Payment) error {
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("提交事务失败: %v", err)
 	}
+
+	// #region agent log
+	agentDebugLog("H4", "payment/service.go:handlePaymentSuccess:committed", "payment success committed", map[string]interface{}{
+		"paymentId":     payment.ID,
+		"paymentNo":     payment.PaymentNo,
+		"orderId":       payment.OrderID,
+		"paymentMethod": payment.PaymentMethod,
+	})
+	// #endregion
 
 	return nil
 }
@@ -679,3 +762,31 @@ func (s *Service) logPaymentAction(paymentID uint, action, status, message, requ
 		logger.Error("记录支付日志失败", zap.Error(err))
 	}
 }
+
+// #region agent log helper
+func agentDebugLog(hypothesisId, location, message string, data map[string]interface{}) {
+	payload := map[string]interface{}{
+		"sessionId":    "debug-session",
+		"runId":        "pre-fix",
+		"hypothesisId": hypothesisId,
+		"location":     location,
+		"message":      message,
+		"data":         data,
+		"timestamp":    time.Now().UnixMilli(),
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+
+	f, err := os.OpenFile("e:\\Workspace_Draft\\GoLang\\goProject\\.cursor\\debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	_, _ = f.Write(append(b, '\n'))
+}
+
+// #endregion

@@ -25,15 +25,15 @@ export class ImageOptimizer {
       quality = 0.8,
       maxWidth = 1920,
       maxHeight = 1080,
-      format = 'webp'
+      format = 'webp',
     } = options;
 
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.onload = e => {
         const img = new Image();
-        
+
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -44,7 +44,7 @@ export class ImageOptimizer {
           }
 
           // 计算新尺寸
-          let { width, height } = this.calculateDimensions(
+          const { width, height } = this.calculateDimensions(
             img.width,
             img.height,
             maxWidth,
@@ -58,7 +58,7 @@ export class ImageOptimizer {
           ctx.drawImage(img, 0, 0, width, height);
 
           canvas.toBlob(
-            (blob) => {
+            blob => {
               if (blob) {
                 resolve(blob);
               } else {
@@ -105,13 +105,15 @@ export class ImageOptimizer {
     return { width: Math.round(width), height: Math.round(height) };
   }
 
-  async getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  async getImageDimensions(
+    file: File
+  ): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.onload = e => {
         const img = new Image();
-        
+
         img.onload = () => {
           resolve({ width: img.width, height: img.height });
         };
@@ -135,7 +137,7 @@ export class ImageOptimizer {
       'image/jpeg': 'jpeg',
       'image/jpg': 'jpeg',
       'image/png': 'png',
-      'image/gif': 'gif'
+      'image/gif': 'gif',
     };
     return formats[mimeType] || 'jpeg';
   }

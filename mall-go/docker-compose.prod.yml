@@ -1,0 +1,182 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务（生产环境）
+  mysql:
+    image: mysql:8.0
+    container_name: mall-go-mysql-prod
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: ${DB_NAME:-mall_go}
+      MYSQL_USER: ${DB_USERNAME:-mall_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-mall_password}
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data_prod:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - mall-network-prod
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=1000
+      - --max_allowed_packet=256M
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # Redis缓存服务（生产环境）
+  redis:
+    image: redis:7-alpine
+    container_name: mall-go-redis-prod
+    restart: always
+    command: 
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:-redis123456}
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - "1gb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_prod:/data
+    networks:
+      - mall-network-prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # GoMall应用服务（生产环境）
+  mall-go:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mall-go:latest
+    container_name: mall-go-app-prod
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: prod
+      SERVER_PORT: 8081
+      SERVER_MODE: release
+      
+      # 数据库配置
+      DB_DRIVER: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME:-mall_user}
+      DB_PASSWORD: ${DB_PASSWORD:-mall_password}
+      DB_NAME: ${DB_NAME:-mall_go}
+      DB_CHARSET: utf8mb4
+      DB_MAX_IDLE_CONNS: 20
+      DB_MAX_OPEN_CONNS: 200
+      DB_CONN_MAX_LIFETIME: 3600
+      
+      # Redis配置
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis123456}
+      REDIS_DB: 0
+      REDIS_POOL_SIZE: 300
+      REDIS_MIN_IDLE_CONNS: 50
+      REDIS_MAX_RETRIES: 5
+      REDIS_DIAL_TIMEOUT: 10
+      REDIS_READ_TIMEOUT: 5
+      REDIS_WRITE_TIMEOUT: 5
+      REDIS_IDLE_TIMEOUT: 600
+      REDIS_MAX_CONN_AGE: 7200
+      
+      # JWT配置
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRE: 24h
+      
+      # 日志配置
+      LOG_LEVEL: warn
+      LOG_FORMAT: json
+      LOG_OUTPUT: stdout
+      
+      # CORS配置
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-https://www.example.com}
+      CORS_ALLOW_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+      CORS_ALLOW_HEADERS: "Content-Type,Authorization"
+    ports:
+      - "8081:8081"
+    networks:
+      - mall-network-prod
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+        labels: "service=mall-go"
+
+# 网络定义
+networks:
+  mall-network-prod:
+    driver: bridge
+
+# 数据卷定义
+volumes:
+  mysql_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+

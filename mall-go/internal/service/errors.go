@@ -33,6 +33,7 @@ var (
 	// 系统错误
 	ErrDatabaseOperation = errors.New("数据库操作失败")
 	ErrTransactionFailed = errors.New("事务执行失败")
+	ErrOperationTimeout  = errors.New("操作超时")
 )
 
 // ErrorCode 错误码类型

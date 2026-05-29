@@ -1,0 +1,112 @@
+# 代码质量检查工作流
+# 运行Go Lint、代码格式检查、安全扫描
+
+name: Lint & Code Quality
+
+on:
+  push:
+    branches: [ main, master, aitest, develop ]
+  pull_request:
+    branches: [ main, master, aitest, develop ]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+          cache: 'go'
+      
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+      
+      - name: Check code formatting
+        run: |
+          if [ -n "$(gofmt -s -l .)" ]; then
+            echo "Go code is not formatted:"
+            gofmt -s -d .
+            exit 1
+          fi
+      
+      - name: Run go vet
+        run: go vet ./...
+      
+      - name: Check for security issues with gosec
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt json -out gosec-report.json ./...'
+        continue-on-error: true
+      
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: gosec-report.json
+      
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+        continue-on-error: true
+      
+      - name: Check for unused code
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run --disable-all -E unused ./...
+        continue-on-error: true
+
+  fmt:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+      
+      - name: Check go.mod and go.sum
+        run: |
+          go mod tidy
+          if [ -n "$(git diff go.mod go.sum)" ]; then
+            echo "go.mod or go.sum is not tidy"
+            git diff go.mod go.sum
+            exit 1
+          fi
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+

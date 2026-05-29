@@ -81,6 +81,11 @@ type Order struct {
 	// 乐观锁版本号
 	Version int `gorm:"not null;default:1" json:"version"` // 乐观锁版本号
 
+	// 幂等键（防止重复提交订单）。
+	// 用指针类型使空值落库为 NULL —— MySQL 唯一索引允许多个 NULL 但不允许多个空字符串 ''，
+	// 否则存量订单加列后默认空串会导致唯一索引创建冲突。
+	IdempotencyKey *string `gorm:"size:64;uniqueIndex:uk_idempotency_key" json:"idempotency_key,omitempty"` // 幂等键
+
 	// 时间戳
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -395,6 +400,7 @@ func (o *Order) GetStatusText() string {
 
 // 订单请求结构体
 type OrderCreateRequest struct {
+	IdempotencyKey  string `json:"idempotency_key"` // 幂等键（可选，从 Header 或 Body 传入）
 	CartItemIDs     []uint `json:"cart_item_ids" binding:"required,min=1"`
 	CouponID        uint   `json:"coupon_id"`
 	PointsUsed      int    `json:"points_used"`

@@ -1,10 +1,12 @@
 package address
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"mall-go/internal/model"
+	"mall-go/internal/service"
 	"mall-go/pkg/logger"
 	"mall-go/pkg/response"
 
@@ -15,13 +17,25 @@ import (
 
 // Handler 地址处理器
 type Handler struct {
-	db *gorm.DB
+	db             *gorm.DB
+	addressService service.IAddressService
 }
 
 // NewHandler 创建地址处理器
 func NewHandler(db *gorm.DB) *Handler {
+	addressService := service.NewAddressService(db)
 	return &Handler{
-		db: db,
+		db:             db,
+		addressService: addressService,
+	}
+}
+
+// NewHandlerWithService 使用指定服务创建地址处理器
+// 支持依赖注入，便于单元测试
+func NewHandlerWithService(db *gorm.DB, addressService service.IAddressService) *Handler {
+	return &Handler{
+		db:             db,
+		addressService: addressService,
 	}
 }
 
@@ -65,20 +79,9 @@ func (h *Handler) GetAddresses(c *gin.Context) {
 		req.UserID = userID
 	}
 
-	// 构建查询
-	query := h.db.Model(&model.Address{}).Where("user_id = ?", req.UserID)
-
-	// 添加筛选条件
-	if req.AddressType != "" {
-		query = query.Where("address_type = ?", req.AddressType)
-	}
-	if req.IsDefault != nil {
-		query = query.Where("is_default = ?", *req.IsDefault)
-	}
-
-	// 查询地址列表
-	var addresses []model.Address
-	if err := query.Order("is_default DESC, created_at DESC").Find(&addresses).Error; err != nil {
+	// 使用service层获取地址列表
+	addresses, err := h.addressService.GetAddressesWithFilter(context.Background(), &req)
+	if err != nil {
 		logger.Error("获取地址列表失败", zap.Error(err))
 		response.Error(c, http.StatusInternalServerError, "获取地址列表失败")
 		return
@@ -113,56 +116,20 @@ func (h *Handler) CreateAddress(c *gin.Context) {
 		return
 	}
 
-	// 验证地址字段
-	if err := model.ValidateAddressFields(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, "地址信息不完整")
-		return
-	}
-
 	userID := h.getUserID(c)
 	if userID == 0 {
 		response.Error(c, http.StatusUnauthorized, "用户未登录")
 		return
 	}
 
-	// 设置默认地址类型
-	if req.AddressType == "" {
-		req.AddressType = model.AddressTypeHome
-	}
-
-	// 检查用户地址数量限制（可选）
-	var count int64
-	h.db.Model(&model.Address{}).Where("user_id = ?", userID).Count(&count)
-	if count >= 20 { // 限制每个用户最多20个地址
-		response.Error(c, http.StatusBadRequest, "地址数量已达上限")
-		return
-	}
-
-	// 创建地址对象
-	address := &model.Address{
-		UserID:        userID,
-		ReceiverName:  req.ReceiverName,
-		ReceiverPhone: req.ReceiverPhone,
-		Province:      req.Province,
-		City:          req.City,
-		District:      req.District,
-		DetailAddress: req.DetailAddress,
-		PostalCode:    req.PostalCode,
-		IsDefault:     req.IsDefault,
-		AddressType:   req.AddressType,
-	}
-
-	// 保存到数据库
-	if err := h.db.Create(address).Error; err != nil {
+	// 使用service层创建地址
+	address, err := h.addressService.CreateAddress(context.Background(), userID, &req)
+	if err != nil {
 		logger.Error("创建地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "创建地址失败")
+		status, message := service.MapServiceErrorToHTTP(err)
+		response.Error(c, status, message)
 		return
 	}
-
-	logger.Info("创建地址成功",
-		zap.Uint("user_id", userID),
-		zap.Uint("address_id", address.ID),
-		zap.String("receiver_name", address.ReceiverName))
 
 	response.Success(c, "创建地址成功", address.ToResponse())
 }
@@ -202,57 +169,14 @@ func (h *Handler) UpdateAddress(c *gin.Context) {
 		return
 	}
 
-	// 查找地址
-	var address model.Address
-	if err := h.db.Where("id = ? AND user_id = ?", id, userID).First(&address).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(c, http.StatusNotFound, "地址不存在")
-			return
-		}
-		logger.Error("查询地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "查询地址失败")
-		return
-	}
-
-	// 更新字段
-	if req.ReceiverName != "" {
-		address.ReceiverName = req.ReceiverName
-	}
-	if req.ReceiverPhone != "" {
-		address.ReceiverPhone = req.ReceiverPhone
-	}
-	if req.Province != "" {
-		address.Province = req.Province
-	}
-	if req.City != "" {
-		address.City = req.City
-	}
-	if req.District != "" {
-		address.District = req.District
-	}
-	if req.DetailAddress != "" {
-		address.DetailAddress = req.DetailAddress
-	}
-	if req.PostalCode != "" {
-		address.PostalCode = req.PostalCode
-	}
-	if req.IsDefault != nil {
-		address.IsDefault = *req.IsDefault
-	}
-	if req.AddressType != "" {
-		address.AddressType = req.AddressType
-	}
-
-	// 保存更新
-	if err := h.db.Save(&address).Error; err != nil {
+	// 使用service层更新地址
+	address, err := h.addressService.UpdateAddress(context.Background(), userID, uint(id), &req)
+	if err != nil {
 		logger.Error("更新地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "更新地址失败")
+		status, message := service.MapServiceErrorToHTTP(err)
+		response.Error(c, status, message)
 		return
 	}
-
-	logger.Info("更新地址成功",
-		zap.Uint("user_id", userID),
-		zap.Uint("address_id", address.ID))
 
 	response.Success(c, "更新地址成功", address.ToResponse())
 }
@@ -285,28 +209,13 @@ func (h *Handler) DeleteAddress(c *gin.Context) {
 		return
 	}
 
-	// 查找地址
-	var address model.Address
-	if err := h.db.Where("id = ? AND user_id = ?", id, userID).First(&address).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(c, http.StatusNotFound, "地址不存在")
-			return
-		}
-		logger.Error("查询地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "查询地址失败")
-		return
-	}
-
-	// 删除地址
-	if err := h.db.Delete(&address).Error; err != nil {
+	// 使用service层删除地址
+	if err := h.addressService.DeleteAddress(context.Background(), userID, uint(id)); err != nil {
 		logger.Error("删除地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "删除地址失败")
+		status, message := service.MapServiceErrorToHTTP(err)
+		response.Error(c, status, message)
 		return
 	}
-
-	logger.Info("删除地址成功",
-		zap.Uint("user_id", userID),
-		zap.Uint("address_id", address.ID))
 
 	response.Success(c, "删除地址成功", nil)
 }
@@ -339,29 +248,14 @@ func (h *Handler) SetDefaultAddress(c *gin.Context) {
 		return
 	}
 
-	// 查找地址
-	var address model.Address
-	if err := h.db.Where("id = ? AND user_id = ?", id, userID).First(&address).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(c, http.StatusNotFound, "地址不存在")
-			return
-		}
-		logger.Error("查询地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "查询地址失败")
-		return
-	}
-
-	// 设置为默认地址
-	address.IsDefault = true
-	if err := h.db.Save(&address).Error; err != nil {
+	// 使用service层设置默认地址
+	address, err := h.addressService.SetDefaultAddress(context.Background(), userID, uint(id))
+	if err != nil {
 		logger.Error("设置默认地址失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "设置默认地址失败")
+		status, message := service.MapServiceErrorToHTTP(err)
+		response.Error(c, status, message)
 		return
 	}
-
-	logger.Info("设置默认地址成功",
-		zap.Uint("user_id", userID),
-		zap.Uint("address_id", address.ID))
 
 	response.Success(c, "设置默认地址成功", address.ToResponse())
 }

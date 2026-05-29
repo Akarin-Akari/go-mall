@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -59,7 +60,10 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 	resp, err := h.paymentService.CreatePayment(&req)
 	if err != nil {
 		logger.Error("创建支付失败", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "创建支付失败")
+		// 开发模式下返回详细错误信息（包含完整错误堆栈）
+		errMsg := fmt.Sprintf("[DEBUG_V2] 创建支付失败: %v", err)
+		logger.Error("详细错误信息", zap.String("error_message", errMsg))
+		response.Error(c, http.StatusInternalServerError, errMsg)
 		return
 	}
 

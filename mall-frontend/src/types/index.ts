@@ -33,7 +33,7 @@ export interface User {
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
   remember?: boolean;
 }
@@ -156,12 +156,12 @@ export interface OrderItem {
 export interface Address {
   id?: number;
   user_id?: number;
-  name: string;
-  phone: string;
+  receiver_name: string; // 收货人姓名（后端字段）
+  receiver_phone: string; // 收货人电话（后端字段）
   province: string;
   city: string;
   district: string;
-  detail: string;
+  detail_address: string; // 详细地址（后端字段）
   postal_code?: string;
   is_default: boolean;
 }
@@ -194,9 +194,13 @@ export interface Payment {
 
 export interface PaymentRequest {
   order_id: number;
-  payment_method: string;
-  return_url?: string;
-  notify_url?: string;
+  payment_method: string; // 后端枚举: alipay | wechat | unionpay | balance | credit
+  amount: string; // 必填，小数金额，示例："99.90"
+  subject: string; // 必填，支付主题，例如："订单支付 #123"
+  description?: string; // 可选，支付描述
+  return_url?: string; // 可选，需为完整URL（后端未标required，但校验包含url，建议总是提供）
+  notify_url?: string; // 可选，需为完整URL（后端未标required，但校验包含url，建议总是提供）
+  expired_minutes?: number; // 后端绑定未加 omitempty，建议总是 >=1，默认15
 }
 
 // 鏂囦欢涓婁紶鐩稿叧绫诲瀷

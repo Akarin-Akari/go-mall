@@ -291,6 +291,11 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	// P0-1 幂等键：优先取 Header（Idempotency-Key），Body 字段作为兜底
+	if headerKey := c.GetHeader("Idempotency-Key"); headerKey != "" {
+		req.IdempotencyKey = headerKey
+	}
+
 	userID := h.getUserID(c)
 	if userID == 0 {
 		response.Error(c, http.StatusUnauthorized, "用户未登录")

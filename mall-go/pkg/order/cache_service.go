@@ -150,6 +150,9 @@ func (cs *CacheService) GetOrderStatisticsWithCache() (*model.OrderStatisticsRes
 
 // InvalidateOrderCache 使订单缓存失效
 func (cs *CacheService) InvalidateOrderCache(orderID uint) {
+	if cs.rdb == nil {
+		return
+	}
 	cacheKey := cs.getOrderCacheKey(orderID)
 	cs.rdb.Del(cs.ctx, cacheKey)
 
@@ -159,30 +162,62 @@ func (cs *CacheService) InvalidateOrderCache(orderID uint) {
 
 // InvalidateOrderCacheByNo 根据订单号使缓存失效
 func (cs *CacheService) InvalidateOrderCacheByNo(orderNo string) {
+	if cs.rdb == nil {
+		return
+	}
 	cacheKey := fmt.Sprintf("%sno_%s", OrderCachePrefix, orderNo)
 	cs.rdb.Del(cs.ctx, cacheKey)
 }
 
 // InvalidateUserOrdersCache 使用户订单列表缓存失效
 func (cs *CacheService) InvalidateUserOrdersCache(userID uint) {
-	pattern := fmt.Sprintf("%suser_%d_*", UserOrderCachePrefix, userID)
-	keys, err := cs.rdb.Keys(cs.ctx, pattern).Result()
-	if err == nil && len(keys) > 0 {
-		cs.rdb.Del(cs.ctx, keys...)
+	if cs.rdb == nil {
+		return
 	}
+	pattern := fmt.Sprintf("%suser_%d_*", UserOrderCachePrefix, userID)
+	// 使用SCAN替代KEYS避免阻塞
+	cs.scanAndDelete(pattern)
 }
 
 // InvalidateOrderStatsCache 使订单统计缓存失效
 func (cs *CacheService) InvalidateOrderStatsCache() {
+	if cs.rdb == nil {
+		return
+	}
 	pattern := fmt.Sprintf("%s*", OrderStatsCachePrefix)
-	keys, err := cs.rdb.Keys(cs.ctx, pattern).Result()
-	if err == nil && len(keys) > 0 {
-		cs.rdb.Del(cs.ctx, keys...)
+	// 使用SCAN替代KEYS避免阻塞
+	cs.scanAndDelete(pattern)
+}
+
+// scanAndDelete 使用SCAN命令查找并删除匹配模式的键
+func (cs *CacheService) scanAndDelete(pattern string) {
+	if cs.rdb == nil {
+		return
+	}
+
+	var cursor uint64
+	for {
+		keys, newCursor, err := cs.rdb.Scan(cs.ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			break
+		}
+
+		if len(keys) > 0 {
+			cs.rdb.Del(cs.ctx, keys...)
+		}
+
+		cursor = newCursor
+		if cursor == 0 {
+			break
+		}
 	}
 }
 
 // AcquireOrderLock 获取订单锁
 func (cs *CacheService) AcquireOrderLock(orderID uint) (string, error) {
+	if cs.rdb == nil {
+		return "", fmt.Errorf("Redis不可用，无法获取订单锁")
+	}
 	lockKey := cs.getOrderLockKey(orderID)
 	lockValue := fmt.Sprintf("%d", time.Now().UnixNano())
 
@@ -200,6 +235,9 @@ func (cs *CacheService) AcquireOrderLock(orderID uint) (string, error) {
 
 // ReleaseOrderLock 释放订单锁
 func (cs *CacheService) ReleaseOrderLock(orderID uint, lockValue string) {
+	if cs.rdb == nil {
+		return
+	}
 	lockKey := cs.getOrderLockKey(orderID)
 	script := `
 		if redis.call("get", KEYS[1]) == ARGV[1] then
@@ -263,6 +301,9 @@ func (cs *CacheService) getOrderFromCache(cacheKey string) (*OrderCacheData, err
 
 // updateOrderCache 更新订单缓存
 func (cs *CacheService) updateOrderCache(cacheKey string, order *model.Order) {
+	if cs.rdb == nil {
+		return
+	}
 	cacheData := &OrderCacheData{
 		Order:     order,
 		Version:   time.Now().Unix(),
@@ -299,6 +340,9 @@ func (cs *CacheService) getUserOrdersFromCache(cacheKey string) (*UserOrdersCach
 
 // updateUserOrdersCache 更新用户订单列表缓存
 func (cs *CacheService) updateUserOrdersCache(cacheKey string, orders []*model.Order, total int64) {
+	if cs.rdb == nil {
+		return
+	}
 	cacheData := &UserOrdersCacheData{
 		Orders:    orders,
 		Total:     total,
@@ -315,6 +359,9 @@ func (cs *CacheService) updateUserOrdersCache(cacheKey string, orders []*model.O
 
 // getOrderStatsFromCache 从缓存获取订单统计
 func (cs *CacheService) getOrderStatsFromCache(cacheKey string) (*model.OrderStatisticsResponse, error) {
+	if cs.rdb == nil {
+		return nil, fmt.Errorf("cache not available")
+	}
 	data, err := cs.rdb.Get(cs.ctx, cacheKey).Result()
 	if err != nil {
 		return nil, err
@@ -330,6 +377,9 @@ func (cs *CacheService) getOrderStatsFromCache(cacheKey string) (*model.OrderSta
 
 // updateOrderStatsCache 更新订单统计缓存
 func (cs *CacheService) updateOrderStatsCache(cacheKey string, stats *model.OrderStatisticsResponse) {
+	if cs.rdb == nil {
+		return
+	}
 	data, err := json.Marshal(stats)
 	if err != nil {
 		return
@@ -452,37 +502,67 @@ type UserOrdersCacheData struct {
 
 // GetCacheStats 获取缓存统计信息
 func (cs *CacheService) GetCacheStats() (map[string]interface{}, error) {
-	stats := make(map[string]interface{})
-
-	// 获取订单缓存数量
-	orderKeys, err := cs.rdb.Keys(cs.ctx, OrderCachePrefix+"*").Result()
-	if err == nil {
-		stats["order_cache_count"] = len(orderKeys)
+	if cs.rdb == nil {
+		return map[string]interface{}{
+			"cache_available": false,
+		}, nil
 	}
+
+	stats := make(map[string]interface{})
+	stats["cache_available"] = true
+
+	// 使用SCAN替代KEYS，避免阻塞Redis
+	// 获取订单缓存数量
+	orderCount := cs.scanAndCount(OrderCachePrefix + "*")
+	stats["order_cache_count"] = orderCount
 
 	// 获取订单列表缓存数量
-	listKeys, err := cs.rdb.Keys(cs.ctx, OrderListCachePrefix+"*").Result()
-	if err == nil {
-		stats["order_list_cache_count"] = len(listKeys)
-	}
+	listCount := cs.scanAndCount(OrderListCachePrefix + "*")
+	stats["order_list_cache_count"] = listCount
 
 	// 获取用户订单缓存数量
-	userOrderKeys, err := cs.rdb.Keys(cs.ctx, UserOrderCachePrefix+"*").Result()
-	if err == nil {
-		stats["user_order_cache_count"] = len(userOrderKeys)
-	}
+	userOrderCount := cs.scanAndCount(UserOrderCachePrefix + "*")
+	stats["user_order_cache_count"] = userOrderCount
 
 	// 获取活跃锁数量
-	lockKeys, err := cs.rdb.Keys(cs.ctx, OrderLockPrefix+"*").Result()
-	if err == nil {
-		stats["active_locks"] = len(lockKeys)
-	}
+	lockCount := cs.scanAndCount(OrderLockPrefix + "*")
+	stats["active_locks"] = lockCount
 
 	return stats, nil
 }
 
+// scanAndCount 使用SCAN命令统计匹配模式的键数量
+func (cs *CacheService) scanAndCount(pattern string) int {
+	if cs.rdb == nil {
+		return 0
+	}
+
+	var cursor uint64
+	count := 0
+
+	for {
+		var keys []string
+		var err error
+		keys, cursor, err = cs.rdb.Scan(cs.ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			break
+		}
+
+		count += len(keys)
+
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return count
+}
+
 // CleanExpiredCache 清理过期缓存
 func (cs *CacheService) CleanExpiredCache() error {
+	if cs.rdb == nil {
+		return nil
+	}
 	// Redis会自动清理过期键，这里可以添加额外的清理逻辑
 
 	// 清理长时间未访问的缓存
@@ -493,20 +573,29 @@ func (cs *CacheService) CleanExpiredCache() error {
 	}
 
 	for _, pattern := range patterns {
-		keys, err := cs.rdb.Keys(cs.ctx, pattern).Result()
-		if err != nil {
-			continue
-		}
-
-		for _, key := range keys {
-			ttl, err := cs.rdb.TTL(cs.ctx, key).Result()
+		// 使用SCAN替代KEYS避免阻塞
+		var cursor uint64
+		for {
+			keys, newCursor, err := cs.rdb.Scan(cs.ctx, cursor, pattern, 100).Result()
 			if err != nil {
-				continue
+				break
 			}
 
-			// 如果TTL小于1分钟，提前清理
-			if ttl < time.Minute {
-				cs.rdb.Del(cs.ctx, key)
+			for _, key := range keys {
+				ttl, err := cs.rdb.TTL(cs.ctx, key).Result()
+				if err != nil {
+					continue
+				}
+
+				// 如果TTL小于1分钟，提前清理
+				if ttl < time.Minute {
+					cs.rdb.Del(cs.ctx, key)
+				}
+			}
+
+			cursor = newCursor
+			if cursor == 0 {
+				break
 			}
 		}
 	}
@@ -526,6 +615,9 @@ func (cs *CacheService) RefreshOrderCache(orderID uint) error {
 
 // BatchInvalidateOrderCache 批量使订单缓存失效
 func (cs *CacheService) BatchInvalidateOrderCache(orderIDs []uint) error {
+	if cs.rdb == nil {
+		return nil
+	}
 	if len(orderIDs) == 0 {
 		return nil
 	}

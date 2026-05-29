@@ -1,0 +1,183 @@
+2025-12-04 09:55:38.357 [info] Handling CreateClient action
+2025-12-04 09:55:38.357 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:55:42.413 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:55:42.414 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:55:42.569 [info] Client closed for command
+2025-12-04 09:56:45.058 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:56:45.058 [error] No server info found
+2025-12-04 09:57:05.147 [info] Handling CreateClient action
+2025-12-04 09:57:05.147 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:05.623 [info] Handling CreateClient action
+2025-12-04 09:57:05.623 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:06.124 [info] Handling CreateClient action
+2025-12-04 09:57:06.124 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:06.618 [info] Handling CreateClient action
+2025-12-04 09:57:06.618 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:08.780 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:57:08.782 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:08.916 [info] Client closed for command
+2025-12-04 09:57:08.976 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:09.059 [info] Client closed for command
+2025-12-04 09:57:09.979 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:57:09.982 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:10.063 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:57:10.065 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:10.124 [info] Client closed for command
+2025-12-04 09:57:10.199 [info] Client closed for command
+2025-12-04 09:57:19.283 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:19.283 [error] No server info found
+2025-12-04 09:57:23.250 [info] Handling DeleteClient action
+2025-12-04 09:57:23.718 [info] Handling CreateClient action
+2025-12-04 09:57:23.718 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:23.719 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:23.719 [error] No server info found
+2025-12-04 09:57:24.896 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:24.896 [error] No server info found
+2025-12-04 09:57:25.127 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:25.127 [error] No server info found
+2025-12-04 09:57:36.724 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:57:36.725 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:36.837 [info] Client closed for command
+2025-12-04 09:57:36.849 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:36.849 [error] No server info found
+2025-12-04 09:57:41.928 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:41.928 [error] No server info found
+2025-12-04 09:57:54.215 [info] Handling DeleteClient action
+2025-12-04 09:57:54.664 [info] Handling CreateClient action
+2025-12-04 09:57:54.664 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:57:54.665 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:54.665 [error] No server info found
+2025-12-04 09:57:57.880 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:57.880 [error] No server info found
+2025-12-04 09:57:59.281 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:57:59.284 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:57:59.443 [info] Client closed for command
+2025-12-04 09:57:59.452 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:57:59.453 [error] No server info found
+2025-12-04 09:58:05.979 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:58:05.979 [error] No server info found
+2025-12-04 09:58:12.551 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:58:12.551 [error] No server info found
+2025-12-04 09:58:12.614 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:58:12.614 [error] No server info found
+2025-12-04 09:58:14.074 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:58:14.074 [error] No server info found
+2025-12-04 09:58:14.135 [info] Handling ListOfferings action, server stored: false
+2025-12-04 09:58:14.135 [error] No server info found
+2025-12-04 09:58:38.709 [info] Handling CreateClient action
+2025-12-04 09:58:38.709 [info] Starting new stdio process with command: powershell -Command auggie --mcp -m default -w "($env:WORKSPACE_FOLDER_PATHS -split ',')[0]"
+2025-12-04 09:58:41.953 [error] 🔧 Starting Auggie MCP Tool Server...
+📝 Stdio mode
+
+2025-12-04 09:58:41.955 [error] 
+❌ Workspace root error: Directory does not exist
+
+   Path: C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]
+
+   Please check that the directory exists and try again.
+
+   To create a new workspace directory:
+     mkdir -p "C:\Users\Akari\(e:\Workspace_Draft\GoLang\goProject -split ',')[0]"
+
+   Or run without --workspace-root to auto-detect from git repository.
+
+
+2025-12-04 09:58:42.063 [info] Client closed for command

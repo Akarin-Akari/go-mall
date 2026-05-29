@@ -1,0 +1,101 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+bin/
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+test/
+tests/
+test_files/
+coverage/
+*.out
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+run.err.log
+run.out.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation
+docs/
+README.md
+*.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Node modules (if any frontend)
+node_modules/
+npm-debug.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Development
+week1_test/
+week2_test/
+debug-server.exe
+test-config.exe
+test-config-tool.exe
+test_build.exe
+test_cache_keys.exe
+test_cache_manager.exe
+test_cache_performance_verification.exe
+test_redis.exe
+test_user_preference_cache.exe
+handler.test.exe
+main.exe
+db-migrate.exe
+start_server.bat
+start_test_server.bat
+
+# Payment config
+payment-config/
+payment-config.exe
+
+# Other
+.vscode/
+.idea/
+*.iml
+

@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Order, PageResult, PaginationParams, Address } from '@/types';
+import {
+  Order,
+  PageResult,
+  PaginationParams,
+  Address,
+  CreateOrderRequest,
+} from '@/types';
 import { orderAPI } from '@/services/api';
 import { message } from 'antd';
 
@@ -78,19 +84,7 @@ export const fetchOrderDetailAsync = createAsyncThunk(
 
 export const createOrderAsync = createAsyncThunk(
   'order/createOrder',
-  async (
-    orderData: {
-      items: {
-        product_id: number;
-        sku_id?: number;
-        quantity: number;
-        price: string;
-      }[];
-      shipping_address: Address;
-      remark?: string;
-    },
-    { rejectWithValue }
-  ) => {
+  async (orderData: CreateOrderRequest, { rejectWithValue }) => {
     try {
       const response = await orderAPI.createOrder(orderData);
       return response.data;

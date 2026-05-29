@@ -69,10 +69,11 @@ type Product struct {
 	Unit   string          `gorm:"size:20" json:"unit"`
 
 	// 状态信息
-	Status      string `gorm:"size:20;default:'draft';index" json:"status"`
-	IsHot       bool   `gorm:"default:false" json:"is_hot"`
-	IsNew       bool   `gorm:"default:false" json:"is_new"`
-	IsRecommend bool   `gorm:"default:false" json:"is_recommend"`
+	Status string `gorm:"size:20;default:'draft';index" json:"status"`
+
+	IsHot       bool `gorm:"default:false" json:"is_hot"`
+	IsNew       bool `gorm:"default:false" json:"is_new"`
+	IsRecommend bool `gorm:"default:false" json:"is_recommend"`
 
 	// SEO信息
 	SEOTitle       string `gorm:"size:255" json:"seo_title"`

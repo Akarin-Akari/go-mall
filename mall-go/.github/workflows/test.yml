@@ -1,0 +1,104 @@
+# 自动化测试工作流
+# 在每次push和pull request时运行测试
+
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, aitest, develop ]
+  pull_request:
+    branches: [ main, master, aitest, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root123456
+          MYSQL_DATABASE: mall_go_test
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+          cache: 'go'
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run unit tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+        env:
+          ENV: test
+          DB_DRIVER: mysql
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_password
+          DB_NAME: mall_go_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: Run integration tests
+        run: go test -v -tags=integration ./tests/integration/...
+        env:
+          ENV: test
+          DB_DRIVER: mysql
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_password
+          DB_NAME: mall_go_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+        continue-on-error: true
+      
+      - name: Generate test report
+        if: always()
+        run: |
+          go test -v -json ./... > test-report.json || true
+      
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test-report.json
+

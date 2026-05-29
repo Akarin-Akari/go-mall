@@ -114,8 +114,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    10,
 			Unit:        "台",
 			Sort:        1,
-			Status:      "on_sale",
-			Images:      `["https://example.com/iphone15pro.jpg"]`,
+			Status:      "active",
 		},
 		{
 			Name:        "MacBook Pro 14英寸",
@@ -128,8 +127,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    5,
 			Unit:        "台",
 			Sort:        2,
-			Status:      "on_sale",
-			Images:      `["https://example.com/macbook-pro.jpg"]`,
+			Status:      "active",
 		},
 		{
 			Name:        "iPad Air",
@@ -142,8 +140,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    8,
 			Unit:        "台",
 			Sort:        3,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/ipad-air.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "AirPods Pro",
@@ -156,8 +153,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    20,
 			Unit:        "副",
 			Sort:        4,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/airpods-pro.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "Apple Watch Series 9",
@@ -170,8 +166,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    12,
 			Unit:        "块",
 			Sort:        5,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/apple-watch.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 	}
 
@@ -188,8 +183,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    15,
 			Unit:        "双",
 			Sort:        1,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/nike-air-max.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "Adidas三叶草卫衣",
@@ -202,8 +196,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    20,
 			Unit:        "件",
 			Sort:        2,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/adidas-hoodie.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "Levi's 501牛仔裤",
@@ -216,8 +209,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    10,
 			Unit:        "条",
 			Sort:        3,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/levis-jeans.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "优衣库羽绒服",
@@ -230,8 +222,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    8,
 			Unit:        "件",
 			Sort:        4,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/uniqlo-down.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "New Balance 990v5",
@@ -244,8 +235,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    6,
 			Unit:        "双",
 			Sort:        5,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/new-balance.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 	}
 
@@ -262,8 +252,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    10,
 			Unit:        "台",
 			Sort:        1,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/muji-diffuser.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "宜家北欧风台灯",
@@ -276,8 +265,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    15,
 			Unit:        "盏",
 			Sort:        2,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/ikea-lamp.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "小米空气净化器",
@@ -290,8 +278,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    8,
 			Unit:        "台",
 			Sort:        3,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/xiaomi-purifier.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "网易严选四件套",
@@ -304,8 +291,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    12,
 			Unit:        "套",
 			Sort:        4,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/yanxuan-bedding.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 		{
 			Name:        "戴森吸尘器V15",
@@ -318,8 +304,7 @@ func createProducts(db *gorm.DB) error {
 			MinStock:    4,
 			Unit:        "台",
 			Sort:        5,
-			Status:      model.ProductStatusOnSale,
-			Images:      `["https://example.com/dyson-v15.jpg"]`,
+			Status:      model.ProductStatusActive,
 		},
 	}
 

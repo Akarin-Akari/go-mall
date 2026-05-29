@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -19,7 +20,10 @@ type AddressConfig struct {
 	PostalCodeRegexPattern string `yaml:"postal_code_regex_pattern" default:"^\\d{6}$"`
 	
 	// 操作超时配置
-	DatabaseTimeout time.Duration `yaml:"database_timeout" default:"5s"`
+	DatabaseTimeout    time.Duration `yaml:"database_timeout" default:"5s"`
+	OperationTimeout   time.Duration `yaml:"operation_timeout" default:"30s"`
+	QueryTimeout       time.Duration `yaml:"query_timeout" default:"10s"`
+	TransactionTimeout time.Duration `yaml:"transaction_timeout" default:"15s"`
 	
 	// 日志配置
 	EnableDetailedLog bool `yaml:"enable_detailed_log" default:"true"`
@@ -34,6 +38,9 @@ func DefaultAddressConfig() *AddressConfig {
 		PhoneRegexPattern:      "^1[3-9]\\d{9}$",
 		PostalCodeRegexPattern: "^\\d{6}$",
 		DatabaseTimeout:        5 * time.Second,
+		OperationTimeout:       30 * time.Second,
+		QueryTimeout:           10 * time.Second,
+		TransactionTimeout:     15 * time.Second,
 		EnableDetailedLog:      true,
 		LogLevel:               "info",
 	}
@@ -92,6 +99,18 @@ func (c *AddressConfig) Validate() error {
 	
 	if c.DatabaseTimeout <= 0 {
 		c.DatabaseTimeout = 5 * time.Second
+	}
+
+	if c.OperationTimeout <= 0 {
+		c.OperationTimeout = 30 * time.Second
+	}
+
+	if c.QueryTimeout <= 0 {
+		c.QueryTimeout = 10 * time.Second
+	}
+
+	if c.TransactionTimeout <= 0 {
+		c.TransactionTimeout = 15 * time.Second
 	}
 	
 	if c.LogLevel == "" {
@@ -157,4 +176,74 @@ func (c *AddressConfig) GetEffectiveMaxPageSize(requestedSize int) int {
 		return c.MaxPageSize
 	}
 	return requestedSize
+}
+
+// AddressConfigManager 地址配置管理器
+type AddressConfigManager struct {
+	config          *AddressConfig
+	phoneRegex      *regexp.Regexp
+	postalCodeRegex *regexp.Regexp
+}
+
+// NewAddressConfigManager 创建配置管理器
+func NewAddressConfigManager(config *AddressConfig) (*AddressConfigManager, error) {
+	if config == nil {
+		config = DefaultAddressConfig()
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
+
+	// 编译正则表达式
+	phoneRegex, err := regexp.Compile(config.PhoneRegexPattern)
+	if err != nil {
+		return nil, err
+	}
+
+	postalCodeRegex, err := regexp.Compile(config.PostalCodeRegexPattern)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddressConfigManager{
+		config:          config,
+		phoneRegex:      phoneRegex,
+		postalCodeRegex: postalCodeRegex,
+	}, nil
+}
+
+// GetConfig 获取配置
+func (m *AddressConfigManager) GetConfig() *AddressConfig {
+	return m.config
+}
+
+// GetPhoneRegex 获取手机号正则表达式
+func (m *AddressConfigManager) GetPhoneRegex() *regexp.Regexp {
+	return m.phoneRegex
+}
+
+// GetPostalCodeRegex 获取邮编正则表达式
+func (m *AddressConfigManager) GetPostalCodeRegex() *regexp.Regexp {
+	return m.postalCodeRegex
+}
+
+// ValidatePhone 验证手机号
+func (m *AddressConfigManager) ValidatePhone(phone string) bool {
+	return m.phoneRegex.MatchString(phone)
+}
+
+// ValidatePostalCode 验证邮编
+func (m *AddressConfigManager) ValidatePostalCode(code string) bool {
+	return m.postalCodeRegex.MatchString(code)
+}
+
+// GetMaxAddressPerUser 获取每用户最大地址数
+func (m *AddressConfigManager) GetMaxAddressPerUser() int {
+	return m.config.MaxAddressPerUser
+}
+
+// GetMaxPageSize 获取最大分页大小
+func (m *AddressConfigManager) GetMaxPageSize() int {
+	return m.config.MaxPageSize
 }

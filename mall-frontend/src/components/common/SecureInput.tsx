@@ -339,7 +339,9 @@ export const SecureFormItem: React.FC<SecureFormItemProps> = ({
       validator: (_: any, value: string) => {
         if (!value) return Promise.resolve();
 
-        const cleanValue = value.trim().slice(0, securityConfig.maxLength || 1000);
+        const cleanValue = value
+          .trim()
+          .slice(0, securityConfig.maxLength || 1000);
         if (/<script|javascript:|on\w+=/i.test(value)) {
           return Promise.reject(new Error('输入包含不安全的内容'));
         }

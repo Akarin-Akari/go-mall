@@ -16,15 +16,21 @@ export class ConfigManager {
 
   private constructor() {
     this.config = {
-      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081',
+      apiBaseUrl:
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081',
       apiTimeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000,
       maxUploadSize: 5 * 1024 * 1024, // 5MB
-      supportedImageTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+      supportedImageTypes: [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+      ],
       features: {
         enableCache: true,
         enableCompression: true,
-        enablePerformanceMonitoring: true
-      }
+        enablePerformanceMonitoring: true,
+      },
     };
   }
 
@@ -43,7 +49,7 @@ export class ConfigManager {
     return this.config[key];
   }
 
-  set(key: keyof AppConfig, value: any): void {
+  set<K extends keyof AppConfig>(key: K, value: AppConfig[K]): void {
     this.config[key] = value;
   }
 

@@ -171,7 +171,7 @@ func (pm *PerformanceMonitor) RecordMetric(name string, value float64, labels ma
 func (pm *PerformanceMonitor) IncrementCounter(name string, labels map[string]string) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	metric, exists := pm.metrics[name]
 	if !exists {
 		metric = &MetricData{
@@ -183,9 +183,38 @@ func (pm *PerformanceMonitor) IncrementCounter(name string, labels map[string]st
 		}
 		pm.metrics[name] = metric
 	}
-	
+
 	metric.Value++
 	metric.Timestamp = time.Now()
+}
+
+// RecordAddressOperation 记录地址操作
+func (pm *PerformanceMonitor) RecordAddressOperation(operation string, err error) {
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+
+	pm.IncrementCounter("address_operations_total", map[string]string{
+		"operation": operation,
+		"status":    status,
+	})
+}
+
+// RecordCacheHit 记录缓存命中
+func (pm *PerformanceMonitor) RecordCacheHit(cacheType, operation string) {
+	pm.IncrementCounter("cache_hits_total", map[string]string{
+		"cache_type": cacheType,
+		"operation":  operation,
+	})
+}
+
+// RecordCacheMiss 记录缓存未命中
+func (pm *PerformanceMonitor) RecordCacheMiss(cacheType, operation string) {
+	pm.IncrementCounter("cache_misses_total", map[string]string{
+		"cache_type": cacheType,
+		"operation":  operation,
+	})
 }
 
 // checkAlerts 检查告警规则
@@ -478,6 +507,8 @@ var GlobalPerformanceMonitor *PerformanceMonitor
 
 // InitGlobalPerformanceMonitor 初始化全局性能监控器
 func InitGlobalPerformanceMonitor() {
-	GlobalPerformanceMonitor = NewPerformanceMonitor()
-	logger.Info("全局性能监控器已初始化")
+	if GlobalPerformanceMonitor == nil {
+		GlobalPerformanceMonitor = NewPerformanceMonitor()
+		logger.Info("全局性能监控器已初始化")
+	}
 }

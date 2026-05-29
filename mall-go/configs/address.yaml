@@ -11,6 +11,9 @@ postal_code_regex_pattern: "^\\d{6}$"       # 中国邮政编码正则表达式
 
 # 操作超时配置
 database_timeout: 5s      # 数据库操作超时时间
+operation_timeout: 30s    # 一般操作超时时间
+query_timeout: 10s        # 查询操作超时时间
+transaction_timeout: 15s  # 事务操作超时时间
 
 # 日志配置
 enable_detailed_log: true # 是否启用详细日志

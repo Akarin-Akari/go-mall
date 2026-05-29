@@ -1,5 +1,10 @@
 package errors
 
+import (
+	"fmt"
+	"time"
+)
+
 // 用户模块错误定义
 var (
 	// 用户注册错误 (21000-21099)

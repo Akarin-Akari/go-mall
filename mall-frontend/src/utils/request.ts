@@ -76,7 +76,7 @@ const refreshToken = async (): Promise<string | null> => {
 };
 
 // 请求配置接口
-interface RequestConfig extends InternalAxiosRequestConfig {
+interface RequestConfig extends Partial<InternalAxiosRequestConfig> {
   skipAuth?: boolean;
   skipErrorHandler?: boolean;
   showLoading?: boolean;
@@ -117,7 +117,9 @@ const createAxiosInstance = (): AxiosInstance => {
       // 显示加载状态
       if (customConfig.showLoading) {
         // 可以在这里显示全局loading
-        console.log('Loading...');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[HTTP] Loading...');
+        }
       }
 
       return config;
@@ -135,7 +137,9 @@ const createAxiosInstance = (): AxiosInstance => {
 
       // 隐藏加载状态
       if (customConfig.showLoading) {
-        console.log('Loading finished');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[HTTP] Loading finished');
+        }
       }
 
       // 检查业务状态码
@@ -168,7 +172,7 @@ const createAxiosInstance = (): AxiosInstance => {
 
         // 特殊错误码处理
         if (code === BUSINESS_CODE.UNAUTHORIZED) {
-          return handleTokenExpired(error.config);
+          return handleTokenExpired(response.config);
         }
 
         return Promise.reject(new Error(errorMessage));
@@ -180,7 +184,9 @@ const createAxiosInstance = (): AxiosInstance => {
 
       // 隐藏加载状态
       if (customConfig?.showLoading) {
-        console.log('Loading finished');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[HTTP] Loading finished');
+        }
       }
 
       // 网络错误处理 - 生成错误消息
@@ -269,12 +275,14 @@ const handleTokenExpired = async (originalRequest: any): Promise<any> => {
     // 正在刷新Token，将请求加入队列
     return new Promise((resolve, reject) => {
       failedQueue.push({ resolve, reject });
-    }).then(token => {
-      originalRequest.headers['Authorization'] = `Bearer ${token}`;
-      return axios(originalRequest);
-    }).catch(err => {
-      return Promise.reject(err);
-    });
+    })
+      .then(token => {
+        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+        return axios(originalRequest);
+      })
+      .catch(err => {
+        return Promise.reject(err);
+      });
   }
 
   originalRequest._retry = true;

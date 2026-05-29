@@ -84,9 +84,14 @@ func (cm *ConfigManager) GetMethodConfig(method model.PaymentMethod) (*model.Pay
 }
 
 // IsMethodEnabled 检查支付方式是否启用
+// 开发环境（Debug=true）下，如果数据库未配置，允许按默认配置放行，便于联调与E2E测试
 func (cm *ConfigManager) IsMethodEnabled(method model.PaymentMethod) bool {
 	config, err := cm.GetMethodConfig(method)
 	if err != nil {
+		// 数据库未配置，开发/调试环境下放行
+		if cm.config != nil && cm.config.Debug {
+			return true
+		}
 		return false
 	}
 
@@ -104,9 +109,31 @@ func (cm *ConfigManager) GetMethodLimit(method model.PaymentMethod) (model.Payme
 }
 
 // ValidateAmount 验证支付金额
+// 若数据库未配置，开发/调试环境下回退到内置默认限额（config.Limits 或 MethodLimits）
 func (cm *ConfigManager) ValidateAmount(method model.PaymentMethod, amount decimal.Decimal) error {
 	config, err := cm.GetMethodConfig(method)
 	if err != nil {
+		// 数据库缺省时的回退逻辑
+		if cm.config != nil {
+			// 先按支付方式的专属限额
+			if ml, ok := cm.config.Limits.MethodLimits[method]; ok {
+				if amount.LessThan(ml.MinAmount) {
+					return fmt.Errorf("支付金额不能小于 %s", ml.MinAmount.String())
+				}
+				if amount.GreaterThan(ml.MaxAmount) {
+					return fmt.Errorf("支付金额不能大于 %s", ml.MaxAmount.String())
+				}
+				return nil
+			}
+			// 再按全局限额
+			if amount.LessThan(cm.config.Limits.MinAmount) {
+				return fmt.Errorf("支付金额不能小于 %s", cm.config.Limits.MinAmount.String())
+			}
+			if amount.GreaterThan(cm.config.Limits.MaxAmount) {
+				return fmt.Errorf("支付金额不能大于 %s", cm.config.Limits.MaxAmount.String())
+			}
+			return nil
+		}
 		return err
 	}
 

@@ -1,574 +1,213 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Row,
-  Col,
-  Card,
-  Input,
-  Select,
-  Button,
-  Space,
-  Spin,
-  Empty,
-  Breadcrumb,
-  Affix,
-  Drawer,
-  Badge,
-  Slider,
-  Checkbox,
-  Rate,
-  Typography,
-  Divider,
-  message,
-} from 'antd';
-import {
-  SearchOutlined,
-  FilterOutlined,
-  AppstoreOutlined,
-  BarsOutlined,
-  SortAscendingOutlined,
-  SortDescendingOutlined,
-  HomeOutlined,
-  ShopOutlined,
-  ClearOutlined,
-} from '@ant-design/icons';
-import { Pagination, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { fetchProductsAsync, selectProduct } from '@/store/slices/productSlice';
-import ProductCard from '@/components/business/ProductCard';
+import { fetchProductsAsync, fetchCategoriesAsync, selectProduct, selectCategories } from '@/store/slices/productSlice';
 import MainLayout from '@/components/layout/MainLayout';
-import { Product, Category } from '@/types';
-import { ROUTES, PAGINATION } from '@/constants';
-import { debounce } from '@/utils';
-
-const { Search } = Input;
-const { Option } = Select;
-const { Text, Title } = Typography;
-
-// 排序选项
-const SORT_OPTIONS = [
-  { label: '综合排序', value: 'default' },
-  { label: '价格从低到高', value: 'price_asc' },
-  { label: '价格从高到低', value: 'price_desc' },
-  { label: '销量从高到低', value: 'sales_desc' },
-  { label: '评分从高到低', value: 'rating_desc' },
-  { label: '最新发布', value: 'created_desc' },
-];
-
-// 每页显示数量选项
-const PAGE_SIZE_OPTIONS = [
-  { label: '12个/页', value: 12 },
-  { label: '24个/页', value: 24 },
-  { label: '48个/页', value: 48 },
-];
-
-// 价格区间选项
-const PRICE_RANGES = [
-  { label: '全部价格', value: null },
-  { label: '0-50元', value: [0, 50] },
-  { label: '50-100元', value: [50, 100] },
-  { label: '100-200元', value: [100, 200] },
-  { label: '200-500元', value: [200, 500] },
-  { label: '500元以上', value: [500, 9999] },
-];
+import { Product } from '@/types';
+import { AppleCard } from '@/components/ui/apple/AppleCard';
+import { AppleButton } from '@/components/ui/apple/AppleButton';
+import { AppleAmbientBackground } from '@/components/ui/apple/AppleAmbientBackground';
+import { Search, Filter, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Spin, Drawer, Slider, Checkbox } from 'antd';
+import { addToCartAsync } from '@/store/slices/cartSlice';
 
 const ProductsPage: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [sortBy, setSortBy] = useState('default');
-  const [pageSize, setPageSize] = useState(24);
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [customPriceRange, setCustomPriceRange] = useState<[number, number]>([
-    0, 1000,
-  ]);
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const {
-    products,
-    total,
-    loading,
-    searchParams: storeSearchParams,
-  } = useAppSelector(selectProduct);
 
-  // 从URL参数初始化状态
+  const { products, loading } = useAppSelector(selectProduct);
+  const categories = useAppSelector(selectCategories);
+
+  const [activeCategory, setActiveCategory] = useState<number>(0);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch Categories once
   useEffect(() => {
-    const keyword = searchParams?.get('keyword') || '';
+    dispatch(fetchCategoriesAsync());
+  }, [dispatch]);
+
+  // Fetch Products when params change
+  useEffect(() => {
     const category = searchParams?.get('category');
-    const sort = searchParams?.get('sort') || 'default';
-    const page = parseInt(searchParams?.get('page') || '1');
-    const size = parseInt(searchParams?.get('size') || '24');
+    const catId = category ? Number(category) : 0;
+    setActiveCategory(catId);
 
-    setSearchKeyword(keyword);
-    setSortBy(sort);
-    setPageSize(size);
-
-    if (category) {
-      setSelectedCategories([parseInt(category)]);
-    }
-
-    // 加载商品数据
-    loadProducts({
-      keyword,
-      category_id: category ? parseInt(category) : undefined,
-      page,
-      page_size: size,
-      sort_by: sort,
-    });
-  }, [searchParams]);
-
-  // 加载商品数据
-  const loadProducts = useCallback(
-    (params: any) => {
-      dispatch(
-        fetchProductsAsync({
-          page: 1,
-          page_size: 24,
-          ...params,
-        })
-      );
-    },
-    [dispatch]
-  );
-
-  // 防抖搜索
-  const debouncedSearch = useCallback(
-    debounce((keyword: string) => {
-      updateUrlAndLoad({ keyword, page: 1 });
-    }, 500),
-    []
-  );
-
-  // 更新URL和加载数据
-  const updateUrlAndLoad = useCallback(
-    (params: any) => {
-      const url = new URL(window.location.href);
-
-      // 更新URL参数
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.set(key, String(value));
-        } else {
-          url.searchParams.delete(key);
-        }
-      });
-
-      // 更新浏览器URL
-      window.history.pushState({}, '', url.toString());
-
-      // 加载数据
-      loadProducts({
-        keyword: searchKeyword,
-        category_id: selectedCategories[0],
-        sort_by: sortBy,
-        page_size: pageSize,
-        min_price: priceRange?.[0],
-        max_price: priceRange?.[1],
-        min_rating: selectedRating,
-        ...params,
-      });
-    },
-    [
-      searchKeyword,
-      selectedCategories,
-      sortBy,
-      pageSize,
-      priceRange,
-      selectedRating,
-      loadProducts,
-    ]
-  );
-
-  // 处理搜索
-  const handleSearch = useCallback(
-    (value: string) => {
-      setSearchKeyword(value);
-      debouncedSearch(value);
-    },
-    [debouncedSearch]
-  );
-
-  // 处理排序变化
-  const handleSortChange = useCallback(
-    (value: string) => {
-      setSortBy(value);
-      updateUrlAndLoad({ sort: value, page: 1 });
-    },
-    [updateUrlAndLoad]
-  );
-
-  // 处理分类筛选
-  const handleCategoryChange = useCallback(
-    (categoryId: number, checked: boolean) => {
-      let newCategories: number[];
-      if (checked) {
-        newCategories = [...selectedCategories, categoryId];
-      } else {
-        newCategories = selectedCategories.filter(id => id !== categoryId);
-      }
-
-      setSelectedCategories(newCategories);
-      updateUrlAndLoad({
-        category: newCategories[0] || undefined,
-        page: 1,
-      });
-    },
-    [selectedCategories, updateUrlAndLoad]
-  );
-
-  // 处理价格筛选
-  const handlePriceRangeChange = useCallback(
-    (range: [number, number] | null) => {
-      setPriceRange(range);
-      updateUrlAndLoad({
-        min_price: range?.[0],
-        max_price: range?.[1],
-        page: 1,
-      });
-    },
-    [updateUrlAndLoad]
-  );
-
-  // 清除所有筛选
-  const handleClearFilters = useCallback(() => {
-    setSelectedCategories([]);
-    setPriceRange(null);
-    setSelectedRating(null);
-    setSearchKeyword('');
-    updateUrlAndLoad({
-      keyword: undefined,
-      category: undefined,
-      min_price: undefined,
-      max_price: undefined,
-      min_rating: undefined,
+    dispatch(fetchProductsAsync({
       page: 1,
-    });
-  }, [updateUrlAndLoad]);
+      page_size: 24,
+      category_id: catId === 0 ? undefined : catId,
+      keyword: searchQuery || undefined
+    }));
+  }, [dispatch, searchParams, searchQuery]); // re-fetch when search changes (debounce ideally needed but keeping simple for logic completeness)
 
-  // 处理添加到购物车
-  const handleAddToCart = useCallback(async (product: Product) => {
-    // 这里应该调用购物车API
-    console.log('Add to cart:', product);
-    // 模拟异步操作
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }, []);
+  const handleCategoryClick = (id: number) => {
+    setActiveCategory(id);
+    const params = new URLSearchParams(searchParams?.toString());
+    if (id === 0) {
+      params.delete('category');
+    } else {
+      params.set('category', id.toString());
+    }
+    router.push(`/products?${params.toString()}`);
+  };
 
-  // 处理收藏切换
-  const handleToggleFavorite = useCallback(async (product: Product) => {
-    // 这里应该调用收藏API
-    console.log('Toggle favorite:', product);
-    // 模拟异步操作
-    await new Promise(resolve => setTimeout(resolve, 300));
-  }, []);
-
-  // 渲染筛选面板
-  const renderFilterPanel = () => (
-    <Card title='商品筛选' size='small'>
-      <Space direction='vertical' style={{ width: '100%' }} size='large'>
-        {/* 分类筛选 */}
-        <div>
-          <Title level={5}>商品分类</Title>
-          <Space wrap>
-            {/* 这里应该从store获取分类数据 */}
-            {[
-              { id: 1, name: '电子产品' },
-              { id: 2, name: '服装鞋帽' },
-              { id: 3, name: '家居用品' },
-              { id: 4, name: '图书音像' },
-              { id: 5, name: '运动户外' },
-            ].map(category => (
-              <Tag.CheckableTag
-                key={category.id}
-                checked={selectedCategories.includes(category.id)}
-                onChange={checked => handleCategoryChange(category.id, checked)}
-              >
-                {category.name}
-              </Tag.CheckableTag>
-            ))}
-          </Space>
-        </div>
-
-        {/* 价格筛选 */}
-        <div>
-          <Title level={5}>价格区间</Title>
-          <Space direction='vertical' style={{ width: '100%' }}>
-            {PRICE_RANGES.map((range, index) => (
-              <Checkbox
-                key={index}
-                checked={
-                  range.value === null
-                    ? priceRange === null
-                    : priceRange?.[0] === range.value[0] &&
-                      priceRange?.[1] === range.value[1]
-                }
-                onChange={e => {
-                  if (e.target.checked) {
-                    handlePriceRangeChange(
-                      range.value as [number, number] | null
-                    );
-                  }
-                }}
-              >
-                {range.label}
-              </Checkbox>
-            ))}
-
-            <div style={{ marginTop: 16 }}>
-              <Text>自定义价格区间：</Text>
-              <Slider
-                range
-                min={0}
-                max={1000}
-                value={customPriceRange}
-                onChange={value =>
-                  setCustomPriceRange(value as [number, number])
-                }
-                onAfterChange={value =>
-                  handlePriceRangeChange(value as [number, number])
-                }
-                tooltip={{ formatter: value => `¥${value}` }}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: 12,
-                  color: '#999',
-                }}
-              >
-                <span>¥{customPriceRange[0]}</span>
-                <span>¥{customPriceRange[1]}</span>
-              </div>
-            </div>
-          </Space>
-        </div>
-
-        {/* 评分筛选 */}
-        <div>
-          <Title level={5}>用户评分</Title>
-          <Space direction='vertical'>
-            {[5, 4, 3, 2, 1].map(rating => (
-              <Checkbox
-                key={rating}
-                checked={selectedRating === rating}
-                onChange={e => {
-                  setSelectedRating(e.target.checked ? rating : null);
-                  updateUrlAndLoad({
-                    min_rating: e.target.checked ? rating : undefined,
-                    page: 1,
-                  });
-                }}
-              >
-                <Rate disabled value={rating} style={{ fontSize: 14 }} />
-                <Text style={{ marginLeft: 8 }}>{rating}星及以上</Text>
-              </Checkbox>
-            ))}
-          </Space>
-        </div>
-
-        {/* 清除筛选 */}
-        <Button block icon={<ClearOutlined />} onClick={handleClearFilters}>
-          清除筛选
-        </Button>
-      </Space>
-    </Card>
-  );
+  const handleAddToCart = async (product: Product) => {
+    try {
+      // @ts-ignore
+      await dispatch((await import('@/store/slices/cartSlice')).addToCartAsync({
+        product_id: product.id,
+        quantity: 1
+      })).unwrap();
+    } catch (e) {
+      console.error("Cart error", e);
+    }
+  };
 
   return (
     <MainLayout>
-      <div style={{ padding: '0 24px' }}>
-        {/* 面包屑导航 */}
-        <Breadcrumb style={{ margin: '16px 0' }}>
-          <Breadcrumb.Item href={ROUTES.HOME}>
-            <HomeOutlined />
-            <span>首页</span>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <ShopOutlined />
-            <span>商品列表</span>
-          </Breadcrumb.Item>
-        </Breadcrumb>
+      <div className="relative min-h-screen pb-20 bg-[#f5f5f7]">
+        {/* Subtle Ambient BG */}
+        <AppleAmbientBackground className="fixed inset-0 opacity-30" fallbackColor="#F5F5F7" />
 
-        <Row gutter={[24, 24]}>
-          {/* 左侧筛选面板 */}
-          <Col xs={0} sm={0} md={6} lg={5} xl={4}>
-            <Affix offsetTop={80}>{renderFilterPanel()}</Affix>
-          </Col>
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
 
-          {/* 右侧商品列表 */}
-          <Col xs={24} sm={24} md={18} lg={19} xl={20}>
-            {/* 搜索和工具栏 */}
-            <Card style={{ marginBottom: 16 }}>
-              <Row gutter={[16, 16]} align='middle'>
-                <Col xs={24} sm={12} md={8}>
-                  <Search
-                    placeholder='搜索商品名称、品牌、型号...'
-                    value={searchKeyword}
-                    onChange={e => setSearchKeyword(e.target.value)}
-                    onSearch={handleSearch}
-                    enterButton={<SearchOutlined />}
-                    size='large'
-                  />
-                </Col>
+          {/* Header & Search */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-[#1d1d1f]">Store. <span className="text-[#86868b]">All Products.</span></h1>
+            </div>
 
-                <Col xs={24} sm={12} md={16}>
-                  <Row gutter={[8, 8]} justify='space-between' align='middle'>
-                    <Col>
-                      <Space>
-                        <Text type='secondary'>
-                          共找到 <Text strong>{total}</Text> 件商品
-                        </Text>
-                      </Space>
-                    </Col>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative flex-1 md:w-[300px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="w-full h-10 pl-10 pr-4 rounded-full bg-white border-0 shadow-sm focus:ring-2 focus:ring-[#007AFF] focus:outline-none transition-all placeholder:text-gray-400 text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <AppleButton variant="secondary" size="icon" onClick={() => setFilterOpen(true)}>
+                <Filter className="w-4 h-4" />
+              </AppleButton>
+            </div>
+          </div>
 
-                    <Col>
-                      <Space>
-                        {/* 移动端筛选按钮 */}
-                        <Button
-                          icon={<FilterOutlined />}
-                          onClick={() => setFilterVisible(true)}
-                          className='md:hidden'
-                        >
-                          筛选
-                        </Button>
-
-                        {/* 视图切换 */}
-                        <Button.Group>
-                          <Button
-                            icon={<AppstoreOutlined />}
-                            type={viewMode === 'grid' ? 'primary' : 'default'}
-                            onClick={() => setViewMode('grid')}
-                          />
-                          <Button
-                            icon={<BarsOutlined />}
-                            type={viewMode === 'list' ? 'primary' : 'default'}
-                            onClick={() => setViewMode('list')}
-                          />
-                        </Button.Group>
-
-                        {/* 排序选择 */}
-                        <Select
-                          value={sortBy}
-                          onChange={handleSortChange}
-                          style={{ width: 140 }}
-                          suffixIcon={<SortAscendingOutlined />}
-                        >
-                          {SORT_OPTIONS.map(option => (
-                            <Option key={option.value} value={option.value}>
-                              {option.label}
-                            </Option>
-                          ))}
-                        </Select>
-
-                        {/* 每页显示数量 */}
-                        <Select
-                          value={pageSize}
-                          onChange={value => {
-                            setPageSize(value);
-                            updateUrlAndLoad({ size: value, page: 1 });
-                          }}
-                          style={{ width: 100 }}
-                        >
-                          {PAGE_SIZE_OPTIONS.map(option => (
-                            <Option key={option.value} value={option.value}>
-                              {option.label}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Space>
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-            </Card>
-
-            {/* 商品列表 */}
-            <Spin spinning={loading}>
-              {products.length > 0 ? (
-                <>
-                  <Row gutter={[16, 16]}>
-                    {products.map(product => (
-                      <Col
-                        key={product.id}
-                        xs={viewMode === 'grid' ? 12 : 24}
-                        sm={viewMode === 'grid' ? 8 : 24}
-                        md={viewMode === 'grid' ? 8 : 24}
-                        lg={viewMode === 'grid' ? 6 : 24}
-                        xl={viewMode === 'grid' ? 6 : 24}
-                      >
-                        <ProductCard
-                          product={product}
-                          size={viewMode === 'grid' ? 'default' : 'large'}
-                          onAddToCart={handleAddToCart}
-                          onToggleFavorite={handleToggleFavorite}
-                        />
-                      </Col>
-                    ))}
-                  </Row>
-
-                  {/* 分页组件 */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginTop: 32,
-                      padding: '24px 0',
-                    }}
-                  >
-                    <Pagination
-                      current={storeSearchParams.page}
-                      total={total}
-                      pageSize={storeSearchParams.page_size}
-                      showSizeChanger
-                      showQuickJumper
-                      showTotal={(total, range) =>
-                        `第 ${range[0]}-${range[1]} 条，共 ${total} 条商品`
-                      }
-                      pageSizeOptions={['12', '24', '48', '96']}
-                      onChange={(page, size) => {
-                        updateUrlAndLoad({ page, size });
-                      }}
-                      onShowSizeChange={(current, size) => {
-                        setPageSize(size);
-                        updateUrlAndLoad({ page: 1, size });
-                      }}
-                      size='default'
-                      style={{ textAlign: 'center' }}
-                    />
-                  </div>
-                </>
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description='暂无商品'
-                  style={{ margin: '60px 0' }}
+          {/* Dynamic Pill Filters */}
+          <div className="mb-8 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleCategoryClick(0)}
+                className={cn(
+                  "px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex-shrink-0",
+                  activeCategory === 0
+                    ? "bg-[#1d1d1f] text-white shadow-md transform scale-105"
+                    : "bg-white text-[#1d1d1f] hover:bg-white/80"
+                )}
+              >
+                All
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  className={cn(
+                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex-shrink-0",
+                    activeCategory === cat.id
+                      ? "bg-[#1d1d1f] text-white shadow-md transform scale-105"
+                      : "bg-white text-[#1d1d1f] hover:bg-white/80"
+                  )}
                 >
-                  <Button type='primary' onClick={handleClearFilters}>
-                    清除筛选条件
-                  </Button>
-                </Empty>
-              )}
-            </Spin>
-          </Col>
-        </Row>
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {/* 移动端筛选抽屉 */}
-        <Drawer
-          title='商品筛选'
-          placement='left'
-          onClose={() => setFilterVisible(false)}
-          open={filterVisible}
-          width={300}
-        >
-          {renderFilterPanel()}
-        </Drawer>
+          {/* Product Grid */}
+          <Spin spinning={loading}>
+            {products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <AppleCard
+                    key={product.id}
+                    className="group flex flex-col justify-between h-[420px]"
+                    noPadding
+                  >
+                    <div className="relative h-[280px] p-6 flex items-center justify-center bg-[#fbfbfd]">
+                      <img
+                        src={product.images?.[0] || 'https://placehold.co/400x400?text=Product'}
+                        alt={product.name}
+                        className="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {/* Quick Add Button Overlay */}
+                      <div className="absolute bottom-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                        <AppleButton size="sm" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
+                          Add
+                        </AppleButton>
+                      </div>
+                    </div>
+
+                    <div className="p-6 flex flex-col flex-1 justify-between">
+                      <div>
+                        <p className="text-[#bf4800] text-xs font-semibold mb-1 uppercase">New</p>
+                        <h3 className="text-lg font-semibold text-[#1d1d1f] leading-tight mb-2 group-hover:text-[#007AFF] transition-colors cursor-pointer" onClick={() => router.push(`/products/${product.id}`)}>
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-[#86868b] line-clamp-2">{product.description}</p>
+                      </div>
+                      <div className="pt-4 flex justify-between items-end">
+                        <span className="text-lg font-medium text-[#1d1d1f]">${product.price}</span>
+                        {/* Star Rating Visualization */}
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={cn("w-3 h-3", i < 4 ? "fill-[#ffb400] text-[#ffb400]" : "text-gray-300")} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </AppleCard>
+                ))}
+              </div>
+            ) : (
+              <div className="h-[400px] flex flex-col items-center justify-center text-[#86868b]">
+                <p>No products found.</p>
+                <AppleButton variant="ghost" className="mt-4" onClick={() => handleCategoryClick(0)}>Clear Filters</AppleButton>
+              </div>
+            )}
+          </Spin>
+
+          {/* Filter Drawer (Keeping it functional but minimal) */}
+          <Drawer
+            title="Filter"
+            placement="right"
+            onClose={() => setFilterOpen(false)}
+            open={filterOpen}
+            width={320}
+          >
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-3">Price Range</h3>
+                <Slider range min={0} max={2000} defaultValue={[0, 2000]} />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3">Features</h3>
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center gap-2 mb-2">
+                    <Checkbox /> <span>Feature {i}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Drawer>
+
+        </div>
       </div>
     </MainLayout>
   );

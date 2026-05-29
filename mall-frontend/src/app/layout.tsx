@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import AppProviders from '@/components/providers/AppProviders';
 import './globals.css';
+import '@fontsource/inter';
+import '@fontsource/outfit';
 
 export const metadata: Metadata = {
   title: 'Mall Frontend - Go商城前端应用',
@@ -9,7 +11,6 @@ export const metadata: Metadata = {
   keywords: '商城,电商,React,Next.js,TypeScript',
   authors: [{ name: 'Mall Team' }],
   viewport: 'width=device-width, initial-scale=1',
-  charSet: 'utf-8',
 };
 
 export default function RootLayout({

@@ -1,428 +1,245 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Typography,
-  Carousel,
-  Space,
-  Tag,
-  Spin,
-  message,
-  Divider,
-  Badge,
-  Image,
-} from 'antd';
-import {
-  ShoppingCartOutlined,
-  HeartOutlined,
-  EyeOutlined,
-  StarFilled,
-  FireOutlined,
-  ThunderboltOutlined,
-  GiftOutlined,
-  RightOutlined,
-} from '@ant-design/icons';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
-import ProductCard from '@/components/business/ProductCard';
-import CategoryGrid from '@/components/business/CategoryGrid';
+import { AppleAmbientBackground } from '@/components/ui/apple/AppleAmbientBackground';
+import { AppleCard } from '@/components/ui/apple/AppleCard';
+import { AppleButton } from '@/components/ui/apple/AppleButton';
+import { motion } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  fetchProductsAsync,
-  selectProducts,
-  fetchCategoriesAsync,
-  selectCategories,
-  selectProductLoading,
-} from '@/store/slices/productSlice';
-import { addToCartAsync } from '@/store/slices/cartSlice';
-import { Product, Category } from '@/types';
-
-const { Title, Text, Paragraph } = Typography;
-
-// 轮播图数据
-const bannerData = [
-  {
-    id: 1,
-    title: '新年大促销',
-    subtitle: '全场商品5折起，限时抢购',
-    image:
-      'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=400&fit=crop',
-    link: '/products?sale=true',
-    color: '#ff4d4f',
-  },
-  {
-    id: 2,
-    title: '电子产品专场',
-    subtitle: 'iPhone、MacBook等热门产品',
-    image:
-      'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1200&h=400&fit=crop',
-    link: '/categories/1',
-    color: '#1890ff',
-  },
-  {
-    id: 3,
-    title: '时尚服饰',
-    subtitle: '春季新款上市，潮流穿搭',
-    image:
-      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop',
-    link: '/categories/2',
-    color: '#52c41a',
-  },
-];
+import { fetchProductsAsync, fetchCategoriesAsync, selectProducts, selectCategories, selectProductLoading } from '@/store/slices/productSlice';
+import { getCategoryVisual, getBentoSize } from '@/lib/visuals';
+import { Spin } from 'antd';
 
 export default function Home() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const products = useAppSelector(selectProducts);
+  const categories = useAppSelector(selectCategories);
+  const loading = useAppSelector(selectProductLoading);
 
-  const products = useAppSelector(selectProducts) || [];
-  const categories = useAppSelector(selectCategories) || [];
-  const productsLoading = useAppSelector(selectProductLoading);
-  const categoriesLoading = useAppSelector(
-    state => state.product.categoriesLoading
-  );
-
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [hotProducts, setHotProducts] = useState<Product[]>([]);
-  const [newProducts, setNewProducts] = useState<Product[]>([]);
-
-  // 获取数据
   useEffect(() => {
-    // 获取商品列表
-    dispatch(fetchProductsAsync({ page: 1, page_size: 20 }));
-    // 获取分类列表
+    dispatch(fetchProductsAsync({ page: 1, page_size: 10 }));
     dispatch(fetchCategoriesAsync());
   }, [dispatch]);
 
-  // 处理商品数据
-  useEffect(() => {
-    if (products && Array.isArray(products) && products.length > 0) {
-      // 模拟不同类型的商品分类
-      setFeaturedProducts(products.slice(0, 8)); // 精选商品
-      setHotProducts(products.slice(8, 16)); // 热销商品
-      setNewProducts(products.slice(0, 4)); // 新品推荐
-    } else {
-      // 如果没有商品数据，设置为空数组
-      setFeaturedProducts([]);
-      setHotProducts([]);
-      setNewProducts([]);
-    }
-  }, [products]);
-
-  // 添加到购物车
-  const handleAddToCart = async (product: Product) => {
-    try {
-      await dispatch(
-        addToCartAsync({
-          product_id: product.id,
-          quantity: 1,
-        })
-      );
-      message.success(`${product.name} 已添加到购物车`);
-    } catch (error) {
-      message.error('添加购物车失败，请重试');
-    }
-  };
-
-  // 查看商品详情
-  const handleViewProduct = (productId: number) => {
-    router.push(`/products/${productId}`);
-  };
-
-  // 查看分类
-  const handleViewCategory = (categoryId: number) => {
-    router.push(`/categories/${categoryId}`);
-  };
+  // Derived state for display
+  const heroProducts = products.slice(0, 2);
+  const newArrivals = products.slice(2, 7);
+  const displayCategories = categories.length > 0 ? categories.slice(0, 4) : [];
 
   return (
     <MainLayout>
-      <div style={{ background: '#f5f5f5', minHeight: '100vh' }}>
-        {/* 轮播图 */}
-        <div style={{ marginBottom: 24 }}>
-          <Carousel
-            autoplay
-            effect='fade'
-            style={{ borderRadius: 8, overflow: 'hidden' }}
-          >
-            {bannerData.map(banner => (
-              <div key={banner.id}>
-                <div
-                  style={{
-                    height: 400,
-                    background: `linear-gradient(45deg, ${banner.color}20, ${banner.color}40), url(${banner.image})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => router.push(banner.link)}
-                >
-                  <div
-                    style={{ textAlign: 'center', color: 'white', zIndex: 1 }}
+      <div className="relative min-h-screen pb-20 overflow-hidden">
+
+        {/* Ambient Background for the whole page */}
+        <AppleAmbientBackground className="fixed inset-0" fallbackColor="#007AFF" />
+
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-16">
+
+          {/* SECTION 1: HERO */}
+          <section className="relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center mb-12 pt-10"
+            >
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[#1d1d1f] mb-4 font-display">
+                Store. <span className="text-[#6e6e73]">The best way to buy the products you love.</span>
+              </h1>
+            </motion.div>
+
+            {/* Hero Carousel / Featured */}
+            <Spin spinning={loading && products.length === 0}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[500px]">
+                {heroProducts.map((product, idx) => (
+                  <AppleCard
+                    key={product.id}
+                    className="group relative h-[500px] flex flex-col justify-between overflow-hidden border-0 bg-white"
+                    noPadding
                   >
-                    <Title
-                      level={1}
-                      style={{ color: 'white', marginBottom: 16, fontSize: 48 }}
-                    >
-                      {banner.title}
-                    </Title>
-                    <Paragraph
-                      style={{ color: 'white', fontSize: 18, marginBottom: 24 }}
-                    >
-                      {banner.subtitle}
-                    </Paragraph>
-                    <Button
-                      type='primary'
-                      size='large'
-                      style={{
-                        background: banner.color,
-                        borderColor: banner.color,
-                        height: 48,
-                        fontSize: 16,
-                        paddingLeft: 32,
-                        paddingRight: 32,
-                      }}
-                    >
-                      立即抢购 <RightOutlined />
-                    </Button>
-                  </div>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'rgba(0,0,0,0.3)',
-                      zIndex: 0,
-                    }}
-                  />
-                </div>
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={product.images?.[0] || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80'}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      {/* Subtle overlay to ensure text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+                    </div>
+
+                    <div className="relative z-10 p-8 flex flex-col h-full justify-between items-start text-white w-full">
+                      <div>
+                        <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium mb-3 border border-white/10 shadow-sm">
+                          Featured
+                        </span>
+                        <h2 className="text-4xl font-semibold mb-2 tracking-tight">{product.name}</h2>
+                        <p className="text-lg text-white/90 max-w-sm font-medium line-clamp-2">{product.description}</p>
+                      </div>
+
+                      <div className="w-full flex justify-end transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                        <AppleButton
+                          variant="glass"
+                          onClick={() => router.push(`/products/${product.id}`)}
+                          className="text-white border-white/40 hover:bg-white/20 backdrop-blur-md"
+                        >
+                          Buy
+                        </AppleButton>
+                      </div>
+                    </div>
+                  </AppleCard>
+                ))}
+                {/* Skeleton Loading State if needed, or handled by Spin */}
               </div>
-            ))}
-          </Carousel>
+            </Spin>
+          </section>
+
+          {/* SECTION 2: BENTO CATEGORIES */}
+          <section>
+            <div className="flex justify-between items-end mb-8">
+              <h2 className="text-3xl font-semibold text-[#1d1d1f]">Categories</h2>
+              <AppleButton variant="ghost" className="text-sm font-normal text-[#007AFF] hover:underline" onClick={() => router.push('/products')}>
+                View all <ChevronRight className="w-4 h-4 ml-1" />
+              </AppleButton>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[250px]">
+              {displayCategories.map((cat, idx) => {
+                const visual = getCategoryVisual(cat.id);
+                const size = getBentoSize(idx);
+
+                return (
+                  <AppleCard
+                    key={cat.id}
+                    className={cn(
+                      "relative group flex flex-col justify-end overflow-hidden border-0 cursor-pointer",
+                      size === 'large' ? 'col-span-2 row-span-2 md:row-span-2' :
+                        size === 'medium' ? 'col-span-2 row-span-1 md:col-span-1 md:row-span-1' : 'col-span-1 row-span-1'
+                    )}
+                    noPadding
+                    onClick={() => router.push(`/products?category=${cat.id}`)}
+                  >
+                    {/* Background Image - Object Cover! */}
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={visual.image}
+                        alt={cat.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
+                      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 mix-blend-overlay", visual.color)} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    </div>
+
+                    <div className="relative z-10 p-6 w-full">
+                      <h3 className={cn("font-semibold text-white tracking-tight drop-shadow-md", size === 'large' ? 'text-4xl' : 'text-2xl')}>
+                        {cat.name}
+                      </h3>
+                    </div>
+                  </AppleCard>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* SECTION 3: NEW ARRIVALS SHELF */}
+          <section className="py-8">
+            <h2 className="text-3xl font-semibold text-[#1d1d1f] mb-8">The Latest. <span className="text-[#6e6e73]">Take a look at what's new.</span></h2>
+
+            <div className="relative -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 overflow-x-auto no-scrollbar pb-8">
+              <div className="flex space-x-6 w-max">
+                {newArrivals.map((item) => (
+                  <AppleCard
+                    key={item.id}
+                    className="w-[280px] md:w-[320px] h-[420px] flex-shrink-0 flex flex-col justify-between group bg-white border border-gray-100/50"
+                    onClick={() => router.push(`/products/${item.id}`)}
+                    hoverEffect
+                  >
+                    {/* Reduced padding from p-6 to p-4, better containment */}
+                    <div className="h-[260px] w-full flex items-center justify-center p-2 bg-[#f5f5f7] rounded-2xl mb-4 group-hover:bg-gray-50 transition-colors duration-300">
+                      <img
+                        src={item.images?.[0] || 'https://placehold.co/400x400?text=Product'}
+                        className="h-full w-full object-contain mix-blend-multiply drop-shadow-md group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-start px-2 space-y-1">
+                      <p className="text-xs font-semibold text-[#bf4800] uppercase tracking-wide">New</p>
+                      <h3 className="text-lg font-bold text-[#1d1d1f] group-hover:text-[#007AFF] transition-colors">{item.name}</h3>
+                      <p className="text-sm text-[#1d1d1f] font-medium">From ${item.price}</p>
+                    </div>
+                    <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full">
+                      <AppleButton size="sm" className="w-full">Buy</AppleButton>
+                    </div>
+                  </AppleCard>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 4: RICH FOOTER */}
+          <section className="py-16 border-t border-[#d2d2d7] mt-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 text-xs text-[#1d1d1f]">
+              <div className="col-span-2 md:col-span-1">
+                <h3 className="font-semibold mb-3 text-[#1d1d1f]">Shop and Learn</h3>
+                <ul className="space-y-2 text-[#424245]">
+                  <li>Store</li>
+                  <li>Mac</li>
+                  <li>iPad</li>
+                  <li>iPhone</li>
+                  <li>Watch</li>
+                  <li>Accessories</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3 text-[#1d1d1f]">Account</h3>
+                <ul className="space-y-2 text-[#424245]">
+                  <li>Manage Your ID</li>
+                  <li>Apple Store Account</li>
+                  <li>iCloud.com</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3 text-[#1d1d1f]">Apple Store</h3>
+                <ul className="space-y-2 text-[#424245]">
+                  <li>Find a Store</li>
+                  <li>Genius Bar</li>
+                  <li>Today at Apple</li>
+                  <li>Apple Camp</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3 text-[#1d1d1f]">About</h3>
+                <ul className="space-y-2 text-[#424245]">
+                  <li>Newsroom</li>
+                  <li>Career</li>
+                  <li>Investors</li>
+                  <li>Ethics & Compliance</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-12 pt-8 border-t border-[#d2d2d7] flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-[#86868b]">
+              <p>Copyright © 2026 Mall Inc. All rights reserved.</p>
+              <div className="flex flex-wrap gap-4 mt-4 md:mt-0">
+                <span className="hover:underline cursor-pointer">Privacy Policy</span>
+                <span className="border-l border-gray-300 pl-4 hover:underline cursor-pointer">Terms of Use</span>
+                <span className="border-l border-gray-300 pl-4 hover:underline cursor-pointer">Sales and Refunds</span>
+                <span className="border-l border-gray-300 pl-4 hover:underline cursor-pointer">Legal</span>
+                <span className="border-l border-gray-300 pl-4 hover:underline cursor-pointer">Site Map</span>
+              </div>
+              <div className="mt-4 md:mt-0 text-[#1d1d1f]">
+                United States
+              </div>
+            </div>
+          </section>
+
         </div>
-
-        {/* 分类导航 */}
-        <Card
-          style={{ marginBottom: 24 }}
-          bodyStyle={{ padding: '24px 24px 16px' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <Title level={3} style={{ margin: 0 }}>
-              <GiftOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-              商品分类
-            </Title>
-            <Button type='link' onClick={() => router.push('/categories')}>
-              查看全部 <RightOutlined />
-            </Button>
-          </div>
-
-          <Spin spinning={categoriesLoading}>
-            <CategoryGrid
-              categories={
-                categories && Array.isArray(categories)
-                  ? categories.slice(0, 6)
-                  : []
-              }
-              onCategoryClick={handleViewCategory}
-            />
-          </Spin>
-        </Card>
-
-        {/* 新品推荐 */}
-        <Card
-          style={{ marginBottom: 24 }}
-          bodyStyle={{ padding: '24px 24px 16px' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <Title level={3} style={{ margin: 0 }}>
-              <ThunderboltOutlined
-                style={{ marginRight: 8, color: '#52c41a' }}
-              />
-              新品推荐
-            </Title>
-            <Button
-              type='link'
-              onClick={() => router.push('/products?sort=newest')}
-            >
-              查看更多 <RightOutlined />
-            </Button>
-          </div>
-
-          <Spin spinning={productsLoading}>
-            <Row gutter={[16, 16]}>
-              {newProducts.map(product => (
-                <Col xs={24} sm={12} md={6} key={product.id}>
-                  <ProductCard
-                    product={product}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onViewDetail={() => handleViewProduct(product.id)}
-                    showBadge='新品'
-                    badgeColor='#52c41a'
-                  />
-                </Col>
-              ))}
-            </Row>
-          </Spin>
-        </Card>
-
-        {/* 热销商品 */}
-        <Card
-          style={{ marginBottom: 24 }}
-          bodyStyle={{ padding: '24px 24px 16px' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <Title level={3} style={{ margin: 0 }}>
-              <FireOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-              热销商品
-            </Title>
-            <Button
-              type='link'
-              onClick={() => router.push('/products?sort=popular')}
-            >
-              查看更多 <RightOutlined />
-            </Button>
-          </div>
-
-          <Spin spinning={productsLoading}>
-            <Row gutter={[16, 16]}>
-              {hotProducts.map(product => (
-                <Col xs={24} sm={12} md={6} key={product.id}>
-                  <ProductCard
-                    product={product}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onViewDetail={() => handleViewProduct(product.id)}
-                    showBadge='热销'
-                    badgeColor='#ff4d4f'
-                  />
-                </Col>
-              ))}
-            </Row>
-          </Spin>
-        </Card>
-
-        {/* 精选商品 */}
-        <Card
-          style={{ marginBottom: 24 }}
-          bodyStyle={{ padding: '24px 24px 16px' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <Title level={3} style={{ margin: 0 }}>
-              <StarFilled style={{ marginRight: 8, color: '#faad14' }} />
-              精选商品
-            </Title>
-            <Button type='link' onClick={() => router.push('/products')}>
-              查看全部 <RightOutlined />
-            </Button>
-          </div>
-
-          <Spin spinning={productsLoading}>
-            <Row gutter={[16, 16]}>
-              {featuredProducts.map(product => (
-                <Col xs={24} sm={12} md={6} key={product.id}>
-                  <ProductCard
-                    product={product}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onViewDetail={() => handleViewProduct(product.id)}
-                    showBadge='精选'
-                    badgeColor='#faad14'
-                  />
-                </Col>
-              ))}
-            </Row>
-          </Spin>
-        </Card>
-
-        {/* 品牌推荐 */}
-        <Card style={{ marginBottom: 24 }}>
-          <Title level={3} style={{ textAlign: 'center', marginBottom: 24 }}>
-            品牌推荐
-          </Title>
-          <Row gutter={[16, 16]} justify='center'>
-            {[
-              { name: 'Apple', logo: '🍎', color: '#000000' },
-              { name: 'Nike', logo: '✓', color: '#ff6900' },
-              { name: 'Adidas', logo: '⚡', color: '#000000' },
-              { name: 'Samsung', logo: '📱', color: '#1428a0' },
-              { name: 'Sony', logo: '🎵', color: '#000000' },
-              { name: 'LG', logo: '📺', color: '#a50034' },
-            ].map((brand, index) => (
-              <Col xs={12} sm={8} md={4} key={index}>
-                <Card
-                  hoverable
-                  style={{ textAlign: 'center', border: '1px solid #f0f0f0' }}
-                  bodyStyle={{ padding: '16px 8px' }}
-                >
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>
-                    {brand.logo}
-                  </div>
-                  <Text strong style={{ color: brand.color }}>
-                    {brand.name}
-                  </Text>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Card>
-
-        {/* 服务保障 */}
-        <Card>
-          <Row gutter={[16, 16]} justify='center'>
-            {[
-              { icon: '🚚', title: '免费配送', desc: '满99元免费配送' },
-              { icon: '🔒', title: '安全支付', desc: '多种支付方式' },
-              { icon: '↩️', title: '7天退换', desc: '7天无理由退换货' },
-              { icon: '🎧', title: '24小时客服', desc: '专业客服在线服务' },
-            ].map((service, index) => (
-              <Col xs={12} sm={6} key={index}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>
-                    {service.icon}
-                  </div>
-                  <Title level={5} style={{ marginBottom: 4 }}>
-                    {service.title}
-                  </Title>
-                  <Text type='secondary'>{service.desc}</Text>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Card>
       </div>
     </MainLayout>
   );

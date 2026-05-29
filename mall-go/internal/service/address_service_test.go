@@ -9,7 +9,6 @@ import (
 	"mall-go/internal/model"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestAddressService_CreateAddress 测试创建地址
@@ -461,20 +460,20 @@ func createTestAddressService(mockDB *MockDB) *AddressService {
 	// 创建配置
 	cfg := config.DefaultAddressConfig()
 	configManager, _ := config.NewAddressConfigManager(cfg)
-	
+
 	// 创建审计日志记录器
 	auditLogger := NewAuditLogger()
-	
+
 	// 创建超时管理器
 	timeoutManager := NewTimeoutManager(cfg)
 	timeoutWrapper := NewTimeoutWrapper(timeoutManager)
-	
-	// 创建性能监控器
-	performanceMonitor := NewMockPerformanceMonitor()
-	
+
+	// 创建性能监控器（使用真实的PerformanceMonitor）
+	performanceMonitor := NewPerformanceMonitor()
+
 	// 创建缓存服务（禁用状态）
 	cacheService := NewCacheService(nil, cfg)
-	
+
 	return &AddressService{
 		db:                 nil, // 使用Mock，不需要真实DB
 		configManager:      configManager,

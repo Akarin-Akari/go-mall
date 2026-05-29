@@ -2,7 +2,6 @@ package errors
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"math/rand"
 	"time"

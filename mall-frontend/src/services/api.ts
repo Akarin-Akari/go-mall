@@ -16,6 +16,7 @@ import {
   Address,
   Payment,
   PaymentRequest,
+  CreateOrderRequest,
 } from '@/types';
 
 // 认证相关API
@@ -89,6 +90,46 @@ export const authAPI = {
         skipAuth: true,
       }
     );
+  },
+
+  // 发送重置密码验证码
+  sendResetCode: (data: {
+    email: string;
+  }): Promise<ApiResponse<{ success: boolean }>> => {
+    return http.post(API_ENDPOINTS.AUTH.SEND_RESET_CODE, data, {
+      skipAuth: true,
+      showSuccessMessage: true,
+      successMessage: '验证码已发送',
+    });
+  },
+
+  // 重置密码
+  resetPassword: (data: {
+    email: string;
+    code: string;
+    new_password: string;
+  }): Promise<ApiResponse<{ success: boolean }>> => {
+    return http.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data, {
+      skipAuth: true,
+      showSuccessMessage: true,
+      successMessage: '密码重置成功',
+    });
+  },
+
+  // 校验用户名是否可用
+  checkUsernameAvailable: (
+    username: string
+  ): Promise<ApiResponse<{ available: boolean }>> => {
+    return http.get(API_ENDPOINTS.AUTH.CHECK_USERNAME, {
+      params: { username },
+    });
+  },
+
+  // 校验邮箱是否可用
+  checkEmailAvailable: (
+    email: string
+  ): Promise<ApiResponse<{ available: boolean }>> => {
+    return http.get(API_ENDPOINTS.AUTH.CHECK_EMAIL, { params: { email } });
   },
 };
 
@@ -202,13 +243,12 @@ export const cartAPI = {
     quantity: number;
     selected?: boolean;
   }): Promise<ApiResponse<CartItem>> => {
-    return http.put(API_ENDPOINTS.CART.UPDATE, data);
+    return http.put(API_ENDPOINTS.CART.UPDATE(data.id), data);
   },
 
   // 删除购物车商品
   removeCartItem: (id: number): Promise<ApiResponse<null>> => {
-    return http.delete(API_ENDPOINTS.CART.REMOVE, {
-      data: { id },
+    return http.delete(API_ENDPOINTS.CART.REMOVE(id), {
       showSuccessMessage: true,
       successMessage: '商品已从购物车移除',
     });
@@ -247,16 +287,7 @@ export const orderAPI = {
   },
 
   // 创建订单
-  createOrder: (data: {
-    items: {
-      product_id: number;
-      sku_id?: number;
-      quantity: number;
-      price: string;
-    }[];
-    shipping_address: Address;
-    remark?: string;
-  }): Promise<ApiResponse<Order>> => {
+  createOrder: (data: CreateOrderRequest): Promise<ApiResponse<Order>> => {
     return http.post(API_ENDPOINTS.ORDERS.CREATE, data, {
       showSuccessMessage: true,
       successMessage: '订单创建成功',

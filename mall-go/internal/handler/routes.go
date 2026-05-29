@@ -19,6 +19,21 @@ import (
 
 // RegisterRoutes 注册所有路由
 func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentService *paymentpkg.Service) {
+    // 全局 404 兜底，确保也携带 CORS 响应头，避免浏览器将 404 误判为 CORS 失败
+    r.NoRoute(func(c *gin.Context) {
+        origin := c.GetHeader("Origin")
+        if origin != "" {
+            c.Header("Access-Control-Allow-Origin", origin)
+            c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
+            c.Header("Access-Control-Allow-Credentials", "true")
+        }
+        c.JSON(404, gin.H{
+            "code": 404,
+            "msg":  "接口不存在",
+            "path": c.Request.URL.Path,
+        })
+    })
 	// 根路径健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -58,7 +73,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentServic
 		})
 	})
 
-	// 用户相关路由
+    // 用户相关路由
 	userHandler := user.NewHandler(db)
 	userGroup := v1.Group("/users")
 	{
@@ -67,6 +82,13 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rdb *redis.Client, paymentServic
 		userGroup.GET("/profile", middleware.AuthMiddleware(), userHandler.GetProfile)
 		userGroup.PUT("/profile", middleware.AuthMiddleware(), userHandler.UpdateProfile)
 	}
+
+    // 兼容前端期望的 /auth 实时校验接口
+    authCompat := v1.Group("/auth")
+    {
+        authCompat.GET("/check-username", userHandler.CheckUsernameAvailable)
+        authCompat.GET("/check-email", userHandler.CheckEmailAvailable)
+    }
 
 	// 商品相关路由
 	productHandler := product.NewHandler(db)

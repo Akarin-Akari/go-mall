@@ -32,38 +32,39 @@ export function withAuth<P extends object>(
     unauthorizedComponent: UnauthorizedComponent,
   } = options;
 
-  const AuthenticatedComponent: React.FC<P> = (props) => {
+  const AuthenticatedComponent: React.FC<P> = props => {
     const router = useRouter();
-    const { user, isAuthenticated, loading, hasRole, redirectToLogin } = useAuth();
+    const { user, isAuthenticated, loading, hasRole, redirectToLogin } =
+      useAuth();
 
     // 如果正在加载，显示加载状态
     if (loading) {
       if (FallbackComponent) {
         return <FallbackComponent />;
       }
-      return <Loading fullScreen text="正在验证身份..." />;
+      return <Loading fullScreen text='正在验证身份...' />;
     }
 
     // 如果需要认证但用户未登录
     if (requireAuth && !isAuthenticated) {
       if (redirectTo) {
         router.push(redirectTo);
-        return <Loading fullScreen text="正在跳转..." />;
+        return <Loading fullScreen text='正在跳转...' />;
       }
-      
+
       if (UnauthorizedComponent) {
         return <UnauthorizedComponent />;
       }
 
       // 自动重定向到登录页
       redirectToLogin();
-      return <Loading fullScreen text="正在跳转到登录页..." />;
+      return <Loading fullScreen text='正在跳转到登录页...' />;
     }
 
     // 如果需要特定角色但用户没有权限
     if (requireRoles.length > 0 && user) {
       const hasRequiredRole = requireRoles.some(role => hasRole(role));
-      
+
       if (!hasRequiredRole) {
         if (UnauthorizedComponent) {
           return <UnauthorizedComponent />;
@@ -71,11 +72,11 @@ export function withAuth<P extends object>(
 
         return (
           <Result
-            status="403"
-            title="权限不足"
+            status='403'
+            title='权限不足'
             subTitle={`您需要以下角色之一才能访问此页面: ${requireRoles.join(', ')}`}
             extra={
-              <Button type="primary" onClick={() => router.push(ROUTES.HOME)}>
+              <Button type='primary' onClick={() => router.push(ROUTES.HOME)}>
                 返回首页
               </Button>
             }
@@ -106,18 +107,20 @@ export const withRequireAuth = <P extends object>(
 // 需要管理员权限的组件
 export const withRequireAdmin = <P extends object>(
   WrappedComponent: React.ComponentType<P>
-) => withAuth(WrappedComponent, { 
-  requireAuth: true, 
-  requireRoles: ['admin'] 
-});
+) =>
+  withAuth(WrappedComponent, {
+    requireAuth: true,
+    requireRoles: ['admin'],
+  });
 
 // 需要商户权限的组件
 export const withRequireMerchant = <P extends object>(
   WrappedComponent: React.ComponentType<P>
-) => withAuth(WrappedComponent, { 
-  requireAuth: true, 
-  requireRoles: ['merchant', 'admin'] 
-});
+) =>
+  withAuth(WrappedComponent, {
+    requireAuth: true,
+    requireRoles: ['merchant', 'admin'],
+  });
 
 // 可选认证的组件（登录后显示更多功能）
 export const withOptionalAuth = <P extends object>(
@@ -181,7 +184,7 @@ export const RoleBasedRender: React.FC<RoleBasedRenderProps> = ({
 
   // 按优先级检查角色（admin > merchant > user）
   const roleOrder = ['admin', 'merchant', 'user'];
-  
+
   for (const role of roleOrder) {
     if (roles[role] && hasRole(role)) {
       return <>{roles[role]}</>;

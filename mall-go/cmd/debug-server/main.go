@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"mall-go/internal/config"
@@ -11,7 +12,7 @@ import (
 	"mall-go/pkg/payment"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -56,7 +57,14 @@ func main() {
 			Password: "123456", // 使用正确的Redis密码
 			DB:       0,
 		})
-		logger.Info("✅ Redis连接成功")
+		// 测试连接
+		ctx := context.Background()
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			logger.Warn("Redis ping失败，将在没有缓存的情况下运行", zap.Error(err))
+			rdb = nil
+		} else {
+			logger.Info("✅ Redis连接成功")
+		}
 	}
 
 	// 初始化支付服务

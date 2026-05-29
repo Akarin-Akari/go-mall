@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"mall-go/internal/config"
 	"mall-go/internal/model"
 
 	"gorm.io/gorm"

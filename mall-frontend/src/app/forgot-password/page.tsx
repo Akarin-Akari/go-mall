@@ -25,6 +25,7 @@ import {
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ROUTES } from '@/constants';
+import { authAPI } from '@/services/api';
 
 const { Title, Text } = Typography;
 
@@ -67,33 +68,15 @@ const ForgotPasswordPage: React.FC = () => {
     try {
       setLoading(true);
 
-      // 这里应该调用真实的API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await authAPI.sendResetCode({ email: values.email });
 
-      // 模拟API调用
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: values.email }),
-      }).catch(() => {
-        // 模拟成功响应
-        return { ok: true };
-      });
-
-      if (response.ok) {
-        setEmail(values.email);
-        setCurrentStep(1);
-        setCountdown(60); // 60秒倒计时
-        setCanResend(false);
-        message.success('验证码已发送到您的邮箱，请查收');
-      } else {
-        message.error('发送失败，请检查邮箱地址是否正确');
-      }
+      setEmail(values.email);
+      setCurrentStep(1);
+      setCountdown(60);
+      setCanResend(false);
+      message.success('验证码已发送到您的邮箱，请查收');
     } catch (error) {
-      console.error('Send code error:', error);
-      message.error('网络错误，请稍后重试');
+      message.error('发送失败，请检查邮箱地址是否正确');
     } finally {
       setLoading(false);
     }
@@ -101,14 +84,11 @@ const ForgotPasswordPage: React.FC = () => {
 
   // 重新发送验证码
   const handleResendCode = async () => {
-    if (!canResend) return;
+    if (!canResend || !email) return;
 
     try {
       setLoading(true);
-
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      await authAPI.sendResetCode({ email });
       setCountdown(60);
       setCanResend(false);
       message.success('验证码已重新发送');
@@ -124,33 +104,16 @@ const ForgotPasswordPage: React.FC = () => {
     try {
       setLoading(true);
 
-      // 这里应该调用真实的API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          code: values.code,
-          newPassword: values.newPassword,
-        }),
-      }).catch(() => {
-        // 模拟成功响应
-        return { ok: true };
+      await authAPI.resetPassword({
+        email,
+        code: values.code,
+        new_password: values.newPassword,
       });
 
-      if (response.ok) {
-        setCurrentStep(2);
-        message.success('密码重置成功！');
-      } else {
-        message.error('重置失败，请检查验证码是否正确');
-      }
+      setCurrentStep(2);
+      message.success('密码重置成功！');
     } catch (error) {
-      console.error('Reset password error:', error);
-      message.error('网络错误，请稍后重试');
+      message.error('重置失败，请检查验证码是否正确');
     } finally {
       setLoading(false);
     }

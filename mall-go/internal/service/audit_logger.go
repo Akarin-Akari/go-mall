@@ -17,8 +17,15 @@ type AuditLogger struct {
 
 // NewAuditLogger 创建审计日志记录器
 func NewAuditLogger() *AuditLogger {
+	// 获取全局logger，如果为nil则创建一个基本的logger
+	globalLogger := logger.GetLogger()
+	if globalLogger == nil {
+		// 创建一个基本的开发环境logger
+		globalLogger, _ = zap.NewDevelopment()
+	}
+
 	return &AuditLogger{
-		logger: logger.GetLogger(),
+		logger: globalLogger,
 	}
 }
 

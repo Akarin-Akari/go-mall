@@ -52,7 +52,7 @@ func (h *Handler) GetSystemMetrics(c *gin.Context) {
 	}
 	
 	systemMetrics := h.metrics.GetMetrics()
-	response.Success(c, systemMetrics)
+	response.Success(c, "获取系统指标成功", systemMetrics)
 }
 
 // GetPerformanceReport 获取性能报告
@@ -66,7 +66,7 @@ func (h *Handler) GetPerformanceReport(c *gin.Context) {
 	timeRange := c.DefaultQuery("time_range", "1h")
 	
 	report := h.performanceMonitor.GenerateReport(timeRange)
-	response.Success(c, report)
+	response.Success(c, "获取性能报告成功", report)
 }
 
 // GetHealthCheck 健康检查
@@ -82,8 +82,8 @@ func (h *Handler) GetHealthCheck(c *gin.Context) {
 			"metrics_collector":   "healthy",
 		},
 	}
-	
-	response.Success(c, healthStatus)
+
+	response.Success(c, "健康检查成功", healthStatus)
 }
 
 // GetPrometheusMetrics 获取Prometheus格式指标
@@ -103,7 +103,7 @@ func (h *Handler) GetDashboard(c *gin.Context) {
 	
 	// 生成仪表板数据
 	dashboardData := h.generateDashboardData(timeRange)
-	response.Success(c, dashboardData)
+	response.Success(c, "获取仪表板数据成功", dashboardData)
 }
 
 // generateDashboardData 生成仪表板数据
@@ -213,8 +213,8 @@ func (h *Handler) GetAlerts(c *gin.Context) {
 	if limit > 0 && len(alerts) > limit {
 		alerts = alerts[:limit]
 	}
-	
-	response.Success(c, map[string]interface{}{
+
+	response.Success(c, "获取告警信息成功", map[string]interface{}{
 		"alerts": alerts,
 		"total":  len(alerts),
 		"filter": map[string]interface{}{
@@ -264,8 +264,8 @@ func (h *Handler) GetSlowQueries(c *gin.Context) {
 	if limit > 0 && len(filteredQueries) > limit {
 		filteredQueries = filteredQueries[:limit]
 	}
-	
-	response.Success(c, map[string]interface{}{
+
+	response.Success(c, "获取慢查询信息成功", map[string]interface{}{
 		"slow_queries": filteredQueries,
 		"total":        len(filteredQueries),
 		"filter": map[string]interface{}{

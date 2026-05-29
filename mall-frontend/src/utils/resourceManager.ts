@@ -21,7 +21,7 @@ export class ResourceManager {
     this.metrics = {
       memory: { used: 0, limit: 0 },
       cpu: { usage: 0 },
-      network: { requests: 0, bandwidth: 0 }
+      network: { requests: 0, bandwidth: 0 },
     };
     this.startMonitoring();
   }

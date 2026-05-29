@@ -1,6 +1,7 @@
 package order
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,6 +33,21 @@ func NewOrderService(db *gorm.DB, cartService *cart.CartService, calculationServ
 
 // CreateOrder 创建订单 - 优化版本，先扣库存后创建订单，避免双重事务嵌套
 func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) (*model.Order, error) {
+	// === P0-1 幂等性检查：若 IdempotencyKey 已存在，直接返回历史订单 ===
+	if req.IdempotencyKey != "" {
+		var existing model.Order
+		err := os.db.Where("idempotency_key = ? AND user_id = ?", req.IdempotencyKey, userID).
+			First(&existing).Error
+		if err == nil {
+			// 命中幂等：直接返回旧订单（不再扣库存、不再创建）
+			return &existing, nil
+		}
+		if err != gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("幂等性检查失败: %v", err)
+		}
+		// gorm.ErrRecordNotFound → 继续走正常下单流程
+	}
+
 	// 第一步：验证购物车和获取商品项（轻量级查询）
 	var userCart model.Cart
 	if err := os.db.Where("user_id = ? AND status = ?", userID, model.CartStatusActive).First(&userCart).Error; err != nil {
@@ -63,6 +79,11 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 		return nil, fmt.Errorf("购物车为空，请先添加商品到购物车")
 	}
 
+	// === P0-2 越权防御：断言查到的项数与请求项数一致（防止 CartItemIDs 里掺杂越权 ID 被静默丢弃） ===
+	if len(req.CartItemIDs) > 0 && len(cartItems) != len(req.CartItemIDs) {
+		return nil, fmt.Errorf("部分购物车项不存在或不属于当前用户")
+	}
+
 	// 第二步：先扣减库存（独立事务，避免长时间锁定）
 	if err := os.deductStockWithInventoryService(cartItems); err != nil {
 		return nil, fmt.Errorf("扣减库存失败: %v", err)
@@ -83,8 +104,9 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 			return createErr
 		}
 
-		// 清理购物车商品项
-		if err := tx.Where("id IN ?", req.CartItemIDs).Delete(&model.CartItem{}).Error; err != nil {
+		// === P0-2 删购物车时附加 cart_id 约束（防止跨用户 ID 越权删除） ===
+		if err := tx.Where("id IN ? AND cart_id = ?", req.CartItemIDs, userCart.ID).
+			Delete(&model.CartItem{}).Error; err != nil {
 			return fmt.Errorf("清理购物车失败: %v", err)
 		}
 
@@ -94,6 +116,14 @@ func (os *OrderService) CreateOrder(userID uint, req *model.OrderCreateRequest) 
 	if err != nil {
 		// 如果订单创建失败，需要回滚库存
 		os.rollbackStock(cartItems)
+		// === P0-1 幂等键唯一约束冲突：可能是并发请求另一个先创建了，重查返回 ===
+		if req.IdempotencyKey != "" && errors.Is(err, gorm.ErrDuplicatedKey) {
+			var existing model.Order
+			if reErr := os.db.Where("idempotency_key = ? AND user_id = ?", req.IdempotencyKey, userID).
+				First(&existing).Error; reErr == nil {
+				return &existing, nil
+			}
+		}
 		return nil, err
 	}
 
@@ -163,6 +193,12 @@ func (os *OrderService) createOrderWithItems(tx *gorm.DB, userID uint, req *mode
 		return nil, fmt.Errorf("计算订单金额失败: %v", err)
 	}
 
+	// P0-1 幂等键：空值落库为 NULL（避免唯一索引下空串冲突），非空时承载唯一约束
+	var idemKey *string
+	if req.IdempotencyKey != "" {
+		idemKey = &req.IdempotencyKey
+	}
+
 	// 创建订单
 	order := &model.Order{
 		OrderNo:         os.generateOrderNo(userID),
@@ -190,6 +226,7 @@ func (os *OrderService) createOrderWithItems(tx *gorm.DB, userID uint, req *mode
 		OrderTime:       time.Now(),
 		PayExpireTime:   os.getPayExpireTime(),
 		RefundStatus:    model.RefundStatusNone,
+		IdempotencyKey:  idemKey, // P0-1 幂等键
 	}
 
 	if err := tx.Create(order).Error; err != nil {

@@ -163,9 +163,10 @@ export class UploadManager {
         },
       });
 
+      const data = response.data as { url: string; filename: string };
       const result = {
-        url: response.data.url,
-        filename: response.data.filename,
+        url: data.url,
+        filename: data.filename,
       };
 
       options.onSuccess?.(result);
@@ -223,9 +224,10 @@ export class UploadManager {
         filename,
       });
 
+      const data = response.data as { url: string; filename: string };
       const result = {
-        url: response.data.url,
-        filename: response.data.filename,
+        url: data.url,
+        filename: data.filename,
       };
 
       options.onSuccess?.(result);

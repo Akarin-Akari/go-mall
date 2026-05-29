@@ -11,9 +11,11 @@ import (
 
 // Claims JWT声明结构
 type Claims struct {
-	UserID   uint   `json:"user_id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID    uint   `json:"user_id"`
+	Username  string `json:"username"`
+	Role      string `json:"role"`
+	SessionID string `json:"session_id,omitempty"` // P2-7 会话ID，用于会话维度的失效/踢人
+	DeviceID  string `json:"device_id,omitempty"`  // P2-7 设备ID，用于登录设备追溯
 	jwt.RegisteredClaims
 }
 
@@ -121,6 +123,14 @@ func GetUserInfoFromToken(tokenString string) (uint, string, string, error) {
 
 // GenerateTokenWithExpiry 生成带有自定义过期时间的JWT令牌
 func GenerateTokenWithExpiry(userID uint, username, role string, expiry time.Duration) (string, time.Time, error) {
+	// 委托给带会话信息的版本（DRY），不携带 SessionID/DeviceID
+	return GenerateTokenWithSession(userID, username, role, "", "", expiry)
+}
+
+// GenerateTokenWithSession 生成携带会话/设备信息的JWT令牌（P2-7）
+//
+// sessionID/deviceID 为空时退化为普通令牌，因此可安全替换 GenerateTokenWithExpiry。
+func GenerateTokenWithSession(userID uint, username, role, sessionID, deviceID string, expiry time.Duration) (string, time.Time, error) {
 	// 获取配置
 	cfg := config.GlobalConfig
 	if cfg.JWT.Secret == "" {
@@ -132,9 +142,11 @@ func GenerateTokenWithExpiry(userID uint, username, role string, expiry time.Dur
 
 	// 创建声明
 	claims := Claims{
-		UserID:   userID,
-		Username: username,
-		Role:     role,
+		UserID:    userID,
+		Username:  username,
+		Role:      role,
+		SessionID: sessionID,
+		DeviceID:  deviceID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -23,11 +23,11 @@ export class ErrorHandler {
     const errorInfo: ErrorInfo = {
       message: error?.message || '未知错误',
       code: error?.code,
-      details: error
+      details: error,
     };
 
     this.errorQueue.push(errorInfo);
-    
+
     // 显示错误提示
     message.error(errorInfo.message);
 

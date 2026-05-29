@@ -315,7 +315,9 @@ var GlobalMetrics *PerformanceMetrics
 
 // InitPerformanceMetrics 初始化全局性能指标
 func InitPerformanceMetrics() {
-	GlobalMetrics = NewPerformanceMetrics()
-	GlobalMetrics.StartSystemMonitoring()
-	logger.Info("性能监控系统已启动")
+	if GlobalMetrics == nil {
+		GlobalMetrics = NewPerformanceMetrics()
+		GlobalMetrics.StartSystemMonitoring()
+		logger.Info("性能监控系统已启动")
+	}
 }

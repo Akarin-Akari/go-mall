@@ -6,9 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"mall-go/internal/middleware"
 	"mall-go/internal/model"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/response"
+	"mall-go/pkg/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,20 +20,12 @@ func respondWithError(c *gin.Context, code int, message string) {
 	response.Abort(c, code, code, message)
 }
 
-// CorsMiddleware 跨域中间件
+// CorsMiddleware 跨域中间件（已弃用，使用CORSSecureMiddleware替代）
 func CorsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		c.Header("Content-Type", "application/json; charset=utf-8")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
+		// 使用安全的CORS中间件
+		securityMiddleware := middleware.CORSSecureMiddleware()
+		securityMiddleware(c)
 	}
 }
 
@@ -90,6 +84,13 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims, err := auth.ParseToken(tokenString)
 		if err != nil {
 			respondWithError(c, http.StatusUnauthorized, "认证令牌无效")
+			return
+		}
+
+		// P2-7：检查令牌是否已被加入黑名单（登出/踢人后立即失效）。
+		// JWTBlacklist 为全局单例，rdb 为 nil 时 IsBlacklisted 返回 false（优雅降级）。
+		if security.GetJWTBlacklist().IsBlacklisted(c.Request.Context(), tokenString) {
+			respondWithError(c, http.StatusUnauthorized, "认证令牌已失效，请重新登录")
 			return
 		}
 

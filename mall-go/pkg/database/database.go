@@ -97,6 +97,7 @@ func Init() *gorm.DB {
 	sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.Database.ConnMaxLifetime) * time.Second)
+	sqlDB.SetConnMaxIdleTime(10 * time.Minute) // 空闲连接最大存活时间
 
 	// 测试连接
 	if err := sqlDB.Ping(); err != nil {
@@ -104,6 +105,18 @@ func Init() *gorm.DB {
 	}
 
 	log.Println("数据库连接成功")
+
+	// 记录连接池配置
+	log.Printf("数据库连接池配置: MaxOpen=%d, MaxIdle=%d, MaxLifetime=%ds",
+		cfg.Database.MaxOpenConns,
+		cfg.Database.MaxIdleConns,
+		cfg.Database.ConnMaxLifetime,
+	)
+
+	// 启动连接池监控（仅生产环境）
+	if cfg.Server.Mode == "release" {
+		StartPoolMonitor(DB, 60*time.Second)
+	}
 
 	// 自动迁移
 	if err := autoMigrate(DB); err != nil {
@@ -171,6 +184,8 @@ func autoMigrate(db *gorm.DB) error {
 		&model.Address{},
 		&model.Cart{},
 		&model.CartItem{},
+		// 安全审计模型（P1-6）
+		&model.AuditLog{},
 	)
 
 	if err != nil {

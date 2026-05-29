@@ -151,3 +151,22 @@ npm run format:check
 # TypeScript类型检查
 npm run type-check
 ```
+
+
+## 🏭 生产环境配置
+
+- 建议在仓库中添加 `.env.production`，示例：
+
+```env
+NODE_ENV=production
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+NEXT_PUBLIC_API_TIMEOUT=10000
+NEXT_PUBLIC_APP_NAME=Mall Frontend
+NEXT_PUBLIC_APP_VERSION=1.0.0
+NEXT_PUBLIC_JWT_STORAGE_KEY=mall_token
+NEXT_PUBLIC_REFRESH_TOKEN_KEY=mall_refresh_token
+NEXT_PUBLIC_DEBUG=false
+NEXT_PUBLIC_LOG_LEVEL=warn
+```
+
+- 安全策略（CSP）说明：next.config.ts 已使用 `NEXT_PUBLIC_API_BASE_URL` 生成 `connect-src`，生产环境请确保该变量与后端域名一致，否则将被浏览器拦截。

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"mall-go/internal/model"
+	"mall-go/pkg/audit"
 	"mall-go/pkg/auth"
 	"mall-go/pkg/upload"
 	"mall-go/pkg/verification"
@@ -207,6 +208,17 @@ func (ps *ProfileService) ChangePassword(userID uint, req *ChangePasswordRequest
 		return fmt.Errorf("更新密码失败: %v", err)
 	}
 
+	// P1-6 审计：记录密码修改（绝不记录密码明文）
+	if as := audit.GetGlobalAuditService(); as != nil {
+		as.Log(audit.LogEntry{
+			UserID:     userID,
+			Action:     model.AuditActionChangePassword,
+			TargetType: "user",
+			TargetID:   fmt.Sprintf("%d", userID),
+			Remark:     "用户主动修改登录密码",
+		})
+	}
+
 	return nil
 }
 
@@ -243,6 +255,18 @@ func (ps *ProfileService) ChangeEmail(userID uint, req *ChangeEmailRequest) erro
 
 	if err := ps.db.Save(&user).Error; err != nil {
 		return fmt.Errorf("更新邮箱失败: %v", err)
+	}
+
+	// P1-6 审计：记录邮箱变更（新旧邮箱用于追溯）
+	if as := audit.GetGlobalAuditService(); as != nil {
+		as.Log(audit.LogEntry{
+			UserID:     userID,
+			Action:     model.AuditActionChangeEmail,
+			TargetType: "user",
+			TargetID:   fmt.Sprintf("%d", userID),
+			NewValue:   req.NewEmail,
+			Remark:     "用户修改绑定邮箱",
+		})
 	}
 
 	return nil

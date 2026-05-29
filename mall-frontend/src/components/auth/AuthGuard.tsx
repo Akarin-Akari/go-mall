@@ -4,7 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Spin, Result, Button } from 'antd';
 import { useAppSelector, useAppDispatch } from '@/store';
-import { selectAuth, restoreAuth, getProfileAsync } from '@/store/slices/authSlice';
+import {
+  selectAuth,
+  restoreAuth,
+  getProfileAsync,
+} from '@/store/slices/authSlice';
 import { secureTokenManager } from '@/utils/secureTokenManager';
 import { ROUTES } from '@/constants';
 
@@ -54,7 +58,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  
+
   const { user, isAuthenticated, loading } = useAppSelector(selectAuth);
   const [isInitializing, setIsInitializing] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
@@ -64,10 +68,12 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     if (requireAuth !== undefined) {
       return requireAuth;
     }
-    
+
     // 检查是否是受保护的路由
-    return PROTECTED_ROUTES.some(route => path.startsWith(route)) ||
-           ADMIN_ROUTES.some(route => path.startsWith(route));
+    return (
+      PROTECTED_ROUTES.some(route => path.startsWith(route)) ||
+      ADMIN_ROUTES.some(route => path.startsWith(route))
+    );
   };
 
   // 检查是否是管理员路由
@@ -76,7 +82,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   };
 
   // 检查用户角色
-  const hasRequiredRole = (userRoles: string[], requiredRoles: string[]): boolean => {
+  const hasRequiredRole = (
+    userRoles: string[],
+    requiredRoles: string[]
+  ): boolean => {
     if (requiredRoles.length === 0) return true;
     return requiredRoles.some(role => userRoles.includes(role));
   };
@@ -86,11 +95,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     const initializeAuth = async () => {
       try {
         const token = secureTokenManager.getAccessToken();
-        
+
         if (token) {
           // 恢复认证状态
           dispatch(restoreAuth());
-          
+
           // 如果没有用户信息，尝试获取
           if (!user) {
             try {
@@ -120,7 +129,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     const checkAccess = () => {
       const needsAuth = isProtectedRoute(pathname);
       const needsAdmin = isAdminRoute(pathname);
-      
+
       // 如果需要认证但用户未登录
       if (needsAuth && !isAuthenticated) {
         const redirectUrl = encodeURIComponent(pathname);
@@ -145,7 +154,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     };
 
     checkAccess();
-  }, [pathname, isAuthenticated, user, authChecked, isInitializing, requireRoles, router]);
+  }, [
+    pathname,
+    isAuthenticated,
+    user,
+    authChecked,
+    isInitializing,
+    requireRoles,
+    router,
+  ]);
 
   // 如果正在初始化，显示加载状态
   if (isInitializing || loading) {
@@ -160,10 +177,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
             flexDirection: 'column',
           }}
         >
-          <Spin size="large" />
-          <div style={{ marginTop: 16, color: '#666' }}>
-            正在验证身份...
-          </div>
+          <Spin size='large' />
+          <div style={{ marginTop: 16, color: '#666' }}>正在验证身份...</div>
         </div>
       )
     );
@@ -173,11 +188,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   if (isProtectedRoute(pathname) && !isAuthenticated) {
     return (
       <Result
-        status="403"
-        title="需要登录"
-        subTitle="请先登录后再访问此页面"
+        status='403'
+        title='需要登录'
+        subTitle='请先登录后再访问此页面'
         extra={
-          <Button type="primary" onClick={() => router.push(ROUTES.LOGIN)}>
+          <Button type='primary' onClick={() => router.push(ROUTES.LOGIN)}>
             去登录
           </Button>
         }
@@ -189,11 +204,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   if (isAdminRoute(pathname) && (!user || user.role !== 'admin')) {
     return (
       <Result
-        status="403"
-        title="权限不足"
-        subTitle="您没有访问此页面的权限"
+        status='403'
+        title='权限不足'
+        subTitle='您没有访问此页面的权限'
         extra={
-          <Button type="primary" onClick={() => router.push(ROUTES.HOME)}>
+          <Button type='primary' onClick={() => router.push(ROUTES.HOME)}>
             返回首页
           </Button>
         }
@@ -207,11 +222,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     if (!hasRequiredRole(userRoles, requireRoles)) {
       return (
         <Result
-          status="403"
-          title="权限不足"
-          subTitle="您的角色权限不足以访问此页面"
+          status='403'
+          title='权限不足'
+          subTitle='您的角色权限不足以访问此页面'
           extra={
-            <Button type="primary" onClick={() => router.push(ROUTES.HOME)}>
+            <Button type='primary' onClick={() => router.push(ROUTES.HOME)}>
               返回首页
             </Button>
           }
